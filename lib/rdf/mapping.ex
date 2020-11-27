@@ -19,7 +19,8 @@ defmodule RDF.Mapping do
       @spec iri(struct) :: IRI.t()
       def iri(%__MODULE__{} = mapping), do: mapping.__iri__
 
-      @spec from_rdf(Description.t(), Graph.t(), opts :: Keyword) :: {:ok, struct} | {:error, any}
+      @spec from_rdf(Graph.t() | Description.t(), IRI.coercible(), opts :: Keyword) ::
+              {:ok, struct} | {:error, any}
       def from_rdf(graph, iri, opts \\ []) do
         case __new__(iri) do
           %__MODULE__{} = initial ->

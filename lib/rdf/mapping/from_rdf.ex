@@ -24,11 +24,19 @@ defmodule RDF.Mapping.FromRDF do
     end
   end
 
-  def call(mapping, initial, iri, %Graph{} = graph, opts) do
+  def call(mapping, initial, %IRI{} = iri, %Description{} = description, opts) do
+    call(mapping, initial, iri, Graph.new(description), opts)
+  end
+
+  def call(_, _, %IRI{}, invalid, _) do
+    raise ArgumentError, "invalid input data: #{inspect(invalid)}"
+  end
+
+  def call(mapping, initial, iri, data, opts) do
     if iri = IRI.new(iri) do
-      call(mapping, initial, iri, graph, opts)
+      call(mapping, initial, iri, data, opts)
     else
-      raise IRI.InvalidError, "Invalid IRI: #{inspect(iri)}"
+      raise ArgumentError, "invalid IRI: #{inspect(iri)}"
     end
   end
 

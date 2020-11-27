@@ -4,9 +4,13 @@ defmodule RDF.Mapping.TestData do
 
   import RDF.Sigils
 
-  @example_graph EX.User
-                 |> EX.name("John Doe")
-                 |> Graph.new()
+  @example_description EX.User
+                       |> EX.name("John Doe")
+                       |> EX.age(42)
+  # |> EX.email("jd@example.com", ~I<mailto:john_doe@example.com>)
 
+  @example_graph Graph.new(@example_description)
+
+  def example_description, do: @example_description
   def example_graph, do: @example_graph
 end
