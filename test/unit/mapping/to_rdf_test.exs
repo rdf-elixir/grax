@@ -79,4 +79,36 @@ defmodule RDF.Mapping.ToRDFTest do
               |> EX.negative_integer(XSD.negativeInteger(-42))
               |> RDF.graph()}
   end
+
+  test "numeric type" do
+    assert %Example.Types{
+             __iri__: IRI.to_string(EX.S),
+             numeric: 42
+           }
+           |> Example.Types.to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.numeric(XSD.integer(42))
+              |> RDF.graph()}
+
+    assert %Example.Types{
+             __iri__: IRI.to_string(EX.S),
+             numeric: Decimal.from_float(0.5)
+           }
+           |> Example.Types.to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.numeric(XSD.decimal(0.5))
+              |> RDF.graph()}
+
+    assert %Example.Types{
+             __iri__: IRI.to_string(EX.S),
+             numeric: 3.14
+           }
+           |> Example.Types.to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.numeric(XSD.double(3.14))
+              |> RDF.graph()}
+  end
 end

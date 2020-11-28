@@ -80,6 +80,35 @@ defmodule RDF.Mapping.FromRDFTest do
                 }}
     end
 
+    test "numeric type" do
+      assert EX.S
+             |> EX.numeric(XSD.integer(42))
+             |> Example.Types.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Types{
+                  __iri__: IRI.to_string(EX.S),
+                  numeric: 42
+                }}
+
+      assert EX.S
+             |> EX.numeric(XSD.decimal(0.5))
+             |> Example.Types.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Types{
+                  __iri__: IRI.to_string(EX.S),
+                  numeric: Decimal.from_float(0.5)
+                }}
+
+      assert EX.S
+             |> EX.numeric(XSD.float(3.14))
+             |> Example.Types.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Types{
+                  __iri__: IRI.to_string(EX.S),
+                  numeric: 3.14
+                }}
+    end
+
     test "untyped properties" do
       assert EX.S |> EX.foo("foo") |> Example.Untyped.from_rdf(EX.S) ==
                {:ok,
