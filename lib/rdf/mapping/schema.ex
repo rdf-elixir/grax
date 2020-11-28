@@ -1,4 +1,5 @@
 defmodule RDF.Mapping.Schema do
+  alias RDF.Mapping.Schema.Type
   alias RDF.PropertyMap
 
   @doc """
@@ -18,6 +19,7 @@ defmodule RDF.Mapping.Schema do
         @rdf_mapping_schema_defined unquote(caller.line)
 
         Module.register_attribute(__MODULE__, :rdf_property_mapping, accumulate: true)
+        Module.register_attribute(__MODULE__, :rdf_property_opts, accumulate: true)
         Module.register_attribute(__MODULE__, :struct_fields, accumulate: true)
 
         try do
@@ -36,6 +38,9 @@ defmodule RDF.Mapping.Schema do
 
         @property_map PropertyMap.new(@rdf_property_mapping)
         def __property_map__, do: @property_map
+
+        @property_specs Map.new(@rdf_property_opts)
+        def __property_spec__(property), do: @property_specs[property]
       end
 
     quote do
@@ -52,12 +57,40 @@ defmodule RDF.Mapping.Schema do
 
   @doc false
   def __property__(mod, name, iri, opts) do
-    define_property(mod, name, iri, opts)
+    define_property(mod, name, iri, normalize_property_opts(mod, name, opts))
   end
 
   defp define_property(mod, name, iri, opts) do
-    Module.put_attribute(mod, :struct_fields, {name, Keyword.get(opts, :default)})
+    Module.put_attribute(mod, :struct_fields, {name, Map.get(opts, :default)})
 
     Module.put_attribute(mod, :rdf_property_mapping, {name, iri})
+    Module.put_attribute(mod, :rdf_property_opts, {name, opts})
+  end
+
+  defp normalize_property_opts(_mod, name, opts) do
+    opts
+    |> Map.new()
+    |> Map.update(
+      :type,
+      normalize_property_type(name, nil, opts),
+      &normalize_property_type(name, &1, opts)
+    )
+  end
+
+  @default_property_type :any
+
+  defp normalize_property_type(name, nil, opts) do
+    normalize_property_type(name, @default_property_type, opts)
+  end
+
+  defp normalize_property_type(name, type, _opts) do
+    case Type.get(type) do
+      {:ok, type} ->
+        type
+
+      {:error, error} ->
+        raise ArgumentError,
+              "invalid type definition #{inspect(type)} for property #{name}: #{error}"
+    end
   end
 end

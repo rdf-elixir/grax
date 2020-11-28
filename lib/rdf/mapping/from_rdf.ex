@@ -1,7 +1,11 @@
 defmodule RDF.Mapping.FromRDF do
   @moduledoc false
 
-  alias RDF.{Term, IRI, Graph, Description}
+  alias RDF.{Literal, IRI, Graph, Description}
+  alias RDF.Mapping.InvalidValueError
+  alias RDF.Mapping.Schema.TypeError
+
+  import RDF.Utils
 
   def call(mapping, initial, %IRI{} = iri, %Graph{} = graph, opts) do
     property_map = mapping.__property_map__()
@@ -9,8 +13,9 @@ defmodule RDF.Mapping.FromRDF do
     if description = Graph.description(graph, iri) do
       Enum.reduce_while(property_map, {:ok, initial}, fn {property, iri}, {:ok, struct} ->
         objects = Description.get(description, iri)
+        property_spec = mapping.__property_spec__(property)
 
-        handle(property, objects, description, graph, opts)
+        handle(property, objects, description, graph, property_spec, opts)
         |> case do
           {:ok, mapped_objects} ->
             {:cont, {:ok, Map.put(struct, property, mapped_objects)}}
@@ -40,15 +45,29 @@ defmodule RDF.Mapping.FromRDF do
     end
   end
 
-  defp handle(property, objects, description, graph, opts)
+  defp handle(property, objects, description, graph, property_spec, opts)
 
-  defp handle(_property, nil, _description, _graph, _opts), do: {:ok, nil}
+  defp handle(_property, nil, _description, _graph, _property_spec, _opts), do: {:ok, nil}
 
-  defp handle(_property, [object], _description, _graph, _opts) do
-    {:ok, Term.value(object)}
+  defp handle(_property, [object], _description, _graph, property_spec, _opts) do
+    map_value(object, property_spec.type)
   end
 
-  defp handle(_property, objects, _description, _graph, _opts) do
-    {:ok, Enum.map(objects, &Term.value/1)}
+  defp handle(_property, objects, _description, _graph, property_spec, _opts) do
+    type = property_spec.type
+    map_while_ok(objects, &map_value(&1, type))
+  end
+
+  defp map_value(%Literal{} = literal, type) do
+    cond do
+      not Literal.valid?(literal) ->
+        {:error, InvalidValueError.exception(value: literal)}
+
+      is_nil(type) or Literal.is_a?(literal, type) ->
+        {:ok, Literal.value(literal)}
+
+      true ->
+        {:error, TypeError.exception(value: literal, type: type)}
+    end
   end
 end

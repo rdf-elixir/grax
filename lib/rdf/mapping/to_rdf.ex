@@ -1,7 +1,7 @@
 defmodule RDF.Mapping.ToRDF do
   @moduledoc false
 
-  alias RDF.{IRI, Graph, Description}
+  alias RDF.{Literal, Graph, Description}
 
   def call(%mapping{} = struct, opts) do
     mapping.__property_map__()
@@ -13,7 +13,11 @@ defmodule RDF.Mapping.ToRDF do
             {:cont, {:ok, graph, description}}
 
           values ->
-            {:cont, {:ok, graph, Description.add(description, {property_iri, values})}}
+            property_spec = mapping.__property_spec__(property_name)
+
+            {:cont,
+             {:ok, graph,
+              Description.add(description, {property_iri, map_values(values, property_spec.type)})}}
         end
       end
     )
@@ -21,5 +25,13 @@ defmodule RDF.Mapping.ToRDF do
       {:ok, graph, description} -> {:ok, Graph.add(graph, description)}
       error -> error
     end
+  end
+
+  defp map_values(value, nil) do
+    Literal.new(value)
+  end
+
+  defp map_values(value, type) do
+    type.new(value)
   end
 end
