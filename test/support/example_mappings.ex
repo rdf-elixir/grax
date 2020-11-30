@@ -8,6 +8,7 @@ defmodule Example do
       property :name, EX.name(), type: :string
       property :age, EX.age(), type: :integer
       property :email, EX.email(), type: [:string]
+      property :password, nil
     end
   end
 
