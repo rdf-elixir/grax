@@ -17,6 +17,9 @@ defmodule RDF.Mapping.FromRDF do
 
         handle(property, objects, description, graph, property_spec, opts)
         |> case do
+          {:ok, nil} ->
+            {:cont, {:ok, struct}}
+
           {:ok, mapped_objects} ->
             {:cont, {:ok, Map.put(struct, property, mapped_objects)}}
 
@@ -47,15 +50,24 @@ defmodule RDF.Mapping.FromRDF do
 
   defp handle(property, objects, description, graph, property_spec, opts)
 
-  defp handle(_property, nil, _description, _graph, _property_spec, _opts), do: {:ok, nil}
-
-  defp handle(_property, [object], _description, _graph, property_spec, _opts) do
-    map_value(object, property_spec.type)
+  defp handle(_property, nil, _description, _graph, _property_spec, _opts) do
+    {:ok, nil}
   end
 
   defp handle(_property, objects, _description, _graph, property_spec, _opts) do
-    type = property_spec.type
-    map_while_ok(objects, &map_value(&1, type))
+    map_values(objects, property_spec.type)
+  end
+
+  defp map_values(values, {:set, type}) do
+    map_while_ok(values, &map_value(&1, type))
+  end
+
+  defp map_values([value], type) do
+    map_value(value, type)
+  end
+
+  defp map_values(values, type) do
+    {:error, TypeError.exception(value: values, type: type)}
   end
 
   defp map_value(%Literal{} = literal, type) do

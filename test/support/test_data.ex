@@ -7,7 +7,7 @@ defmodule RDF.Mapping.TestData do
   @example_description EX.User
                        |> EX.name("John Doe")
                        |> EX.age(42)
-  # |> EX.email("jd@example.com", ~I<mailto:john_doe@example.com>)
+                       |> EX.email("jd@example.com", "john@doe.com")
 
   @example_graph Graph.new(@example_description)
 

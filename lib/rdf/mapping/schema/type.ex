@@ -12,6 +12,14 @@ defmodule RDF.Mapping.Schema.Type do
 
   def get(type)
 
+  def get([type]) do
+    with {:ok, inner_type} <- get(type) do
+      {:ok, {:set, inner_type}}
+    end
+  end
+
+  def get([]), do: get([:any])
+
   Enum.each(@builtin_type_mapping, fn {name, type} ->
     def get(unquote(name)), do: {:ok, unquote(type)}
   end)

@@ -5,12 +5,13 @@ defmodule RDF.Mapping.ToRDFTest do
     assert %Example.User{
              __iri__: IRI.to_string(EX.User),
              name: "John Doe",
-             age: 42
+             age: 42,
+             email: ~w[jd@example.com john@doe.com]
            }
            |> Example.User.to_rdf() == {:ok, example_graph()}
   end
 
-  test "mapping of untyped properties" do
+  test "mapping of untyped scalar properties" do
     assert %Example.Untyped{
              __iri__: IRI.to_string(EX.S),
              foo: "foo"
@@ -29,6 +30,28 @@ defmodule RDF.Mapping.ToRDFTest do
              {:ok,
               EX.S
               |> EX.foo(XSD.integer(42))
+              |> RDF.graph()}
+  end
+
+  test "mapping of untyped set properties" do
+    assert %Example.Untyped{
+             __iri__: IRI.to_string(EX.S),
+             bar: ["bar"]
+           }
+           |> Example.Untyped.to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.bar(XSD.string("bar"))
+              |> RDF.graph()}
+
+    assert %Example.Untyped{
+             __iri__: IRI.to_string(EX.S),
+             bar: [42, "bar"]
+           }
+           |> Example.Untyped.to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.bar(XSD.integer(42), XSD.string("bar"))
               |> RDF.graph()}
   end
 
@@ -109,6 +132,18 @@ defmodule RDF.Mapping.ToRDFTest do
              {:ok,
               EX.S
               |> EX.numeric(XSD.double(3.14))
+              |> RDF.graph()}
+  end
+
+  test "typed set properties" do
+    assert %Example.Types{
+             __iri__: IRI.to_string(EX.S),
+             numerics: [42, 3.14, Decimal.from_float(0.5)]
+           }
+           |> Example.Types.to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.numerics(XSD.integer(42), XSD.double(3.14), XSD.decimal(0.5))
               |> RDF.graph()}
   end
 end

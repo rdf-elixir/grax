@@ -7,7 +7,8 @@ defmodule RDF.Mapping.FromRDFTest do
               %Example.User{
                 __iri__: IRI.to_string(EX.User),
                 name: "John Doe",
-                age: 42
+                age: 42,
+                email: ~w[jd@example.com john@doe.com]
               }}
   end
 
@@ -17,7 +18,8 @@ defmodule RDF.Mapping.FromRDFTest do
               %Example.User{
                 __iri__: IRI.to_string(EX.User),
                 name: "John Doe",
-                age: 42
+                age: 42,
+                email: ~w[jd@example.com john@doe.com]
               }}
   end
 
@@ -109,12 +111,64 @@ defmodule RDF.Mapping.FromRDFTest do
                 }}
     end
 
-    test "untyped properties" do
+    test "untyped scalar properties" do
       assert EX.S |> EX.foo("foo") |> Example.Untyped.from_rdf(EX.S) ==
                {:ok,
                 %Example.Untyped{
                   __iri__: IRI.to_string(EX.S),
                   foo: "foo"
+                }}
+
+      assert EX.S |> EX.foo(42) |> Example.Untyped.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Untyped{
+                  __iri__: IRI.to_string(EX.S),
+                  foo: 42
+                }}
+    end
+
+    test "untyped set properties" do
+      assert EX.S |> EX.bar("bar") |> Example.Untyped.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Untyped{
+                  __iri__: IRI.to_string(EX.S),
+                  bar: ["bar"]
+                }}
+
+      assert EX.S |> EX.bar("bar", 42) |> Example.Untyped.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Untyped{
+                  __iri__: IRI.to_string(EX.S),
+                  bar: [42, "bar"]
+                }}
+    end
+
+    test "typed set properties" do
+      assert EX.S
+             |> EX.integers(XSD.integer(1))
+             |> Example.Types.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Types{
+                  __iri__: IRI.to_string(EX.S),
+                  integers: [1]
+                }}
+
+      assert EX.S
+             |> EX.integers(XSD.integer(1), XSD.byte(2), XSD.negativeInteger(-3))
+             |> Example.Types.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Types{
+                  __iri__: IRI.to_string(EX.S),
+                  integers: [2, 1, -3]
+                }}
+
+      assert EX.S
+             |> EX.numerics(XSD.integer(42), XSD.decimal(0.5), XSD.float(3.14))
+             |> Example.Types.from_rdf(EX.S) ==
+               {:ok,
+                %Example.Types{
+                  __iri__: IRI.to_string(EX.S),
+                  numerics: [Decimal.from_float(0.5), 3.14, 42]
                 }}
     end
 
@@ -157,5 +211,12 @@ defmodule RDF.Mapping.FromRDFTest do
       assert {:error, %RDF.Mapping.InvalidValueError{value: ^invalid}} =
                EX.S |> EX.integer(invalid) |> Example.Types.from_rdf(EX.S)
     end
+  end
+
+  test "when multiple values exist for a scalar property" do
+    assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
+             example_graph()
+             |> Graph.add({EX.User, EX.name(), "Jane"})
+             |> Example.User.from_rdf(EX.User)
   end
 end

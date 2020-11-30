@@ -4,6 +4,8 @@ defmodule RDF.Mapping.ToRDF do
   alias RDF.{Literal, XSD, Graph, Description}
   alias RDF.Mapping.Schema.TypeError
 
+  import RDF.Utils
+
   def call(%mapping{} = struct, opts) do
     mapping.__property_map__()
     |> Enum.reduce_while(
@@ -30,6 +32,18 @@ defmodule RDF.Mapping.ToRDF do
       {:ok, graph, description} -> {:ok, Graph.add(graph, description)}
       error -> error
     end
+  end
+
+  defp map_values(values, {:set, type}) when is_list(values) do
+    map_while_ok(values, &map_values(&1, type))
+  end
+
+  defp map_values(values, {_, _} = composite_type) do
+    {:error, TypeError.exception(value: values, type: composite_type)}
+  end
+
+  defp map_values(values, type) when is_list(values) do
+    {:error, TypeError.exception(value: values, type: type)}
   end
 
   defp map_values(value, nil) do
