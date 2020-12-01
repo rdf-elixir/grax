@@ -9,6 +9,18 @@ defmodule Example do
       property :age, EX.age(), type: :integer
       property :email, EX.email(), type: [:string]
       property :password, nil
+
+      has_many :posts, EX.posts(), type: Example.Post
+    end
+  end
+
+  defmodule Post do
+    use RDF.Mapping
+
+    schema do
+      property :title, EX.title(), type: :string
+      property :content, EX.content(), type: :string
+      has_one :author, EX.author(), type: Example.User
     end
   end
 

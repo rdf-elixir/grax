@@ -7,7 +7,14 @@ defmodule RDF.Mapping.ToRDFTest do
              name: "John Doe",
              age: 42,
              email: ~w[jd@example.com john@doe.com],
-             password: "secret"
+             password: "secret",
+             posts: [
+               %Example.Post{
+                 __iri__: IRI.to_string(EX.Post),
+                 title: "Lorem ipsum",
+                 content: "Lorem ipsum dolor sit amet, …"
+               }
+             ]
            }
            |> Example.User.to_rdf() == {:ok, example_graph()}
   end

@@ -1,6 +1,8 @@
 defmodule RDF.Mapping.FromRDFTest do
   use RDF.Test.Case
 
+  alias RDF.Mapping.DescriptionNotFoundError
+
   test "successful mapping from a graph" do
     assert Example.User.from_rdf(example_graph(), EX.User) ==
              {:ok,
@@ -8,12 +10,21 @@ defmodule RDF.Mapping.FromRDFTest do
                 __iri__: IRI.to_string(EX.User),
                 name: "John Doe",
                 age: 42,
-                email: ~w[jd@example.com john@doe.com]
+                email: ~w[jd@example.com john@doe.com],
+                posts: [
+                  %Example.Post{
+                    __iri__: IRI.to_string(EX.Post),
+                    title: "Lorem ipsum",
+                    content: "Lorem ipsum dolor sit amet, …"
+                  }
+                ]
               }}
   end
 
   test "successful mapping from a description" do
-    assert Example.User.from_rdf(example_description(), EX.User) ==
+    assert example_description(:user)
+           |> Description.delete_predicates(EX.posts())
+           |> Example.User.from_rdf(EX.User) ==
              {:ok,
               %Example.User{
                 __iri__: IRI.to_string(EX.User),
@@ -31,7 +42,7 @@ defmodule RDF.Mapping.FromRDFTest do
 
   test "when no description for the given IRI exists in the graph" do
     assert Example.User.from_rdf(example_graph(), EX.not_existing()) ==
-             {:error, "No description of #{inspect(EX.not_existing())} found."}
+             {:error, DescriptionNotFoundError.exception(resource: EX.not_existing())}
   end
 
   describe "type mapping" do
@@ -218,5 +229,26 @@ defmodule RDF.Mapping.FromRDFTest do
              example_graph()
              |> Graph.add({EX.User, EX.name(), "Jane"})
              |> Example.User.from_rdf(EX.User)
+  end
+
+  describe "nested mappings" do
+    test "when no description of the associated resource exists" do
+      assert example_description(:user)
+             |> EX.posts(EX.Post)
+             |> Example.User.from_rdf(EX.User) ==
+               {:error, DescriptionNotFoundError.exception(resource: RDF.iri(EX.Post))}
+    end
+
+    test "when the nested description doesn't match the nested schema" do
+      assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
+               example_graph()
+               |> Graph.add({EX.Post, EX.title(), "Other"})
+               |> Example.User.from_rdf(EX.User)
+
+      assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
+               example_graph()
+               |> Graph.put({EX.Post, EX.title(), 42})
+               |> Example.User.from_rdf(EX.User)
+    end
   end
 end

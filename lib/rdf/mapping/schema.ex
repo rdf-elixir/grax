@@ -2,6 +2,8 @@ defmodule RDF.Mapping.Schema do
   alias RDF.Mapping.Schema.Type
   alias RDF.PropertyMap
 
+  import RDF.Utils
+
   @doc """
   Defines a mapping schema.
   """
@@ -55,9 +57,41 @@ defmodule RDF.Mapping.Schema do
     end
   end
 
+  defmacro has_one(name, iri, opts) do
+    unless Keyword.has_key?(opts, :type),
+      do: raise(ArgumentError, "type missing for property #{name}")
+
+    opts = Keyword.update!(opts, :type, &expand_alias(&1, __CALLER__))
+
+    quote do
+      RDF.Mapping.Schema.__has_one__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+    end
+  end
+
+  defmacro has_many(name, iri, opts) do
+    unless Keyword.has_key?(opts, :type),
+      do: raise(ArgumentError, "type missing for property #{name}")
+
+    opts = Keyword.update!(opts, :type, &expand_alias(&1, __CALLER__))
+
+    quote do
+      RDF.Mapping.Schema.__has_many__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+    end
+  end
+
   @doc false
   def __property__(mod, name, iri, opts) do
-    define_property(mod, name, iri, normalize_property_opts(mod, name, opts))
+    define_property(mod, name, iri, normalize_property_opts(:literal, mod, name, opts))
+  end
+
+  @doc false
+  def __has_one__(mod, name, iri, opts) do
+    define_property(mod, name, iri, normalize_property_opts({:resource, :one}, mod, name, opts))
+  end
+
+  @doc false
+  def __has_many__(mod, name, iri, opts) do
+    define_property(mod, name, iri, normalize_property_opts({:resource, :many}, mod, name, opts))
   end
 
   defp define_property(mod, name, iri, opts) do
@@ -70,23 +104,23 @@ defmodule RDF.Mapping.Schema do
     end
   end
 
-  defp normalize_property_opts(_mod, name, opts) do
+  defp normalize_property_opts(kind, _mod, name, opts) do
     opts
     |> Map.new()
-    |> Map.update(
-      :type,
-      normalize_property_type(name, nil, opts),
-      &normalize_property_type(name, &1, opts)
-    )
+    |> lazy_map_update(:type, &normalize_property_type(kind, name, &1, opts))
   end
 
   @default_property_type :any
 
-  defp normalize_property_type(name, nil, opts) do
-    normalize_property_type(name, @default_property_type, opts)
+  defp normalize_property_type(:literal, name, nil, opts) do
+    normalize_property_type(:literal, name, @default_property_type, opts)
   end
 
-  defp normalize_property_type(name, type, _opts) do
+  defp normalize_property_type(_, name, nil, _opts) do
+    raise ArgumentError, "type missing for property #{name}"
+  end
+
+  defp normalize_property_type(:literal, name, type, _opts) do
     case Type.get(type) do
       {:ok, type} ->
         type
@@ -96,4 +130,33 @@ defmodule RDF.Mapping.Schema do
               "invalid type definition #{inspect(type)} for property #{name}: #{error}"
     end
   end
+
+  defp normalize_property_type({:resource, cardinality}, name, type, _opts) do
+    case resource_type(type, cardinality) do
+      {:ok, type} ->
+        type
+
+      {:error, error} ->
+        raise ArgumentError,
+              "invalid type definition #{inspect(type)} for association property #{name}: #{error}"
+    end
+  end
+
+  defp resource_type(type, cardinality \\ :one)
+
+  defp resource_type(type, :many) do
+    with {:ok, inner_type} <- resource_type(type) do
+      {:ok, {:set, inner_type}}
+    end
+  end
+
+  defp resource_type(type, :one) do
+    {:ok, {:resource, type}}
+  end
+
+  defp expand_alias({:__aliases__, _, _} = ast, env),
+    do: Macro.expand(ast, %{env | function: {:__schema__, 2}})
+
+  defp expand_alias(ast, _env),
+    do: ast
 end

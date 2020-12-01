@@ -2,7 +2,7 @@ defmodule RDF.Mapping.FromRDF do
   @moduledoc false
 
   alias RDF.{Literal, IRI, Graph, Description}
-  alias RDF.Mapping.InvalidValueError
+  alias RDF.Mapping.{InvalidValueError, DescriptionNotFoundError}
   alias RDF.Mapping.Schema.TypeError
 
   import RDF.Utils
@@ -28,7 +28,7 @@ defmodule RDF.Mapping.FromRDF do
         end
       end)
     else
-      {:error, "No description of #{inspect(iri)} found."}
+      {:error, DescriptionNotFoundError.exception(resource: iri)}
     end
   end
 
@@ -54,23 +54,23 @@ defmodule RDF.Mapping.FromRDF do
     {:ok, nil}
   end
 
-  defp handle(_property, objects, _description, _graph, property_spec, _opts) do
-    map_values(objects, property_spec.type)
+  defp handle(_property, objects, _description, graph, property_spec, opts) do
+    map_values(objects, property_spec.type, property_spec, graph, opts)
   end
 
-  defp map_values(values, {:set, type}) do
-    map_while_ok(values, &map_value(&1, type))
+  defp map_values(values, {:set, type}, property_spec, graph, opts) do
+    map_while_ok(values, &map_value(&1, type, property_spec, graph, opts))
   end
 
-  defp map_values([value], type) do
-    map_value(value, type)
+  defp map_values([value], type, property_spec, graph, opts) do
+    map_value(value, type, property_spec, graph, opts)
   end
 
-  defp map_values(values, type) do
+  defp map_values(values, type, _, _, _) do
     {:error, TypeError.exception(value: values, type: type)}
   end
 
-  defp map_value(%Literal{} = literal, type) do
+  defp map_value(%Literal{} = literal, type, _property_spec, _graph, _opts) do
     cond do
       not Literal.valid?(literal) ->
         {:error, InvalidValueError.exception(value: literal)}
@@ -81,5 +81,9 @@ defmodule RDF.Mapping.FromRDF do
       true ->
         {:error, TypeError.exception(value: literal, type: type)}
     end
+  end
+
+  defp map_value(%IRI{} = iri, {:resource, module}, property_spec, graph, opts) do
+    module.from_rdf(graph, iri, opts)
   end
 end
