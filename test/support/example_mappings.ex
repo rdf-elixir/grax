@@ -51,4 +51,16 @@ defmodule Example do
       end)
     end
   end
+
+  defmodule DefaultValues do
+    use RDF.Mapping
+
+    schema do
+      property :foo, EX.foo(), default: "foo"
+      property :bar, EX.bar(), type: :string, default: "bar"
+      property :baz, EX.baz(), type: :integer, default: 42
+      has_one :user, EX.user(), type: Example.User
+      has_many :posts, EX.post(), type: Example.Post
+    end
+  end
 end

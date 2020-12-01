@@ -1,6 +1,7 @@
 defmodule RDF.Mapping.Schema do
   alias RDF.Mapping.Schema.Type
-  alias RDF.PropertyMap
+  alias RDF.Mapping.Association
+  alias RDF.{Literal, PropertyMap}
 
   import RDF.Utils
 
@@ -81,20 +82,22 @@ defmodule RDF.Mapping.Schema do
 
   @doc false
   def __property__(mod, name, iri, opts) do
-    define_property(mod, name, iri, normalize_property_opts(:literal, mod, name, opts))
+    define_property(mod, name, iri, opts)
   end
 
   @doc false
   def __has_one__(mod, name, iri, opts) do
-    define_property(mod, name, iri, normalize_property_opts({:resource, :one}, mod, name, opts))
+    define_association(mod, name, iri, :one, opts)
   end
 
   @doc false
   def __has_many__(mod, name, iri, opts) do
-    define_property(mod, name, iri, normalize_property_opts({:resource, :many}, mod, name, opts))
+    define_association(mod, name, iri, :many, opts)
   end
 
   defp define_property(mod, name, iri, opts) do
+    opts = normalize_property_opts(mod, name, opts)
+
     virtual? = opts[:virtual] || is_nil(iri) || false
     Module.put_attribute(mod, :struct_fields, {name, Map.get(opts, :default)})
 
@@ -104,23 +107,60 @@ defmodule RDF.Mapping.Schema do
     end
   end
 
-  defp normalize_property_opts(kind, _mod, name, opts) do
+  defp define_association(mod, name, iri, cardinality, opts) do
+    opts = normalize_association_opts(mod, name, cardinality, opts)
+
+    not_loaded = %Association.NotLoaded{
+      __owner__: mod,
+      __field__: name,
+      __cardinality__: cardinality
+    }
+
+    Module.put_attribute(mod, :struct_fields, {name, not_loaded})
+    Module.put_attribute(mod, :rdf_property_mapping, {name, iri})
+    Module.put_attribute(mod, :rdf_property_opts, {name, opts})
+  end
+
+  defp normalize_association_opts(_mod, name, cardinality, opts) do
+    if Keyword.has_key?(opts, :default) do
+      raise ArgumentError, "the :default option is not supported on associations"
+    end
+
     opts
     |> Map.new()
-    |> lazy_map_update(:type, &normalize_property_type(kind, name, &1, opts))
+    |> lazy_map_update(:type, &normalize_association_type(name, &1, cardinality, opts))
   end
+
+  defp normalize_property_opts(_mod, name, opts) do
+    opts
+    |> Map.new()
+    |> lazy_map_update(:type, &normalize_property_type(name, &1, opts))
+    |> check_default_value()
+  end
+
+  defp check_default_value(%{default: _, type: {:set, _}}) do
+    raise ArgumentError, "the :default option is not supported on sets"
+  end
+
+  defp check_default_value(%{type: nil} = opts), do: opts
+
+  defp check_default_value(%{default: default, type: type} = opts) do
+    if Literal.new(default) |> Literal.is_a?(type) do
+      opts
+    else
+      raise ArgumentError, "default value #{inspect(default)} doesn't match type #{type}"
+    end
+  end
+
+  defp check_default_value(opts), do: opts
 
   @default_property_type :any
 
-  defp normalize_property_type(:literal, name, nil, opts) do
-    normalize_property_type(:literal, name, @default_property_type, opts)
+  defp normalize_property_type(name, nil, opts) do
+    normalize_property_type(name, @default_property_type, opts)
   end
 
-  defp normalize_property_type(_, name, nil, _opts) do
-    raise ArgumentError, "type missing for property #{name}"
-  end
-
-  defp normalize_property_type(:literal, name, type, _opts) do
+  defp normalize_property_type(name, type, _opts) do
     case Type.get(type) do
       {:ok, type} ->
         type
@@ -131,7 +171,11 @@ defmodule RDF.Mapping.Schema do
     end
   end
 
-  defp normalize_property_type({:resource, cardinality}, name, type, _opts) do
+  defp normalize_association_type(name, nil, _cardinality, _opts) do
+    raise ArgumentError, "type missing for property #{name}"
+  end
+
+  defp normalize_association_type(name, type, cardinality, _opts) do
     case resource_type(type, cardinality) do
       {:ok, type} ->
         type

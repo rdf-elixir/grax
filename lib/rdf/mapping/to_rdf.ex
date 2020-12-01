@@ -2,6 +2,7 @@ defmodule RDF.Mapping.ToRDF do
   @moduledoc false
 
   alias RDF.{IRI, Literal, XSD, Graph, Description}
+  alias RDF.Mapping.Association
   alias RDF.Mapping.Schema.TypeError
 
   def call(%mapping{} = struct, opts) do
@@ -11,6 +12,9 @@ defmodule RDF.Mapping.ToRDF do
       fn {property_name, property_iri}, {:ok, description, graph} ->
         case Map.get(struct, property_name) do
           nil ->
+            {:cont, {:ok, description, graph}}
+
+          %Association.NotLoaded{} ->
             {:cont, {:ok, description, graph}}
 
           values ->
