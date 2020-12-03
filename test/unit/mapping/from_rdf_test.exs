@@ -23,7 +23,7 @@ defmodule RDF.Mapping.FromRDFTest do
 
   test "successful mapping from a description" do
     assert example_description(:user)
-           |> Description.delete_predicates(EX.posts())
+           |> Description.delete_predicates(EX.post())
            |> Example.User.from_rdf(EX.User) ==
              {:ok,
               %Example.User{

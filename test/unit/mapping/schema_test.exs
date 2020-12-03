@@ -1,35 +1,33 @@
 defmodule RDF.Mapping.SchemaTest do
   use RDF.Test.Case
 
-  alias RDF.Mapping.Association
+  alias RDF.Mapping.Link
 
   describe "default values" do
-    test "on properties and associations" do
+    test "on properties and links" do
       assert %Example.DefaultValues{} ==
                %Example.DefaultValues{
                  foo: "foo",
                  bar: "bar",
                  baz: 42,
-                 user: %Association.NotLoaded{
+                 user: %Link.NotLoaded{
                    __owner__: Example.DefaultValues,
-                   __field__: :user,
-                   __cardinality__: :one
+                   __field__: :user
                  },
-                 posts: %Association.NotLoaded{
+                 posts: %Link.NotLoaded{
                    __owner__: Example.DefaultValues,
-                   __field__: :posts,
-                   __cardinality__: :many
+                   __field__: :posts
                  }
                }
     end
 
-    test "associations don't support custom defaults" do
-      assert_raise ArgumentError, "the :default option is not supported on associations", fn ->
-        defmodule AssociationWithDefault do
+    test "links don't support custom defaults" do
+      assert_raise ArgumentError, "the :default option is not supported on links", fn ->
+        defmodule LinkWithDefault do
           use RDF.Mapping
 
           schema do
-            has_one :a, EX.a(), type: A, default: :foo
+            link :a, EX.a(), type: A, default: :foo
           end
         end
       end
@@ -37,7 +35,7 @@ defmodule RDF.Mapping.SchemaTest do
 
     test "property sets don't support custom defaults" do
       assert_raise ArgumentError, "the :default option is not supported on sets", fn ->
-        defmodule AssociationWithDefault do
+        defmodule LinkWithDefault do
           use RDF.Mapping
 
           schema do
@@ -62,23 +60,13 @@ defmodule RDF.Mapping.SchemaTest do
                  end
   end
 
-  test "associations without a type raise a proper error" do
+  test "links without a type raise a proper error" do
     assert_raise ArgumentError, "type missing for property a", fn ->
-      defmodule HasOneNil do
+      defmodule NilLink do
         use RDF.Mapping
 
         schema do
-          has_one :a, EX.a(), type: nil
-        end
-      end
-    end
-
-    assert_raise ArgumentError, "type missing for property a", fn ->
-      defmodule HasManyNil do
-        use RDF.Mapping
-
-        schema do
-          has_many :a, EX.a(), type: nil
+          link :a, EX.a(), type: nil
         end
       end
     end

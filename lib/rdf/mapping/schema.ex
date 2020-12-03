@@ -1,6 +1,6 @@
 defmodule RDF.Mapping.Schema do
   alias RDF.Mapping.Schema.Type
-  alias RDF.Mapping.Association
+  alias RDF.Mapping.Link
   alias RDF.{Literal, PropertyMap}
 
   import RDF.Utils
@@ -58,25 +58,14 @@ defmodule RDF.Mapping.Schema do
     end
   end
 
-  defmacro has_one(name, iri, opts) do
+  defmacro link(name, iri, opts) do
     unless Keyword.has_key?(opts, :type),
-      do: raise(ArgumentError, "type missing for property #{name}")
+      do: raise(ArgumentError, "type missing for link #{name}")
 
     opts = Keyword.update!(opts, :type, &expand_alias(&1, __CALLER__))
 
     quote do
-      RDF.Mapping.Schema.__has_one__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
-    end
-  end
-
-  defmacro has_many(name, iri, opts) do
-    unless Keyword.has_key?(opts, :type),
-      do: raise(ArgumentError, "type missing for property #{name}")
-
-    opts = Keyword.update!(opts, :type, &expand_alias(&1, __CALLER__))
-
-    quote do
-      RDF.Mapping.Schema.__has_many__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+      RDF.Mapping.Schema.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
     end
   end
 
@@ -86,13 +75,8 @@ defmodule RDF.Mapping.Schema do
   end
 
   @doc false
-  def __has_one__(mod, name, iri, opts) do
-    define_association(mod, name, iri, :one, opts)
-  end
-
-  @doc false
-  def __has_many__(mod, name, iri, opts) do
-    define_association(mod, name, iri, :many, opts)
+  def __link__(mod, name, iri, opts) do
+    define_link(mod, name, iri, opts)
   end
 
   defp define_property(mod, name, iri, opts) do
@@ -107,13 +91,12 @@ defmodule RDF.Mapping.Schema do
     end
   end
 
-  defp define_association(mod, name, iri, cardinality, opts) do
-    opts = normalize_association_opts(mod, name, cardinality, opts)
+  defp define_link(mod, name, iri, opts) do
+    opts = normalize_link_opts(mod, name, opts)
 
-    not_loaded = %Association.NotLoaded{
+    not_loaded = %Link.NotLoaded{
       __owner__: mod,
-      __field__: name,
-      __cardinality__: cardinality
+      __field__: name
     }
 
     Module.put_attribute(mod, :struct_fields, {name, not_loaded})
@@ -121,14 +104,14 @@ defmodule RDF.Mapping.Schema do
     Module.put_attribute(mod, :rdf_property_opts, {name, opts})
   end
 
-  defp normalize_association_opts(_mod, name, cardinality, opts) do
+  defp normalize_link_opts(_mod, name, opts) do
     if Keyword.has_key?(opts, :default) do
-      raise ArgumentError, "the :default option is not supported on associations"
+      raise ArgumentError, "the :default option is not supported on links"
     end
 
     opts
     |> Map.new()
-    |> lazy_map_update(:type, &normalize_association_type(name, &1, cardinality, opts))
+    |> lazy_map_update(:type, &normalize_link_type(name, &1, opts))
   end
 
   defp normalize_property_opts(_mod, name, opts) do
@@ -171,30 +154,28 @@ defmodule RDF.Mapping.Schema do
     end
   end
 
-  defp normalize_association_type(name, nil, _cardinality, _opts) do
+  defp normalize_link_type(name, nil, _opts) do
     raise ArgumentError, "type missing for property #{name}"
   end
 
-  defp normalize_association_type(name, type, cardinality, _opts) do
-    case resource_type(type, cardinality) do
+  defp normalize_link_type(name, type, _opts) do
+    case resource_type(type) do
       {:ok, type} ->
         type
 
       {:error, error} ->
         raise ArgumentError,
-              "invalid type definition #{inspect(type)} for association property #{name}: #{error}"
+              "invalid type definition #{inspect(type)} for link #{name}: #{error}"
     end
   end
 
-  defp resource_type(type, cardinality \\ :one)
-
-  defp resource_type(type, :many) do
+  defp resource_type([type]) do
     with {:ok, inner_type} <- resource_type(type) do
       {:ok, {:set, inner_type}}
     end
   end
 
-  defp resource_type(type, :one) do
+  defp resource_type(type) do
     {:ok, {:resource, type}}
   end
 

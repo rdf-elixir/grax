@@ -10,7 +10,7 @@ defmodule Example do
       property :email, EX.email(), type: [:string]
       property :password, nil
 
-      has_many :posts, EX.posts(), type: Example.Post
+      link :posts, EX.post(), type: [Example.Post]
     end
   end
 
@@ -20,7 +20,7 @@ defmodule Example do
     schema do
       property :title, EX.title(), type: :string
       property :content, EX.content(), type: :string
-      has_one :author, EX.author(), type: Example.User
+      link :author, EX.author(), type: Example.User
     end
   end
 
@@ -59,8 +59,8 @@ defmodule Example do
       property :foo, EX.foo(), default: "foo"
       property :bar, EX.bar(), type: :string, default: "bar"
       property :baz, EX.baz(), type: :integer, default: 42
-      has_one :user, EX.user(), type: Example.User
-      has_many :posts, EX.post(), type: Example.Post
+      link :user, EX.user(), type: Example.User
+      link :posts, EX.post(), type: [Example.Post]
     end
   end
 end

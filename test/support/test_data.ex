@@ -8,7 +8,7 @@ defmodule RDF.Mapping.TestData do
                 |> EX.name("John Doe")
                 |> EX.age(42)
                 |> EX.email("jd@example.com", "john@doe.com")
-                |> EX.posts(EX.Post)
+                |> EX.post(EX.Post)
 
   @example_post EX.Post
                 |> EX.title("Lorem ipsum")

@@ -1,8 +1,7 @@
 locals_without_parens = [
   property: 2,
   property: 3,
-  has_one: 3,
-  has_many: 3
+  link: 3
 ]
 
 [
