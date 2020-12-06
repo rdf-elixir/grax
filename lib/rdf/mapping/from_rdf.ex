@@ -2,31 +2,45 @@ defmodule RDF.Mapping.FromRDF do
   @moduledoc false
 
   alias RDF.{Literal, IRI, Graph, Description}
+  alias RDF.Mapping.Link.Preloader
   alias RDF.Mapping.{InvalidValueError, DescriptionNotFoundError}
   alias RDF.Mapping.Schema.TypeError
 
   import RDF.Utils
 
-  def call(mapping, initial, %IRI{} = iri, %Graph{} = graph, opts) do
-    property_map = mapping.__property_map__()
-
+  def call(mapping_mod, initial, %IRI{} = iri, %Graph{} = graph, opts) do
     if description = Graph.description(graph, iri) do
-      Enum.reduce_while(property_map, {:ok, initial}, fn {property, iri}, {:ok, struct} ->
-        objects = Description.get(description, iri)
-        property_spec = mapping.__property_spec__(property)
+      mapping_mod.__property_spec__()
+      |> Enum.reduce_while({:ok, initial}, fn {property, property_spec}, {:ok, mapping} ->
+        iri = mapping_mod.__property_map__(property)
 
-        handle(property, objects, description, graph, property_spec, opts)
-        |> case do
-          {:ok, nil} ->
-            {:cont, {:ok, struct}}
+        if objects = Description.get(description, iri) do
+          handle(property, objects, description, graph, property_spec, opts)
+          |> case do
+            {:ok, mapped_objects} ->
+              {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
 
-          {:ok, mapped_objects} ->
-            {:cont, {:ok, Map.put(struct, property, mapped_objects)}}
-
-          {:error, _} = error ->
-            {:halt, error}
+            {:error, _} = error ->
+              {:halt, error}
+          end
+        else
+          {:cont, {:ok, mapping}}
         end
       end)
+      |> case do
+        {:ok, mapping} ->
+          Preloader.call(
+            mapping_mod,
+            mapping,
+            graph,
+            description,
+            mapping_mod.__link_spec__(),
+            opts
+          )
+
+        error ->
+          error
+      end
     else
       {:error, DescriptionNotFoundError.exception(resource: iri)}
     end
@@ -49,10 +63,6 @@ defmodule RDF.Mapping.FromRDF do
   end
 
   defp handle(property, objects, description, graph, property_spec, opts)
-
-  defp handle(_property, nil, _description, _graph, _property_spec, _opts) do
-    {:ok, nil}
-  end
 
   defp handle(_property, objects, _description, graph, property_spec, opts) do
     map_values(objects, property_spec.type, property_spec, graph, opts)
@@ -81,9 +91,5 @@ defmodule RDF.Mapping.FromRDF do
       true ->
         {:error, TypeError.exception(value: literal, type: type)}
     end
-  end
-
-  defp map_value(%IRI{} = iri, {:resource, module}, property_spec, graph, opts) do
-    module.from_rdf(graph, iri, opts)
   end
 end

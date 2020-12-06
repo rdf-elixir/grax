@@ -18,7 +18,9 @@ defmodule RDF.Mapping.ToRDF do
             {:cont, {:ok, description, graph}}
 
           values ->
-            property_spec = mapping.__property_spec__(property_name)
+            property_spec =
+              mapping.__property_spec__(property_name) ||
+                mapping.__link_spec__(property_name)
 
             case map_values(values, property_spec.type, property_spec, opts) do
               {:ok, values, additions} ->

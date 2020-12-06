@@ -23,6 +23,7 @@ defmodule RDF.Mapping.Schema do
 
         Module.register_attribute(__MODULE__, :rdf_property_mapping, accumulate: true)
         Module.register_attribute(__MODULE__, :rdf_property_opts, accumulate: true)
+        Module.register_attribute(__MODULE__, :rdf_link_opts, accumulate: true)
         Module.register_attribute(__MODULE__, :struct_fields, accumulate: true)
 
         try do
@@ -41,9 +42,15 @@ defmodule RDF.Mapping.Schema do
 
         @property_map PropertyMap.new(@rdf_property_mapping)
         def __property_map__, do: @property_map
+        def __property_map__(property), do: @property_map[property]
 
         @property_specs Map.new(@rdf_property_opts)
+        def __property_spec__, do: @property_specs
         def __property_spec__(property), do: @property_specs[property]
+
+        @link_specs Map.new(@rdf_link_opts)
+        def __link_spec__(), do: @link_specs
+        def __link_spec__(link), do: @link_specs[link]
       end
 
     quote do
@@ -101,7 +108,7 @@ defmodule RDF.Mapping.Schema do
 
     Module.put_attribute(mod, :struct_fields, {name, not_loaded})
     Module.put_attribute(mod, :rdf_property_mapping, {name, iri})
-    Module.put_attribute(mod, :rdf_property_opts, {name, opts})
+    Module.put_attribute(mod, :rdf_link_opts, {name, opts})
   end
 
   defp normalize_link_opts(_mod, name, opts) do

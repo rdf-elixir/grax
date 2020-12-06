@@ -13,6 +13,7 @@ defmodule RDF.Mapping.TestData do
   @example_post EX.Post
                 |> EX.title("Lorem ipsum")
                 |> EX.content("Lorem ipsum dolor sit amet, …")
+                |> EX.author(EX.User)
 
   @example_graph Graph.new([@example_user, @example_post])
 

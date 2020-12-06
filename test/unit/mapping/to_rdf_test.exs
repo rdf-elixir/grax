@@ -12,7 +12,8 @@ defmodule RDF.Mapping.ToRDFTest do
                %Example.Post{
                  __iri__: IRI.to_string(EX.Post),
                  title: "Lorem ipsum",
-                 content: "Lorem ipsum dolor sit amet, …"
+                 content: "Lorem ipsum dolor sit amet, …",
+                 author: %Example.User{__iri__: IRI.to_string(EX.User)}
                }
              ]
            }

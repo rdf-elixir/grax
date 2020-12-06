@@ -23,4 +23,7 @@ defmodule RDF.Mapping.Schema.Type do
   Enum.each(@builtin_type_mapping, fn {name, type} ->
     def get(unquote(name)), do: {:ok, unquote(type)}
   end)
+
+  def set?({:set, _}), do: true
+  def set?(_), do: false
 end

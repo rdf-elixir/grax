@@ -63,4 +63,32 @@ defmodule Example do
       link :posts, EX.post(), type: [Example.Post]
     end
   end
+
+  defmodule SelfLinked do
+    use RDF.Mapping
+
+    schema do
+      property :name, EX.name(), type: :string
+      link :next, EX.next(), type: Example.SelfLinked, preload: true
+    end
+  end
+
+  defmodule Circle do
+    use RDF.Mapping
+
+    schema do
+      property :name, EX.name(), type: :string
+      link :link1, EX.link1(), type: [Example.Circle], preload: true
+      link :link2, EX.link2(), type: [Example.Circle], preload: true
+    end
+  end
+
+  defmodule DepthPreloading do
+    use RDF.Mapping
+
+    schema do
+      property :name, EX.name(), type: :string
+      link :next, EX.next(), type: Example.DepthPreloading, preload: {:depth, 2}
+    end
+  end
 end
