@@ -1,28 +1,41 @@
-defmodule RDF.Mapping.FromRDFTest do
+defmodule RDF.Mapping.LoaderTest do
   use RDF.Test.Case
 
   alias RDF.Mapping.DescriptionNotFoundError
 
+  #  defmodule TestMappingArgs do
+  #    use RDF.Mapping
+  #
+  #    schema do
+  #      property :arg_test, EX.arg_test()
+  #    end
+  #
+  #    def handle_from_rdf(:arg_test, _, %Description{} = desc, %Graph{} = graph, opts) do
+  #      assert desc == Keyword.get(opts, :description)
+  #      assert graph == Keyword.get(opts, :graph)
+  #    end
+  #  end
+
   test "successful mapping from a graph" do
-    assert Example.User.from_rdf(example_graph(), EX.User) ==
+    assert Example.User.load(example_graph(), EX.User) ==
              {:ok, Example.user(EX.User)}
   end
 
   test "successful mapping from a description" do
     assert example_description(:user)
            |> Description.delete_predicates(EX.post())
-           |> Example.User.from_rdf(EX.User) ==
+           |> Example.User.load(EX.User) ==
              {:ok, %Example.User{Example.user(EX.User) | posts: []}}
   end
 
   test "with non-RDF.Data" do
     assert_raise ArgumentError, "invalid input data: %{}", fn ->
-      Example.User.from_rdf(%{}, EX.User)
+      Example.User.load(%{}, EX.User)
     end
   end
 
   test "when no description for the given IRI exists in the graph" do
-    assert Example.User.from_rdf(example_graph(), EX.not_existing()) ==
+    assert Example.User.load(example_graph(), EX.not_existing()) ==
              {:error, DescriptionNotFoundError.exception(resource: EX.not_existing())}
   end
 
@@ -48,7 +61,10 @@ defmodule RDF.Mapping.FromRDFTest do
              |> EX.unsigned_byte(XSD.unsignedByte(42))
              |> EX.non_positive_integer(XSD.nonPositiveInteger(-42))
              |> EX.negative_integer(XSD.negativeInteger(-42))
-             |> Example.Types.from_rdf(EX.S) ==
+             #      |> EX.date(XSD.date(42))
+             #      |> EX.time(XSD.time(42))
+             #      |> EX.date_time(XSD.date_time(42))
+             |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
                   __iri__: IRI.to_string(EX.S),
@@ -77,7 +93,7 @@ defmodule RDF.Mapping.FromRDFTest do
     test "numeric type" do
       assert EX.S
              |> EX.numeric(XSD.integer(42))
-             |> Example.Types.from_rdf(EX.S) ==
+             |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
                   __iri__: IRI.to_string(EX.S),
@@ -86,7 +102,7 @@ defmodule RDF.Mapping.FromRDFTest do
 
       assert EX.S
              |> EX.numeric(XSD.decimal(0.5))
-             |> Example.Types.from_rdf(EX.S) ==
+             |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
                   __iri__: IRI.to_string(EX.S),
@@ -95,7 +111,7 @@ defmodule RDF.Mapping.FromRDFTest do
 
       assert EX.S
              |> EX.numeric(XSD.float(3.14))
-             |> Example.Types.from_rdf(EX.S) ==
+             |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
                   __iri__: IRI.to_string(EX.S),
@@ -104,14 +120,14 @@ defmodule RDF.Mapping.FromRDFTest do
     end
 
     test "untyped scalar properties" do
-      assert EX.S |> EX.foo("foo") |> Example.Untyped.from_rdf(EX.S) ==
+      assert EX.S |> EX.foo("foo") |> Example.Untyped.load(EX.S) ==
                {:ok,
                 %Example.Untyped{
                   __iri__: IRI.to_string(EX.S),
                   foo: "foo"
                 }}
 
-      assert EX.S |> EX.foo(42) |> Example.Untyped.from_rdf(EX.S) ==
+      assert EX.S |> EX.foo(42) |> Example.Untyped.load(EX.S) ==
                {:ok,
                 %Example.Untyped{
                   __iri__: IRI.to_string(EX.S),
@@ -120,14 +136,14 @@ defmodule RDF.Mapping.FromRDFTest do
     end
 
     test "untyped set properties" do
-      assert EX.S |> EX.bar("bar") |> Example.Untyped.from_rdf(EX.S) ==
+      assert EX.S |> EX.bar("bar") |> Example.Untyped.load(EX.S) ==
                {:ok,
                 %Example.Untyped{
                   __iri__: IRI.to_string(EX.S),
                   bar: ["bar"]
                 }}
 
-      assert EX.S |> EX.bar("bar", 42) |> Example.Untyped.from_rdf(EX.S) ==
+      assert EX.S |> EX.bar("bar", 42) |> Example.Untyped.load(EX.S) ==
                {:ok,
                 %Example.Untyped{
                   __iri__: IRI.to_string(EX.S),
@@ -138,7 +154,7 @@ defmodule RDF.Mapping.FromRDFTest do
     test "typed set properties" do
       assert EX.S
              |> EX.integers(XSD.integer(1))
-             |> Example.Types.from_rdf(EX.S) ==
+             |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
                   __iri__: IRI.to_string(EX.S),
@@ -147,7 +163,7 @@ defmodule RDF.Mapping.FromRDFTest do
 
       assert EX.S
              |> EX.integers(XSD.integer(1), XSD.byte(2), XSD.negativeInteger(-3))
-             |> Example.Types.from_rdf(EX.S) ==
+             |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
                   __iri__: IRI.to_string(EX.S),
@@ -156,7 +172,7 @@ defmodule RDF.Mapping.FromRDFTest do
 
       assert EX.S
              |> EX.numerics(XSD.integer(42), XSD.decimal(0.5), XSD.float(3.14))
-             |> Example.Types.from_rdf(EX.S) ==
+             |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
                   __iri__: IRI.to_string(EX.S),
@@ -166,10 +182,10 @@ defmodule RDF.Mapping.FromRDFTest do
 
     test "type derivations are taken into account" do
       assert {:ok, %Example.Types{int: 42}} =
-               EX.S |> EX.int(XSD.byte(42)) |> Example.Types.from_rdf(EX.S)
+               EX.S |> EX.int(XSD.byte(42)) |> Example.Types.load(EX.S)
 
       assert {:ok, %Example.Types{double: 3.14}} =
-               EX.S |> EX.double(XSD.float(3.14)) |> Example.Types.from_rdf(EX.S)
+               EX.S |> EX.double(XSD.float(3.14)) |> Example.Types.load(EX.S)
     end
 
     test "when a type does not match the definition in the schema" do
@@ -177,7 +193,7 @@ defmodule RDF.Mapping.FromRDFTest do
               %RDF.Mapping.Schema.TypeError{
                 type: XSD.Integer,
                 value: ~L"invalid"
-              }} = EX.S |> EX.integer("invalid") |> Example.Types.from_rdf(EX.S)
+              }} = EX.S |> EX.integer("invalid") |> Example.Types.load(EX.S)
 
       integer = XSD.integer(-42)
 
@@ -185,7 +201,7 @@ defmodule RDF.Mapping.FromRDFTest do
               %RDF.Mapping.Schema.TypeError{
                 type: XSD.UnsignedByte,
                 value: ^integer
-              }} = EX.S |> EX.unsigned_byte(integer) |> Example.Types.from_rdf(EX.S)
+              }} = EX.S |> EX.unsigned_byte(integer) |> Example.Types.load(EX.S)
 
       # TODO: Do we really wanna be that strict?
       integer = XSD.integer(42)
@@ -194,14 +210,14 @@ defmodule RDF.Mapping.FromRDFTest do
               %RDF.Mapping.Schema.TypeError{
                 type: XSD.UnsignedByte,
                 value: ^integer
-              }} = EX.S |> EX.unsigned_byte(integer) |> Example.Types.from_rdf(EX.S)
+              }} = EX.S |> EX.unsigned_byte(integer) |> Example.Types.load(EX.S)
     end
 
     test "with invalid literals" do
       invalid = XSD.integer("invalid")
 
       assert {:error, %RDF.Mapping.InvalidValueError{value: ^invalid}} =
-               EX.S |> EX.integer(invalid) |> Example.Types.from_rdf(EX.S)
+               EX.S |> EX.integer(invalid) |> Example.Types.load(EX.S)
     end
   end
 
@@ -209,14 +225,14 @@ defmodule RDF.Mapping.FromRDFTest do
     assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
              example_graph()
              |> Graph.add({EX.User, EX.name(), "Jane"})
-             |> Example.User.from_rdf(EX.User)
+             |> Example.User.load(EX.User)
   end
 
   describe "nested mappings" do
     test "when no description of the associated resource exists" do
       assert example_description(:user)
              |> EX.posts(EX.Post)
-             |> Example.User.from_rdf(EX.User) ==
+             |> Example.User.load(EX.User) ==
                {:error, DescriptionNotFoundError.exception(resource: RDF.iri(EX.Post))}
     end
 
@@ -224,12 +240,12 @@ defmodule RDF.Mapping.FromRDFTest do
       assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
                example_graph()
                |> Graph.add({EX.Post, EX.title(), "Other"})
-               |> Example.User.from_rdf(EX.User)
+               |> Example.User.load(EX.User)
 
       assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
                example_graph()
                |> Graph.put({EX.Post, EX.title(), 42})
-               |> Example.User.from_rdf(EX.User)
+               |> Example.User.load(EX.User)
     end
   end
 end

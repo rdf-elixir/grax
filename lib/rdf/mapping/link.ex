@@ -216,6 +216,6 @@ defmodule RDF.Mapping.Link.Preloader do
   end
 
   defp map_link(resource, {:resource, module}, property_spec, graph, opts) do
-    module.from_rdf(graph, resource, opts)
+    module.load(graph, resource, opts)
   end
 end

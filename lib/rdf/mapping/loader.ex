@@ -1,4 +1,4 @@
-defmodule RDF.Mapping.FromRDF do
+defmodule RDF.Mapping.Loader do
   @moduledoc false
 
   alias RDF.{Literal, IRI, Graph, Description}
@@ -7,6 +7,46 @@ defmodule RDF.Mapping.FromRDF do
   alias RDF.Mapping.Schema.TypeError
 
   import RDF.Utils
+
+  #  def call(mapping, %Graph{} = graph, %IRI{} = iri, initial, opts) do
+  #    property_map = mapping.__property_map__()
+  #
+  #    if description = Graph.description(graph, iri) do
+  #      Enum.reduce_while(property_map, {:ok, initial}, fn {property, iri}, {:ok, struct} ->
+  #        # TODO: Remove this - it should be handled differently
+  #        {iri, expect_list} =
+  #          case iri do
+  #            [iri] -> {iri, true}
+  #            iri -> {iri, false}
+  #          end
+  #
+  #        objects = Description.get(description, iri)
+  #        # TODO: if nil:
+  #        #   - look for defaults? This can/should be handled via struct
+  #        mapping.handle_from_rdf(
+  #          property,
+  #          objects,
+  #          description,
+  #          graph,
+  #          opts
+  #        )
+  #        |> case do
+  #          {:ok, mapped_objects} when not expect_list and is_list(mapped_objects) ->
+  #            # TODO: test this
+  #            {:halt, {:error, "expected a single value, but got a list"}}
+  #
+  #          {:ok, mapped_objects} ->
+  #            mapped_objects = if expect_list, do: List.wrap(mapped_objects), else: mapped_objects
+  #            {:cont, {:ok, Map.put(struct, property, mapped_objects)}}
+  #
+  #          {:error, _} = error ->
+  #            {:halt, error}
+  #        end
+  #      end)
+  #    else
+  #      {:error, "No description of #{inspect(iri)} found."}
+  #    end
+  #  end
 
   def call(mapping_mod, initial, %IRI{} = iri, %Graph{} = graph, opts) do
     if description = Graph.description(graph, iri) do
@@ -92,4 +132,10 @@ defmodule RDF.Mapping.FromRDF do
         {:error, TypeError.exception(value: literal, type: type)}
     end
   end
+
+  # TODO: handle IRIs and bnodes for non-link properties
+  #  defp map_value(%IRI{} = iri, {:resource, module}, property_spec, graph, opts) do
+  #  end
+  #  defp map_value(%BlankNode{} = bnode, {:resource, module}, property_spec, graph, opts) do
+  #  end
 end

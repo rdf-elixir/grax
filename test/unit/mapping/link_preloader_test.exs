@@ -9,7 +9,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.B |> EX.name("b") |> EX.next(EX.C),
              EX.C |> EX.name("c")
            ])
-           |> Example.SelfLinked.from_rdf(EX.A) ==
+           |> Example.SelfLinked.load(EX.A) ==
              {:ok,
               %Example.SelfLinked{
                 __iri__: IRI.to_string(EX.A),
@@ -25,7 +25,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
     assert RDF.graph([
              EX.A |> EX.name("a") |> EX.next(EX.A)
            ])
-           |> Example.SelfLinked.from_rdf(EX.A) ==
+           |> Example.SelfLinked.load(EX.A) ==
              {:ok, %Example.SelfLinked{__iri__: IRI.to_string(EX.A), name: "a"}}
   end
 
@@ -35,7 +35,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.B |> EX.name("b") |> EX.link1(EX.C),
              EX.C |> EX.name("c") |> EX.link1(EX.A)
            ])
-           |> Example.Circle.from_rdf(EX.A) ==
+           |> Example.Circle.load(EX.A) ==
              {:ok,
               %Example.Circle{
                 __iri__: IRI.to_string(EX.A),
@@ -66,7 +66,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.D |> EX.name("d") |> EX.link1(EX.C),
              EX.E |> EX.name("e") |> EX.link1(EX.B)
            ])
-           |> Example.Circle.from_rdf(EX.A) ==
+           |> Example.Circle.load(EX.A) ==
              {
                :ok,
                %Example.Circle{
@@ -139,7 +139,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.D |> EX.name("d") |> EX.link2(EX.C),
              EX.E |> EX.name("e") |> EX.link2(EX.B)
            ])
-           |> Example.Circle.from_rdf(EX.A) ==
+           |> Example.Circle.load(EX.A) ==
              {
                :ok,
                %Example.Circle{
@@ -211,7 +211,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.C |> EX.next(EX.D),
              EX.D |> EX.name("d")
            ])
-           |> Example.DepthPreloading.from_rdf(EX.A) ==
+           |> Example.DepthPreloading.load(EX.A) ==
              {:ok,
               %Example.DepthPreloading{
                 __iri__: IRI.to_string(EX.A),
@@ -231,7 +231,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.C |> EX.next(EX.D),
              EX.D |> EX.name("d")
            ])
-           |> Example.DepthPreloading.from_rdf(EX.A, preload: [next: true]) ==
+           |> Example.DepthPreloading.load(EX.A, preload: [next: true]) ==
              {:ok,
               %Example.DepthPreloading{
                 __iri__: IRI.to_string(EX.A),
@@ -243,46 +243,46 @@ defmodule RDF.Mapping.Link.PreloaderTest do
                 }
               }}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: false) ==
+    assert Example.User.load(example_graph(), EX.User, preload: false) ==
              {:ok, Example.user(EX.User, depth: 0)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: true) ==
+    assert Example.User.load(example_graph(), EX.User, preload: true) ==
              {:ok, Example.user(EX.User, depth: 1)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: 1) ==
+    assert Example.User.load(example_graph(), EX.User, preload: 1) ==
              {:ok, Example.user(EX.User, depth: 1)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: 2) ==
+    assert Example.User.load(example_graph(), EX.User, preload: 2) ==
              {:ok, Example.user(EX.User, depth: 2)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: 3) ==
+    assert Example.User.load(example_graph(), EX.User, preload: 3) ==
              {:ok, Example.user(EX.User, depth: 3)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: :other) ==
+    assert Example.User.load(example_graph(), EX.User, preload: :other) ==
              {:ok, Example.user(EX.User, depth: 1)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: [posts: false]) ==
+    assert Example.User.load(example_graph(), EX.User, preload: [posts: false]) ==
              {:ok, Example.user(EX.User, depth: 1)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: :posts) ==
+    assert Example.User.load(example_graph(), EX.User, preload: :posts) ==
              {:ok, Example.user(EX.User, depth: 1)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: [:posts]) ==
+    assert Example.User.load(example_graph(), EX.User, preload: [:posts]) ==
              {:ok, Example.user(EX.User, depth: 1)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: [posts: true]) ==
+    assert Example.User.load(example_graph(), EX.User, preload: [posts: true]) ==
              {:ok, Example.user(EX.User, depth: 2)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: [posts: 1]) ==
+    assert Example.User.load(example_graph(), EX.User, preload: [posts: 1]) ==
              {:ok, Example.user(EX.User, depth: 2)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: [posts: 2]) ==
+    assert Example.User.load(example_graph(), EX.User, preload: [posts: 2]) ==
              {:ok, Example.user(EX.User, depth: 3)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: [posts: :other]) ==
+    assert Example.User.load(example_graph(), EX.User, preload: [posts: :other]) ==
              {:ok, Example.user(EX.User, depth: 1)}
 
-    assert Example.User.from_rdf(example_graph(), EX.User, preload: [posts: :comments]) ==
+    assert Example.User.load(example_graph(), EX.User, preload: [posts: :comments]) ==
              {:ok, Example.user(EX.User, depth: 2)}
   end
 
