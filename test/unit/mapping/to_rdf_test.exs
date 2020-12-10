@@ -177,4 +177,21 @@ defmodule RDF.Mapping.ToRDFTest do
               |> EX.numerics(XSD.integer(42), XSD.double(3.14), XSD.decimal(0.5))
               |> RDF.graph()}
   end
+
+  test "inverse properties" do
+    assert %Example.InverseProperties{
+             __iri__: IRI.to_string(EX.S),
+             name: "subject",
+             foo: [Example.user(EX.User, depth: 0)]
+           }
+           |> Example.InverseProperties.to_rdf() ==
+             {:ok,
+              [
+                EX.S |> EX.name("subject"),
+                EX.User |> EX.foo(EX.S),
+                example_description(:user)
+                |> Description.delete_predicates(EX.post())
+              ]
+              |> RDF.graph()}
+  end
 end

@@ -5,7 +5,7 @@ defmodule RDF.Mapping.TestCase do
 
   using do
     quote do
-      alias RDF.{Dataset, Graph, Description, IRI, XSD, PrefixMap, PropertyMap}
+      alias RDF.{Dataset, Graph, Description, IRI, XSD, PrefixMap}
       alias RDF.NS.{RDFS, OWL}
       alias Example.NS.EX
 

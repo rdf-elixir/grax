@@ -49,40 +49,38 @@ defmodule RDF.Mapping.Loader do
   #  end
 
   def call(mapping_mod, initial, %IRI{} = iri, %Graph{} = graph, opts) do
-    if description = Graph.description(graph, iri) do
-      mapping_mod.__property_spec__()
-      |> Enum.reduce_while({:ok, initial}, fn {property, property_spec}, {:ok, mapping} ->
-        iri = mapping_mod.__property_map__(property)
+    description = Graph.description(graph, iri) || Description.new(iri)
 
-        if objects = Description.get(description, iri) do
-          handle(property, objects, description, graph, property_spec, opts)
-          |> case do
-            {:ok, mapped_objects} ->
-              {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
+    mapping_mod.__property_spec__()
+    |> Enum.reduce_while({:ok, initial}, fn {property, property_spec}, {:ok, mapping} ->
+      property_iri = mapping_mod.__property_map__(property)
 
-            {:error, _} = error ->
-              {:halt, error}
-          end
-        else
-          {:cont, {:ok, mapping}}
+      if objects = Description.get(description, property_iri) do
+        handle(property, objects, description, graph, property_spec, opts)
+        |> case do
+          {:ok, mapped_objects} ->
+            {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
+
+          {:error, _} = error ->
+            {:halt, error}
         end
-      end)
-      |> case do
-        {:ok, mapping} ->
-          Preloader.call(
-            mapping_mod,
-            mapping,
-            graph,
-            description,
-            mapping_mod.__link_spec__(),
-            opts
-          )
-
-        error ->
-          error
+      else
+        {:cont, {:ok, mapping}}
       end
-    else
-      {:error, DescriptionNotFoundError.exception(resource: iri)}
+    end)
+    |> case do
+      {:ok, mapping} ->
+        Preloader.call(
+          mapping_mod,
+          mapping,
+          graph,
+          description,
+          mapping_mod.__link_spec__(),
+          opts
+        )
+
+      error ->
+        error
     end
   end
 

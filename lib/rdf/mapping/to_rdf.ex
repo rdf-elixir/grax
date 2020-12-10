@@ -14,6 +14,9 @@ defmodule RDF.Mapping.ToRDF do
           nil ->
             {:cont, {:ok, description, graph}}
 
+          [] ->
+            {:cont, {:ok, description, graph}}
+
           %Link.NotLoaded{} ->
             {:cont, {:ok, description, graph}}
 
@@ -24,12 +27,7 @@ defmodule RDF.Mapping.ToRDF do
 
             case map_values(values, property_spec.type, property_spec, opts) do
               {:ok, values, additions} ->
-                {:cont,
-                 {
-                   :ok,
-                   Description.add(description, {property_iri, values}),
-                   if(additions, do: Graph.add(graph, additions), else: graph)
-                 }}
+                {:cont, add_statements(graph, description, property_iri, values, additions)}
 
               error ->
                 {:halt, error}
@@ -41,6 +39,27 @@ defmodule RDF.Mapping.ToRDF do
       {:ok, description, graph} -> {:ok, Graph.add(graph, description)}
       error -> error
     end
+  end
+
+  defp add_statements(graph, description, {:inverse, property}, values, additions) do
+    {
+      :ok,
+      description,
+      if(additions, do: Graph.add(graph, additions), else: graph)
+      |> Graph.add(
+        Enum.map(values, fn value ->
+          {value, property, description.subject}
+        end)
+      )
+    }
+  end
+
+  defp add_statements(graph, description, property, values, additions) do
+    {
+      :ok,
+      Description.add(description, {property, values}),
+      if(additions, do: Graph.add(graph, additions), else: graph)
+    }
   end
 
   defp map_values(values, {:set, type}, property_spec, opts) when is_list(values) do

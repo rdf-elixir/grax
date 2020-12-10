@@ -24,16 +24,3 @@ defmodule RDF.Mapping.InvalidValueError do
     %__MODULE__{message: msg, value: value}
   end
 end
-
-defmodule RDF.Mapping.DescriptionNotFoundError do
-  @moduledoc """
-  Raised when no description of a resource can be found.
-  """
-  defexception [:message, :resource]
-
-  def exception(opts) do
-    resource = Keyword.fetch!(opts, :resource)
-    msg = opts[:message] || "no description for #{inspect(resource)} found"
-    %__MODULE__{message: msg, resource: resource}
-  end
-end

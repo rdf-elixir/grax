@@ -1,7 +1,7 @@
 defmodule RDF.Mapping.Schema do
   alias RDF.Mapping.Schema.Type
   alias RDF.Mapping.Link
-  alias RDF.{Literal, PropertyMap}
+  alias RDF.Literal
 
   import RDF.Utils
 
@@ -40,7 +40,7 @@ defmodule RDF.Mapping.Schema do
           defstruct [:__iri__ | @struct_fields]
         end
 
-        @property_map PropertyMap.new(@rdf_property_mapping)
+        @property_map RDF.Mapping.Schema.property_mapping(@rdf_property_mapping)
         def __property_map__, do: @property_map
         def __property_map__(property), do: @property_map[property]
 
@@ -66,6 +66,8 @@ defmodule RDF.Mapping.Schema do
   end
 
   defmacro link(name, iri, opts) do
+    iri = property_mapping_destination(iri)
+
     unless Keyword.has_key?(opts, :type),
       do: raise(ArgumentError, "type missing for link #{name}")
 
@@ -187,6 +189,18 @@ defmodule RDF.Mapping.Schema do
 
   defp resource_type(type) do
     {:ok, {:resource, type}}
+  end
+
+  defp property_mapping_destination({:-, _line, [iri_expr]}), do: {:inverse, iri_expr}
+  defp property_mapping_destination(iri_expr), do: iri_expr
+
+  @doc false
+  def property_mapping(property_mapping) do
+    Map.new(property_mapping, fn
+      {name, {:inverse, iri}} when is_atom(name) -> {name, {:inverse, RDF.iri(iri)}}
+      {name, iri} when is_atom(name) -> {name, RDF.iri(iri)}
+      bad -> raise ArgumentError, "bad property mapping: #{inspect(bad)}"
+    end)
   end
 
   defp expand_alias({:__aliases__, _, _} = ast, env),

@@ -189,4 +189,13 @@ defmodule Example do
       link :next, EX.next(), type: Example.AddDepthPreloading, preload: +2
     end
   end
+
+  defmodule InverseProperties do
+    use RDF.Mapping
+
+    schema do
+      property :name, EX.name()
+      link :foo, -EX.foo(), type: [Example.User]
+    end
+  end
 end

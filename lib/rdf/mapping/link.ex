@@ -26,7 +26,7 @@ end
 defmodule RDF.Mapping.Link.Preloader do
   @moduledoc false
 
-  alias RDF.Description
+  alias RDF.{Description, Query}
   alias RDF.Mapping.Schema.{Type, TypeError}
 
   import RDF.Utils
@@ -54,8 +54,8 @@ defmodule RDF.Mapping.Link.Preloader do
         )
 
       if preload? do
-        iri = mapping_mod.__property_map__(link)
-        objects = Description.get(description, iri)
+        property_iri = mapping_mod.__property_map__(link)
+        objects = objects(graph, description, property_iri)
 
         cond do
           is_nil(objects) ->
@@ -87,6 +87,19 @@ defmodule RDF.Mapping.Link.Preloader do
         {:cont, {:ok, mapping}}
       end
     end)
+  end
+
+  defp objects(graph, description, {:inverse, property_iri}) do
+    {:object?, property_iri, description.subject}
+    |> Query.execute!(graph)
+    |> case do
+      [] -> nil
+      results -> Enum.map(results, &Map.fetch!(&1, :object))
+    end
+  end
+
+  defp objects(_graph, description, property_iri) do
+    Description.get(description, property_iri)
   end
 
   def next_preload_opt(nil, nil, mapping_mod, link, depth, max_depth) do

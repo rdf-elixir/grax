@@ -71,4 +71,17 @@ defmodule RDF.Mapping.SchemaTest do
       end
     end
   end
+
+  test "property_mapping/1" do
+    assert RDF.Mapping.Schema.property_mapping(
+             foo: EX.foo(),
+             bar: EX.Bar,
+             baz: {:inverse, EX.Baz}
+           ) ==
+             %{
+               foo: RDF.iri(EX.foo()),
+               bar: RDF.iri(EX.Bar),
+               baz: {:inverse, RDF.iri(EX.Baz)}
+             }
+  end
 end

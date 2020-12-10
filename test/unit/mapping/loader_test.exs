@@ -1,8 +1,6 @@
 defmodule RDF.Mapping.LoaderTest do
   use RDF.Mapping.TestCase
 
-  alias RDF.Mapping.DescriptionNotFoundError
-
   #  defmodule TestMappingArgs do
   #    use RDF.Mapping
   #
@@ -36,7 +34,12 @@ defmodule RDF.Mapping.LoaderTest do
 
   test "when no description for the given IRI exists in the graph" do
     assert Example.User.load(example_graph(), EX.not_existing()) ==
-             {:error, DescriptionNotFoundError.exception(resource: EX.not_existing())}
+             {:ok,
+              %Example.User{
+                __iri__: IRI.to_string(EX.not_existing()),
+                posts: [],
+                comments: []
+              }}
   end
 
   describe "type mapping" do
@@ -231,9 +234,10 @@ defmodule RDF.Mapping.LoaderTest do
   describe "nested mappings" do
     test "when no description of the associated resource exists" do
       assert example_description(:user)
-             |> EX.posts(EX.Post)
              |> Example.User.load(EX.User) ==
-               {:error, DescriptionNotFoundError.exception(resource: RDF.iri(EX.Post))}
+               {:ok,
+                Example.user(EX.User)
+                |> Map.put(:posts, [%Example.Post{__iri__: IRI.to_string(EX.Post)}])}
     end
 
     test "when the nested description doesn't match the nested schema" do
@@ -246,6 +250,58 @@ defmodule RDF.Mapping.LoaderTest do
                example_graph()
                |> Graph.put({EX.Post, EX.title(), 42})
                |> Example.User.load(EX.User)
+    end
+  end
+
+  describe "inverse properties" do
+    test "normal case" do
+      description = EX.S |> EX.name("subject")
+
+      assert Example.InverseProperties.load(description, EX.S) ==
+               {:ok,
+                %Example.InverseProperties{
+                  __iri__: IRI.to_string(EX.S),
+                  name: "subject",
+                  foo: []
+                }}
+
+      graph =
+        Graph.new([
+          description,
+          EX.User |> EX.foo(EX.S),
+          example_graph()
+        ])
+
+      assert Example.InverseProperties.load(graph, EX.S) ==
+               {:ok,
+                %Example.InverseProperties{
+                  __iri__: IRI.to_string(EX.S),
+                  name: "subject",
+                  foo: [Example.user(EX.User, depth: 0)]
+                }}
+
+      assert Example.InverseProperties.load(graph, EX.S, preload: 2) ==
+               {:ok,
+                %Example.InverseProperties{
+                  __iri__: IRI.to_string(EX.S),
+                  name: "subject",
+                  foo: [Example.user(EX.User, depth: 1)]
+                }}
+    end
+
+    test "when a resource exists only as an object" do
+      graph =
+        Graph.new([
+          EX.User |> EX.foo(EX.S),
+          example_graph()
+        ])
+
+      assert Example.InverseProperties.load(graph, EX.S) ==
+               {:ok,
+                %Example.InverseProperties{
+                  __iri__: IRI.to_string(EX.S),
+                  foo: [Example.user(EX.User, depth: 0)]
+                }}
     end
   end
 end
