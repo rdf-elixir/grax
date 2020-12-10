@@ -1,5 +1,5 @@
 defmodule RDF.Mapping.ToRDFTest do
-  use RDF.Test.Case
+  use RDF.Mapping.TestCase
 
   test "successful mapping" do
     assert %Example.User{

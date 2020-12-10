@@ -1,5 +1,5 @@
 defmodule RDF.MappingTest do
-  use RDF.Test.Case
+  use RDF.Mapping.TestCase
 
   doctest RDF.Mapping
 end

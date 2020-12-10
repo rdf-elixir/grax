@@ -1,4 +1,4 @@
-defmodule RDF.Test.Case do
+defmodule RDF.Mapping.TestCase do
   use ExUnit.CaseTemplate
 
   alias RDF.{Dataset, Graph, Description, IRI}

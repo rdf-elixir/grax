@@ -1,5 +1,5 @@
 defmodule RDF.Mapping.SchemaTest do
-  use RDF.Test.Case
+  use RDF.Mapping.TestCase
 
   alias RDF.Mapping.Link
 
