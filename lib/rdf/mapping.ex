@@ -1,12 +1,17 @@
 defmodule RDF.Mapping do
-  alias RDF.Mapping.{Schema, FromRDF, ToRDF}
+  alias RDF.Mapping.{Schema, Link, FromRDF, ToRDF}
   alias RDF.{IRI, Graph, Description}
 
   defmacro __using__(opts) do
+    preload_default = Link.Preloader.normalize_spec(Keyword.get(opts, :preload), true)
+
     quote do
       import Schema, only: [schema: 1]
 
       @before_compile unquote(__MODULE__)
+
+      @rdf_mapping_preload_default unquote(preload_default)
+      def __preload_default__(), do: @rdf_mapping_preload_default
     end
   end
 

@@ -13,7 +13,29 @@ defmodule RDF.Mapping.ToRDFTest do
                  __iri__: IRI.to_string(EX.Post),
                  title: "Lorem ipsum",
                  content: "Lorem ipsum dolor sit amet, …",
-                 author: %Example.User{__iri__: IRI.to_string(EX.User)}
+                 author: %Example.User{__iri__: IRI.to_string(EX.User)},
+                 comments: [
+                   %Example.Comment{
+                     __iri__: IRI.to_string(EX.Comment1),
+                     content: "First",
+                     about: %Example.Post{__iri__: IRI.to_string(EX.Post)},
+                     author: %Example.User{
+                       __iri__: IRI.to_string(EX.User1),
+                       name: "Erika Mustermann",
+                       email: ["erika@mustermann.de"]
+                     }
+                   },
+                   %Example.Comment{
+                     __iri__: IRI.to_string(EX.Comment2),
+                     content: "Second",
+                     about: %Example.Post{__iri__: IRI.to_string(EX.Post)},
+                     author: %Example.User{
+                       __iri__: IRI.to_string(EX.User2),
+                       name: "Max Mustermann",
+                       email: ["max@mustermann.de"]
+                     }
+                   }
+                 ]
                }
              ]
            }

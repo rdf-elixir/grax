@@ -1,5 +1,6 @@
 defmodule Example do
   alias Example.NS.EX
+  alias RDF.IRI
 
   defmodule User do
     use RDF.Mapping
@@ -11,6 +12,7 @@ defmodule Example do
       property :password, nil
 
       link :posts, EX.post(), type: [Example.Post]
+      link :comments, EX.comment(), type: [Example.Comment]
     end
   end
 
@@ -21,7 +23,96 @@ defmodule Example do
       property :title, EX.title(), type: :string
       property :content, EX.content(), type: :string
       link :author, EX.author(), type: Example.User
+      link :comments, EX.comment(), type: [Example.Comment]
     end
+  end
+
+  defmodule Comment do
+    use RDF.Mapping
+
+    schema do
+      property :content, EX.content(), type: :string
+      link :about, EX.about(), type: Example.Post
+      link :author, EX.author(), type: Example.User
+    end
+  end
+
+  def user(id, opts \\ [depth: 1])
+
+  def user(EX.User, depth: 0) do
+    %Example.User{
+      __iri__: IRI.to_string(EX.User),
+      name: "John Doe",
+      age: 42,
+      email: ~w[jd@example.com john@doe.com]
+    }
+  end
+
+  def user(EX.User1, depth: 0) do
+    %Example.User{
+      __iri__: IRI.to_string(EX.User1),
+      name: "Erika Mustermann",
+      email: ["erika@mustermann.de"]
+    }
+  end
+
+  def user(EX.User2, depth: 0) do
+    %Example.User{
+      __iri__: IRI.to_string(EX.User2),
+      name: "Max Mustermann",
+      email: ["max@mustermann.de"]
+    }
+  end
+
+  def user(EX.User, depth: depth) do
+    %Example.User{user(EX.User, depth: 0) | posts: [post(depth: depth - 1)], comments: []}
+  end
+
+  def post(depth: 0) do
+    %Example.Post{
+      __iri__: IRI.to_string(EX.Post),
+      title: "Lorem ipsum",
+      content: "Lorem ipsum dolor sit amet, …"
+    }
+  end
+
+  def post(depth: depth) do
+    %Example.Post{post(depth: 0) | comments: comments(depth: depth - 1)}
+    #    %Example.Post{post(depth: 0) | comments: comments(depth: 0), author: user(depth: 0)}
+  end
+
+  def comments(depth: depth) do
+    [comment(EX.Comment1, depth: depth), comment(EX.Comment2, depth: depth)]
+  end
+
+  def comment(EX.Comment1, depth: 0) do
+    %Example.Comment{
+      __iri__: IRI.to_string(EX.Comment1),
+      content: "First"
+    }
+  end
+
+  def comment(EX.Comment2, depth: 0) do
+    %Example.Comment{
+      __iri__: IRI.to_string(EX.Comment2),
+      content: "Second"
+    }
+  end
+
+  def comment(EX.Comment1, depth: depth) do
+    %Example.Comment{
+      comment(EX.Comment1, depth: 0)
+      | author: user(EX.User1, depth: depth - 1)
+        #        about: post(depth: depth - 1)
+    }
+  end
+
+  def comment(EX.Comment2, depth: depth) do
+    %Example.Comment{
+      comment(EX.Comment2, depth: 0)
+      | author: user(EX.User2, depth: depth - 1)
+        #        about: post(depth: depth - 1)
+    }
   end
 
   defmodule Untyped do
@@ -78,8 +169,8 @@ defmodule Example do
 
     schema do
       property :name, EX.name(), type: :string
-      link :link1, EX.link1(), type: [Example.Circle], preload: true
-      link :link2, EX.link2(), type: [Example.Circle], preload: true
+      link :link1, EX.link1(), type: [Example.Circle], preload: +1
+      link :link2, EX.link2(), type: [Example.Circle], preload: +1
     end
   end
 
@@ -87,8 +178,15 @@ defmodule Example do
     use RDF.Mapping
 
     schema do
-      property :name, EX.name(), type: :string
-      link :next, EX.next(), type: Example.DepthPreloading, preload: {:depth, 2}
+      link :next, EX.next(), type: Example.DepthPreloading, preload: 2
+    end
+  end
+
+  defmodule AddDepthPreloading do
+    use RDF.Mapping, preload: +3
+
+    schema do
+      link :next, EX.next(), type: Example.AddDepthPreloading, preload: +2
     end
   end
 end

@@ -5,34 +5,14 @@ defmodule RDF.Mapping.FromRDFTest do
 
   test "successful mapping from a graph" do
     assert Example.User.from_rdf(example_graph(), EX.User) ==
-             {:ok,
-              %Example.User{
-                __iri__: IRI.to_string(EX.User),
-                name: "John Doe",
-                age: 42,
-                email: ~w[jd@example.com john@doe.com],
-                posts: [
-                  %Example.Post{
-                    __iri__: IRI.to_string(EX.Post),
-                    title: "Lorem ipsum",
-                    content: "Lorem ipsum dolor sit amet, …"
-                  }
-                ]
-              }}
+             {:ok, Example.user(EX.User)}
   end
 
   test "successful mapping from a description" do
     assert example_description(:user)
            |> Description.delete_predicates(EX.post())
            |> Example.User.from_rdf(EX.User) ==
-             {:ok,
-              %Example.User{
-                __iri__: IRI.to_string(EX.User),
-                name: "John Doe",
-                age: 42,
-                email: ~w[jd@example.com john@doe.com],
-                posts: []
-              }}
+             {:ok, %Example.User{Example.user(EX.User) | posts: []}}
   end
 
   test "with non-RDF.Data" do

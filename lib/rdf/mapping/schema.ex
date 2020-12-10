@@ -69,7 +69,10 @@ defmodule RDF.Mapping.Schema do
     unless Keyword.has_key?(opts, :type),
       do: raise(ArgumentError, "type missing for link #{name}")
 
-    opts = Keyword.update!(opts, :type, &expand_alias(&1, __CALLER__))
+    opts =
+      opts
+      |> Keyword.update!(:type, &expand_alias(&1, __CALLER__))
+      |> Keyword.put(:preload, Link.Preloader.normalize_spec(Keyword.get(opts, :preload), true))
 
     quote do
       RDF.Mapping.Schema.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
