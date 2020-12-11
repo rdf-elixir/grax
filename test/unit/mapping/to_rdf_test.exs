@@ -3,22 +3,22 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "successful mapping" do
     assert %Example.User{
-             __iri__: IRI.to_string(EX.User),
+             __iri__: IRI.to_string(EX.User0),
              name: "John Doe",
              age: 42,
              email: ~w[jd@example.com john@doe.com],
              password: "secret",
              posts: [
                %Example.Post{
-                 __iri__: IRI.to_string(EX.Post),
+                 __iri__: IRI.to_string(EX.Post0),
                  title: "Lorem ipsum",
                  content: "Lorem ipsum dolor sit amet, …",
-                 author: %Example.User{__iri__: IRI.to_string(EX.User)},
+                 author: %Example.User{__iri__: IRI.to_string(EX.User0)},
                  comments: [
                    %Example.Comment{
                      __iri__: IRI.to_string(EX.Comment1),
                      content: "First",
-                     about: %Example.Post{__iri__: IRI.to_string(EX.Post)},
+                     about: %Example.Post{__iri__: IRI.to_string(EX.Post0)},
                      author: %Example.User{
                        __iri__: IRI.to_string(EX.User1),
                        name: "Erika Mustermann",
@@ -28,7 +28,7 @@ defmodule RDF.Mapping.ToRDFTest do
                    %Example.Comment{
                      __iri__: IRI.to_string(EX.Comment2),
                      content: "Second",
-                     about: %Example.Post{__iri__: IRI.to_string(EX.Post)},
+                     about: %Example.Post{__iri__: IRI.to_string(EX.Post0)},
                      author: %Example.User{
                        __iri__: IRI.to_string(EX.User2),
                        name: "Max Mustermann",
@@ -182,16 +182,29 @@ defmodule RDF.Mapping.ToRDFTest do
     assert %Example.InverseProperties{
              __iri__: IRI.to_string(EX.S),
              name: "subject",
-             foo: [Example.user(EX.User, depth: 0)]
+             foo: [Example.user(EX.User0, depth: 0)]
            }
            |> Example.InverseProperties.to_rdf() ==
              {:ok,
               [
                 EX.S |> EX.name("subject"),
-                EX.User |> EX.foo(EX.S),
+                EX.User0 |> EX.foo(EX.S),
                 example_description(:user)
                 |> Description.delete_predicates(EX.post())
               ]
+              |> RDF.graph()}
+  end
+
+  test "rdf:type for schema class is defined" do
+    assert %Example.ClassDeclaration{
+             __iri__: IRI.to_string(EX.S),
+             name: "foo"
+           }
+           |> Example.ClassDeclaration.to_rdf() ==
+             {:ok,
+              EX.S
+              |> RDF.type(EX.Class)
+              |> EX.name("foo")
               |> RDF.graph()}
   end
 end

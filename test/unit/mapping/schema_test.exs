@@ -84,4 +84,9 @@ defmodule RDF.Mapping.SchemaTest do
                baz: {:inverse, RDF.iri(EX.Baz)}
              }
   end
+
+  test "__class__/0" do
+    assert Example.ClassDeclaration.__class__() == IRI.to_string(EX.Class)
+    assert Example.Types.__class__() == nil
+  end
 end

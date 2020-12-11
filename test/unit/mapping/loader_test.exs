@@ -15,20 +15,20 @@ defmodule RDF.Mapping.LoaderTest do
   #  end
 
   test "successful mapping from a graph" do
-    assert Example.User.load(example_graph(), EX.User) ==
-             {:ok, Example.user(EX.User)}
+    assert Example.User.load(example_graph(), EX.User0) ==
+             {:ok, Example.user(EX.User0)}
   end
 
   test "successful mapping from a description" do
     assert example_description(:user)
            |> Description.delete_predicates(EX.post())
-           |> Example.User.load(EX.User) ==
-             {:ok, %Example.User{Example.user(EX.User) | posts: []}}
+           |> Example.User.load(EX.User0) ==
+             {:ok, %Example.User{Example.user(EX.User0) | posts: []}}
   end
 
   test "with non-RDF.Data" do
     assert_raise ArgumentError, "invalid input data: %{}", fn ->
-      Example.User.load(%{}, EX.User)
+      Example.User.load(%{}, EX.User0)
     end
   end
 
@@ -227,29 +227,29 @@ defmodule RDF.Mapping.LoaderTest do
   test "when multiple values exist for a scalar property" do
     assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
              example_graph()
-             |> Graph.add({EX.User, EX.name(), "Jane"})
-             |> Example.User.load(EX.User)
+             |> Graph.add({EX.User0, EX.name(), "Jane"})
+             |> Example.User.load(EX.User0)
   end
 
   describe "nested mappings" do
     test "when no description of the associated resource exists" do
       assert example_description(:user)
-             |> Example.User.load(EX.User) ==
+             |> Example.User.load(EX.User0) ==
                {:ok,
-                Example.user(EX.User)
-                |> Map.put(:posts, [%Example.Post{__iri__: IRI.to_string(EX.Post)}])}
+                Example.user(EX.User0)
+                |> Map.put(:posts, [%Example.Post{__iri__: IRI.to_string(EX.Post0)}])}
     end
 
     test "when the nested description doesn't match the nested schema" do
       assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
                example_graph()
-               |> Graph.add({EX.Post, EX.title(), "Other"})
-               |> Example.User.load(EX.User)
+               |> Graph.add({EX.Post0, EX.title(), "Other"})
+               |> Example.User.load(EX.User0)
 
       assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
                example_graph()
-               |> Graph.put({EX.Post, EX.title(), 42})
-               |> Example.User.load(EX.User)
+               |> Graph.put({EX.Post0, EX.title(), 42})
+               |> Example.User.load(EX.User0)
     end
   end
 
@@ -268,7 +268,7 @@ defmodule RDF.Mapping.LoaderTest do
       graph =
         Graph.new([
           description,
-          EX.User |> EX.foo(EX.S),
+          EX.User0 |> EX.foo(EX.S),
           example_graph()
         ])
 
@@ -277,7 +277,7 @@ defmodule RDF.Mapping.LoaderTest do
                 %Example.InverseProperties{
                   __iri__: IRI.to_string(EX.S),
                   name: "subject",
-                  foo: [Example.user(EX.User, depth: 0)]
+                  foo: [Example.user(EX.User0, depth: 0)]
                 }}
 
       assert Example.InverseProperties.load(graph, EX.S, preload: 2) ==
@@ -285,14 +285,14 @@ defmodule RDF.Mapping.LoaderTest do
                 %Example.InverseProperties{
                   __iri__: IRI.to_string(EX.S),
                   name: "subject",
-                  foo: [Example.user(EX.User, depth: 1)]
+                  foo: [Example.user(EX.User0, depth: 1)]
                 }}
     end
 
     test "when a resource exists only as an object" do
       graph =
         Graph.new([
-          EX.User |> EX.foo(EX.S),
+          EX.User0 |> EX.foo(EX.S),
           example_graph()
         ])
 
@@ -300,7 +300,7 @@ defmodule RDF.Mapping.LoaderTest do
                {:ok,
                 %Example.InverseProperties{
                   __iri__: IRI.to_string(EX.S),
-                  foo: [Example.user(EX.User, depth: 0)]
+                  foo: [Example.user(EX.User0, depth: 0)]
                 }}
     end
   end

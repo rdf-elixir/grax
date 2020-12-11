@@ -5,7 +5,7 @@ defmodule Example do
   defmodule User do
     use RDF.Mapping
 
-    schema do
+    schema EX.User do
       property :name, EX.name(), type: :string
       property :age, EX.age(), type: :integer
       property :email, EX.email(), type: [:string]
@@ -19,7 +19,7 @@ defmodule Example do
   defmodule Post do
     use RDF.Mapping
 
-    schema do
+    schema EX.Post do
       property :title, EX.title(), type: :string
       property :content, EX.content(), type: :string
       link :author, EX.author(), type: Example.User
@@ -30,7 +30,7 @@ defmodule Example do
   defmodule Comment do
     use RDF.Mapping
 
-    schema do
+    schema EX.Comment do
       property :content, EX.content(), type: :string
       link :about, EX.about(), type: Example.Post
       link :author, EX.author(), type: Example.User
@@ -39,9 +39,9 @@ defmodule Example do
 
   def user(id, opts \\ [depth: 1])
 
-  def user(EX.User, depth: 0) do
+  def user(EX.User0, depth: 0) do
     %Example.User{
-      __iri__: IRI.to_string(EX.User),
+      __iri__: IRI.to_string(EX.User0),
       name: "John Doe",
       age: 42,
       email: ~w[jd@example.com john@doe.com]
@@ -64,13 +64,13 @@ defmodule Example do
     }
   end
 
-  def user(EX.User, depth: depth) do
-    %Example.User{user(EX.User, depth: 0) | posts: [post(depth: depth - 1)], comments: []}
+  def user(EX.User0, depth: depth) do
+    %Example.User{user(EX.User0, depth: 0) | posts: [post(depth: depth - 1)], comments: []}
   end
 
   def post(depth: 0) do
     %Example.Post{
-      __iri__: IRI.to_string(EX.Post),
+      __iri__: IRI.to_string(EX.Post0),
       title: "Lorem ipsum",
       content: "Lorem ipsum dolor sit amet, …"
     }
@@ -196,6 +196,14 @@ defmodule Example do
     schema do
       property :name, EX.name()
       link :foo, -EX.foo(), type: [Example.User]
+    end
+  end
+
+  defmodule ClassDeclaration do
+    use RDF.Mapping
+
+    schema EX.Class do
+      property :name, EX.name()
     end
   end
 end

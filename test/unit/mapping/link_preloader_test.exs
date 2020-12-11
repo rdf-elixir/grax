@@ -243,47 +243,47 @@ defmodule RDF.Mapping.Link.PreloaderTest do
                 }
               }}
 
-    assert Example.User.load(example_graph(), EX.User, preload: false) ==
-             {:ok, Example.user(EX.User, depth: 0)}
+    assert Example.User.load(example_graph(), EX.User0, preload: false) ==
+             {:ok, Example.user(EX.User0, depth: 0)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: true) ==
-             {:ok, Example.user(EX.User, depth: 1)}
+    assert Example.User.load(example_graph(), EX.User0, preload: true) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: 1) ==
-             {:ok, Example.user(EX.User, depth: 1)}
+    assert Example.User.load(example_graph(), EX.User0, preload: 1) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: 2) ==
-             {:ok, Example.user(EX.User, depth: 2)}
+    assert Example.User.load(example_graph(), EX.User0, preload: 2) ==
+             {:ok, Example.user(EX.User0, depth: 2)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: 3) ==
-             {:ok, Example.user(EX.User, depth: 3)}
+    assert Example.User.load(example_graph(), EX.User0, preload: 3) ==
+             {:ok, Example.user(EX.User0, depth: 3)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: :other) ==
-             {:ok, Example.user(EX.User, depth: 1)}
+    assert Example.User.load(example_graph(), EX.User0, preload: :other) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: [posts: false]) ==
-             {:ok, Example.user(EX.User, depth: 1)}
+    assert Example.User.load(example_graph(), EX.User0, preload: [posts: false]) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: :posts) ==
-             {:ok, Example.user(EX.User, depth: 1)}
+    assert Example.User.load(example_graph(), EX.User0, preload: :posts) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: [:posts]) ==
-             {:ok, Example.user(EX.User, depth: 1)}
+    assert Example.User.load(example_graph(), EX.User0, preload: [:posts]) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: [posts: true]) ==
-             {:ok, Example.user(EX.User, depth: 2)}
+    assert Example.User.load(example_graph(), EX.User0, preload: [posts: true]) ==
+             {:ok, Example.user(EX.User0, depth: 2)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: [posts: 1]) ==
-             {:ok, Example.user(EX.User, depth: 2)}
+    assert Example.User.load(example_graph(), EX.User0, preload: [posts: 1]) ==
+             {:ok, Example.user(EX.User0, depth: 2)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: [posts: 2]) ==
-             {:ok, Example.user(EX.User, depth: 3)}
+    assert Example.User.load(example_graph(), EX.User0, preload: [posts: 2]) ==
+             {:ok, Example.user(EX.User0, depth: 3)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: [posts: :other]) ==
-             {:ok, Example.user(EX.User, depth: 1)}
+    assert Example.User.load(example_graph(), EX.User0, preload: [posts: :other]) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User, preload: [posts: :comments]) ==
-             {:ok, Example.user(EX.User, depth: 2)}
+    assert Example.User.load(example_graph(), EX.User0, preload: [posts: :comments]) ==
+             {:ok, Example.user(EX.User0, depth: 2)}
   end
 
   describe "next_preload_opt" do

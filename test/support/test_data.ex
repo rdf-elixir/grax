@@ -2,34 +2,40 @@ defmodule RDF.Mapping.TestData do
   alias RDF.Graph
   alias Example.NS.EX
 
-  @example_user EX.User
+  @example_user EX.User0
+                |> RDF.type(EX.User)
                 |> EX.name("John Doe")
                 |> EX.age(42)
                 |> EX.email("jd@example.com", "john@doe.com")
-                |> EX.post(EX.Post)
+                |> EX.post(EX.Post0)
 
-  @example_post EX.Post
+  @example_post EX.Post0
+                |> RDF.type(EX.Post)
                 |> EX.title("Lorem ipsum")
                 |> EX.content("Lorem ipsum dolor sit amet, …")
-                |> EX.author(EX.User)
+                |> EX.author(EX.User0)
                 |> EX.comment(EX.Comment1, EX.Comment2)
 
   @example_comments [
     EX.Comment1
+    |> RDF.type(EX.Comment)
     |> EX.content("First")
-    |> EX.about(EX.Post)
+    |> EX.about(EX.Post0)
     |> EX.author(EX.User1),
     EX.Comment2
+    |> RDF.type(EX.Comment)
     |> EX.content("Second")
-    |> EX.about(EX.Post)
+    |> EX.about(EX.Post0)
     |> EX.author(EX.User2)
   ]
 
   @example_comment_authors [
     EX.User1
+    |> RDF.type(EX.User)
     |> EX.name("Erika Mustermann")
     |> EX.email("erika@mustermann.de"),
     EX.User2
+    |> RDF.type(EX.User)
     |> EX.name("Max Mustermann")
     |> EX.email("max@mustermann.de")
   ]

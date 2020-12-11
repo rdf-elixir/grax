@@ -6,7 +6,7 @@ defmodule RDF.Mapping do
     preload_default = Link.Preloader.normalize_spec(Keyword.get(opts, :preload), true)
 
     quote do
-      import Schema, only: [schema: 1]
+      import Schema, only: [schema: 1, schema: 2]
 
       @before_compile unquote(__MODULE__)
 

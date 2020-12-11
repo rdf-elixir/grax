@@ -1,18 +1,18 @@
 defmodule RDF.Mapping.Schema do
   alias RDF.Mapping.Schema.Type
   alias RDF.Mapping.Link
-  alias RDF.Literal
+  alias RDF.{Literal, IRI}
 
   import RDF.Utils
 
   @doc """
   Defines a mapping schema.
   """
-  defmacro schema(do: block) do
-    schema(__CALLER__, block)
+  defmacro schema(class \\ nil, do: block) do
+    schema(__CALLER__, class, block)
   end
 
-  defp schema(caller, block) do
+  defp schema(caller, class, block) do
     prelude =
       quote do
         if line = Module.get_attribute(__MODULE__, :rdf_mapping_schema_defined) do
@@ -20,6 +20,9 @@ defmodule RDF.Mapping.Schema do
         end
 
         @rdf_mapping_schema_defined unquote(caller.line)
+
+        @rdf_mapping_schema_class if unquote(class), do: IRI.to_string(unquote(class))
+        def __class__(), do: @rdf_mapping_schema_class
 
         Module.register_attribute(__MODULE__, :rdf_property_mapping, accumulate: true)
         Module.register_attribute(__MODULE__, :rdf_property_opts, accumulate: true)
