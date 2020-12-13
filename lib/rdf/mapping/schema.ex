@@ -98,7 +98,12 @@ defmodule RDF.Mapping.Schema do
     opts = normalize_property_opts(mod, name, opts)
 
     virtual? = opts[:virtual] || is_nil(iri) || false
-    Module.put_attribute(mod, :struct_fields, {name, Map.get(opts, :default)})
+
+    Module.put_attribute(
+      mod,
+      :struct_fields,
+      {name, Map.get(opts, :default, if(Type.set?(Map.get(opts, :type)), do: []))}
+    )
 
     unless virtual? do
       Module.put_attribute(mod, :rdf_property_mapping, {name, iri})
