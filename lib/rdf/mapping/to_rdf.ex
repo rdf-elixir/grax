@@ -2,52 +2,54 @@ defmodule RDF.Mapping.ToRDF do
   @moduledoc false
 
   alias RDF.{IRI, Literal, XSD, Graph, Description}
-  alias RDF.Mapping.Link
+  alias RDF.Mapping.{Link, Validation}
   alias RDF.Mapping.Schema.TypeError
 
-  def call(%mapping{} = struct, opts) do
-    mapping.__property_map__()
-    |> Enum.reduce_while(
-      {:ok, Description.new(mapping.iri(struct)), Graph.new()},
-      fn {property_name, property_iri}, {:ok, description, graph} ->
-        case Map.get(struct, property_name) do
-          nil ->
-            {:cont, {:ok, description, graph}}
+  def call(%mapping_mod{} = struct, opts) do
+    with {:ok, struct} <- Validation.call(struct, opts) do
+      mapping_mod.__property_map__()
+      |> Enum.reduce_while(
+        {:ok, Description.new(mapping_mod.iri(struct)), Graph.new()},
+        fn {property_name, property_iri}, {:ok, description, graph} ->
+          case Map.get(struct, property_name) do
+            nil ->
+              {:cont, {:ok, description, graph}}
 
-          [] ->
-            {:cont, {:ok, description, graph}}
+            [] ->
+              {:cont, {:ok, description, graph}}
 
-          %Link.NotLoaded{} ->
-            {:cont, {:ok, description, graph}}
+            %Link.NotLoaded{} ->
+              {:cont, {:ok, description, graph}}
 
-          values ->
-            property_spec =
-              mapping.__property_spec__(property_name) ||
-                mapping.__link_spec__(property_name)
+            values ->
+              property_spec =
+                mapping_mod.__property_spec__(property_name) ||
+                  mapping_mod.__link_spec__(property_name)
 
-            case map_values(values, property_spec.type, property_spec, opts) do
-              {:ok, values, additions} ->
-                {:cont, add_statements(graph, description, property_iri, values, additions)}
+              case map_values(values, property_spec.type, property_spec, opts) do
+                {:ok, values, additions} ->
+                  {:cont, add_statements(graph, description, property_iri, values, additions)}
 
-              error ->
-                {:halt, error}
-            end
-        end
-      end
-    )
-    |> case do
-      {:ok, description, graph} ->
-        description =
-          if class = mapping.__class__() do
-            description |> RDF.type(RDF.iri(class))
-          else
-            description
+                error ->
+                  {:halt, error}
+              end
           end
+        end
+      )
+      |> case do
+        {:ok, description, graph} ->
+          description =
+            if class = mapping_mod.__class__() do
+              description |> RDF.type(RDF.iri(class))
+            else
+              description
+            end
 
-        {:ok, Graph.add(graph, description)}
+          {:ok, Graph.add(graph, description)}
 
-      error ->
-        error
+        error ->
+          error
+      end
     end
   end
 
@@ -101,20 +103,12 @@ defmodule RDF.Mapping.ToRDF do
     end
   end
 
-  defp map_values(values, {_, _} = composite_type, _, _) do
-    {:error, TypeError.exception(value: values, type: composite_type)}
-  end
-
   defp map_values(value, nil, _property_spec, _opts) do
     {:ok, Literal.new(value), nil}
   end
 
   defp map_values(value, XSD.Numeric, _property_spec, _opts) do
-    if is_number(value) or match?(%Decimal{}, value) do
-      {:ok, Literal.new(value), nil}
-    else
-      {:error, TypeError.exception(value: value, type: XSD.Numeric)}
-    end
+    {:ok, Literal.new(value), nil}
   end
 
   defp map_values(value, type, _property_spec, _opts) do

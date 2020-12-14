@@ -1,6 +1,8 @@
 defmodule RDF.Mapping.ToRDFTest do
   use RDF.Mapping.TestCase
 
+  alias RDF.Mapping.ValidationError
+
   test "successful mapping" do
     assert %Example.User{
              __iri__: IRI.to_string(EX.User0),
@@ -40,6 +42,17 @@ defmodule RDF.Mapping.ToRDFTest do
              ]
            }
            |> Example.User.to_rdf() == {:ok, example_graph()}
+  end
+
+  test "with invalid struct" do
+    assert {:error, %ValidationError{}} =
+             %Example.User{
+               __iri__: IRI.to_string(EX.User0),
+               name: "John Doe",
+               email: ~w[jd@example.com],
+               age: "42"
+             }
+             |> Example.User.to_rdf()
   end
 
   test "mapping of untyped scalar properties" do
@@ -107,7 +120,8 @@ defmodule RDF.Mapping.ToRDFTest do
              unsigned_short: 42,
              unsigned_byte: 42,
              non_positive_integer: -42,
-             negative_integer: -42
+             negative_integer: -42,
+             numeric: Decimal.from_float(0.5)
            }
            |> Example.Types.to_rdf() ==
              {:ok,
@@ -131,6 +145,7 @@ defmodule RDF.Mapping.ToRDFTest do
               |> EX.unsigned_byte(XSD.unsignedByte(42))
               |> EX.non_positive_integer(XSD.nonPositiveInteger(-42))
               |> EX.negative_integer(XSD.negativeInteger(-42))
+              |> EX.numeric(XSD.decimal(0.5))
               |> RDF.graph()}
   end
 
