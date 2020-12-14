@@ -1,7 +1,7 @@
 defmodule RDF.Mapping.Validation do
   @moduledoc false
 
-  alias RDF.Mapping.{ValidationError, InvalidSubjectIRIError}
+  alias RDF.Mapping.{Link, ValidationError, InvalidSubjectIRIError}
   alias RDF.Mapping.Schema.TypeError
   alias RDF.{Literal, XSD}
 
@@ -11,6 +11,7 @@ defmodule RDF.Mapping.Validation do
     ValidationError.exception()
     |> check_subject_iri(mapping, opts)
     |> check_properties(mapping, opts)
+    |> check_links(mapping, opts)
     |> case do
       %{errors: []} -> {:ok, mapping}
       validation -> {:error, validation}
@@ -32,11 +33,26 @@ defmodule RDF.Mapping.Validation do
 
       validation
       |> check_cardinality(property, value, type, opts)
-      |> check_type(property, value, type, opts)
+      |> check_datatype(property, value, type, opts)
+    end)
+  end
+
+  defp check_links(validation, %mapping_mod{} = mapping, opts) do
+    mapping_mod.__link_spec__()
+    |> Enum.reduce(validation, fn {link, link_spec}, validation ->
+      value = Map.get(mapping, link)
+      type = link_spec.type
+
+      validation
+      |> check_cardinality(link, value, type, opts)
+      |> check_resource_type(link, value, type, opts)
     end)
   end
 
   defp check_cardinality(validation, _, value, {:set, _}, _) when is_list(value),
+    do: validation
+
+  defp check_cardinality(validation, _, %Link.NotLoaded{}, _, _),
     do: validation
 
   defp check_cardinality(validation, property, value, {:set, _} = type, _) do
@@ -49,19 +65,19 @@ defmodule RDF.Mapping.Validation do
 
   defp check_cardinality(validation, _, _, _, _), do: validation
 
-  defp check_type(validation, _, _, nil, _), do: validation
-  defp check_type(validation, _, nil, _, _), do: validation
-  defp check_type(validation, _, [], _, _), do: validation
+  defp check_datatype(validation, _, _, nil, _), do: validation
+  defp check_datatype(validation, _, nil, _, _), do: validation
+  defp check_datatype(validation, _, [], _, _), do: validation
 
-  defp check_type(validation, property, values, {:set, type}, opts) do
-    check_type(validation, property, values, type, opts)
+  defp check_datatype(validation, property, values, {:set, type}, opts) do
+    check_datatype(validation, property, values, type, opts)
   end
 
-  defp check_type(validation, property, values, type, opts) when is_list(values) do
-    Enum.reduce(values, validation, &check_type(&2, property, &1, type, opts))
+  defp check_datatype(validation, property, values, type, opts) when is_list(values) do
+    Enum.reduce(values, validation, &check_datatype(&2, property, &1, type, opts))
   end
 
-  defp check_type(validation, property, value, type, _opts) do
+  defp check_datatype(validation, property, value, type, _opts) do
     if value |> in_value_space?(type) do
       validation
     else
@@ -90,5 +106,28 @@ defmodule RDF.Mapping.Validation do
     |> if do
       type.new(value).literal.value == value
     end
+  end
+
+  defp check_resource_type(validation, _, %Link.NotLoaded{}, _, _), do: validation
+  defp check_resource_type(validation, _, nil, _, _), do: validation
+  defp check_resource_type(validation, _, [], _, _), do: validation
+
+  defp check_resource_type(validation, link, values, {:set, type}, opts) do
+    check_resource_type(validation, link, values, type, opts)
+  end
+
+  defp check_resource_type(validation, link, values, type, opts) when is_list(values) do
+    Enum.reduce(values, validation, &check_resource_type(&2, link, &1, type, opts))
+  end
+
+  defp check_resource_type(validation, link, %type{} = value, {:resource, type}, opts) do
+    case call(value, opts) do
+      {:ok, _} -> validation
+      {:error, nested_validation} -> add_error(validation, link, nested_validation)
+    end
+  end
+
+  defp check_resource_type(validation, link, value, type, opts) do
+    add_error(validation, link, TypeError.exception(value: value, type: type))
   end
 end

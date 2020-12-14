@@ -70,6 +70,8 @@ defmodule Example do
     %Example.User{user(EX.User0, depth: 0) | posts: [post(depth: depth - 1)], comments: []}
   end
 
+  def post(opts \\ [depth: 1])
+
   def post(depth: 0) do
     %Example.Post{
       __iri__: IRI.to_string(EX.Post0),
