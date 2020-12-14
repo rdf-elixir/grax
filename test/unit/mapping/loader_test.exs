@@ -68,29 +68,7 @@ defmodule RDF.Mapping.LoaderTest do
              #      |> EX.time(XSD.time(42))
              #      |> EX.date_time(XSD.date_time(42))
              |> Example.Types.load(EX.S) ==
-               {:ok,
-                %Example.Types{
-                  __iri__: IRI.to_string(EX.S),
-                  string: "string",
-                  any_uri: IRI.parse(EX.foo()),
-                  boolean: true,
-                  integer: 42,
-                  decimal: Decimal.from_float(0.5),
-                  double: 3.14,
-                  float: 3.14,
-                  long: 42,
-                  int: 42,
-                  short: 42,
-                  byte: 42,
-                  non_negative_integer: 42,
-                  positive_integer: 42,
-                  unsigned_long: 42,
-                  unsigned_int: 42,
-                  unsigned_short: 42,
-                  unsigned_byte: 42,
-                  non_positive_integer: -42,
-                  negative_integer: -42
-                }}
+               {:ok, Example.types()}
     end
 
     test "numeric type" do

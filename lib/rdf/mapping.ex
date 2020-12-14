@@ -1,5 +1,5 @@
 defmodule RDF.Mapping do
-  alias RDF.Mapping.{Schema, Link, Loader, ToRDF}
+  alias RDF.Mapping.{Schema, Link, Loader, Validation, ToRDF}
   alias RDF.{IRI, Graph, Description}
 
   defmacro __using__(opts) do
@@ -39,6 +39,24 @@ defmodule RDF.Mapping do
       @spec to_rdf(struct, opts :: Keyword) :: {:ok, Graph.t()} | {:error, any}
       def to_rdf(%__MODULE__{} = mapping, opts \\ []) do
         ToRDF.call(mapping, opts)
+      end
+
+      @spec validate(struct, opts :: Keyword) :: {:ok, struct} | {:error, ValidationError.t()}
+      def validate(%__MODULE__{} = mapping, opts \\ []) do
+        Validation.call(mapping, opts)
+      end
+
+      @spec validate!(struct, opts :: Keyword) :: struct
+      def validate!(%__MODULE__{} = mapping, opts \\ []) do
+        case validate(mapping, opts) do
+          {:ok, _} -> mapping
+          {:error, error} -> raise error
+        end
+      end
+
+      @spec valid?(struct, opts :: Keyword) :: boolean
+      def valid?(%__MODULE__{} = mapping, opts \\ []) do
+        match?({:ok, _}, validate(mapping, opts))
       end
     end
   end

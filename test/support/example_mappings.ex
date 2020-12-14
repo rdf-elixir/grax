@@ -2,6 +2,8 @@ defmodule Example do
   alias Example.NS.EX
   alias RDF.IRI
 
+  @compile {:no_warn_undefined, Example.NS.EX}
+
   defmodule User do
     use RDF.Mapping
 
@@ -141,6 +143,31 @@ defmodule Example do
         property name, apply(EX, name, []), type: type
       end)
     end
+  end
+
+  def types(subject \\ EX.S) do
+    %Types{
+      __iri__: IRI.to_string(subject),
+      string: "string",
+      any_uri: IRI.parse(EX.foo()),
+      boolean: true,
+      integer: 42,
+      decimal: Decimal.from_float(0.5),
+      double: 3.14,
+      float: 3.14,
+      long: 42,
+      int: 42,
+      short: 42,
+      byte: 42,
+      non_negative_integer: 42,
+      positive_integer: 42,
+      unsigned_long: 42,
+      unsigned_int: 42,
+      unsigned_short: 42,
+      unsigned_byte: 42,
+      non_positive_integer: -42,
+      negative_integer: -42
+    }
   end
 
   defmodule DefaultValues do
