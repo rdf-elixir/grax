@@ -1,6 +1,9 @@
 defmodule RDF.Mapping.LoaderTest do
   use RDF.Mapping.TestCase
 
+  alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
+  alias RDF.Mapping.InvalidValueError
+
   #  defmodule TestMappingArgs do
   #    use RDF.Mapping
   #
@@ -171,7 +174,7 @@ defmodule RDF.Mapping.LoaderTest do
 
     test "when a type does not match the definition in the schema" do
       assert {:error,
-              %RDF.Mapping.Schema.TypeError{
+              %TypeError{
                 type: XSD.Integer,
                 value: ~L"invalid"
               }} = EX.S |> EX.integer("invalid") |> Example.Types.load(EX.S)
@@ -179,7 +182,7 @@ defmodule RDF.Mapping.LoaderTest do
       integer = XSD.integer(-42)
 
       assert {:error,
-              %RDF.Mapping.Schema.TypeError{
+              %TypeError{
                 type: XSD.UnsignedByte,
                 value: ^integer
               }} = EX.S |> EX.unsigned_byte(integer) |> Example.Types.load(EX.S)
@@ -188,7 +191,7 @@ defmodule RDF.Mapping.LoaderTest do
       integer = XSD.integer(42)
 
       assert {:error,
-              %RDF.Mapping.Schema.TypeError{
+              %TypeError{
                 type: XSD.UnsignedByte,
                 value: ^integer
               }} = EX.S |> EX.unsigned_byte(integer) |> Example.Types.load(EX.S)
@@ -197,13 +200,13 @@ defmodule RDF.Mapping.LoaderTest do
     test "with invalid literals" do
       invalid = XSD.integer("invalid")
 
-      assert {:error, %RDF.Mapping.InvalidValueError{value: ^invalid}} =
+      assert {:error, %InvalidValueError{value: ^invalid}} =
                EX.S |> EX.integer(invalid) |> Example.Types.load(EX.S)
     end
   end
 
   test "when multiple values exist for a scalar property" do
-    assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
+    assert {:error, %TypeError{type: XSD.String}} =
              example_graph()
              |> Graph.add({EX.User0, EX.name(), "Jane"})
              |> Example.User.load(EX.User0)
@@ -219,12 +222,12 @@ defmodule RDF.Mapping.LoaderTest do
     end
 
     test "when the nested description doesn't match the nested schema" do
-      assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
+      assert {:error, %TypeError{type: XSD.String}} =
                example_graph()
                |> Graph.add({EX.Post0, EX.title(), "Other"})
                |> Example.User.load(EX.User0)
 
-      assert {:error, %RDF.Mapping.Schema.TypeError{type: XSD.String}} =
+      assert {:error, %TypeError{type: XSD.String}} =
                example_graph()
                |> Graph.put({EX.Post0, EX.title(), 42})
                |> Example.User.load(EX.User0)
@@ -281,5 +284,30 @@ defmodule RDF.Mapping.LoaderTest do
                   foo: [Example.user(EX.User0, depth: 0)]
                 }}
     end
+  end
+
+  test "required properties" do
+    [
+      RDF.graph(),
+      EX.S |> EX.foo(42) |> EX.bar(42),
+      EX.S |> EX.foo(42) |> EX.baz(42),
+      EX.S |> EX.bar(42) |> EX.baz(42)
+    ]
+    |> Enum.each(fn input ->
+      assert {:error, %RequiredPropertyMissing{}} = Example.Required.load(input, EX.S)
+    end)
+
+    assert EX.S
+           |> EX.foo("foo")
+           |> EX.bar(42)
+           |> EX.baz(42)
+           |> Example.Required.load(EX.S) ==
+             {:ok,
+              %Example.Required{
+                __iri__: IRI.to_string(EX.S),
+                foo: "foo",
+                bar: 42,
+                baz: [42]
+              }}
   end
 end

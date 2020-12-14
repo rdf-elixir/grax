@@ -2,7 +2,7 @@ defmodule RDF.Mapping.Validation do
   @moduledoc false
 
   alias RDF.Mapping.{Link, ValidationError, InvalidSubjectIRIError}
-  alias RDF.Mapping.Schema.TypeError
+  alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
   alias RDF.{Literal, XSD}
 
   import ValidationError, only: [add_error: 3]
@@ -30,9 +30,10 @@ defmodule RDF.Mapping.Validation do
     |> Enum.reduce(validation, fn {property, property_spec}, validation ->
       value = Map.get(mapping, property)
       type = property_spec.type
+      required? = Map.get(property_spec, :required, false)
 
       validation
-      |> check_cardinality(property, value, type, opts)
+      |> check_cardinality(property, value, type, required?)
       |> check_datatype(property, value, type, opts)
     end)
   end
@@ -44,12 +45,20 @@ defmodule RDF.Mapping.Validation do
       type = link_spec.type
 
       validation
-      |> check_cardinality(link, value, type, opts)
+      |> check_cardinality(link, value, type, false)
       |> check_resource_type(link, value, type, opts)
     end)
   end
 
-  defp check_cardinality(validation, _, value, {:set, _}, _) when is_list(value),
+  defp check_cardinality(validation, _, value, {:set, _}, false) when is_list(value),
+    do: validation
+
+  defp check_cardinality(validation, property, values, {:set, _}, true)
+       when is_list(values) and length(values) == 0 do
+    add_error(validation, property, RequiredPropertyMissing.exception(property: property))
+  end
+
+  defp check_cardinality(validation, _, values, {:set, _}, true) when is_list(values),
     do: validation
 
   defp check_cardinality(validation, _, %Link.NotLoaded{}, _, _),
@@ -61,6 +70,10 @@ defmodule RDF.Mapping.Validation do
 
   defp check_cardinality(validation, property, value, type, _) when is_list(value) do
     add_error(validation, property, TypeError.exception(value: value, type: type))
+  end
+
+  defp check_cardinality(validation, property, nil, _, true) do
+    add_error(validation, property, RequiredPropertyMissing.exception(property: property))
   end
 
   defp check_cardinality(validation, _, _, _, _), do: validation
@@ -127,7 +140,7 @@ defmodule RDF.Mapping.Validation do
     end
   end
 
-  defp check_resource_type(validation, link, value, type, opts) do
+  defp check_resource_type(validation, link, value, type, _opts) do
     add_error(validation, link, TypeError.exception(value: value, type: type))
   end
 end

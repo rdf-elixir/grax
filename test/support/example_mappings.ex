@@ -235,4 +235,14 @@ defmodule Example do
       property :name, EX.name()
     end
   end
+
+  defmodule Required do
+    use RDF.Mapping
+
+    schema do
+      property :foo, EX.foo(), required: true
+      property :bar, EX.bar(), type: :integer, required: true
+      property :baz, EX.baz(), type: [], required: true
+    end
+  end
 end

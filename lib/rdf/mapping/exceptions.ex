@@ -44,6 +44,19 @@ defmodule RDF.Mapping.Schema.TypeError do
   end
 end
 
+defmodule RDF.Mapping.Schema.RequiredPropertyMissing do
+  @moduledoc """
+  Raised when a required property is not present.
+  """
+  defexception [:message, :property]
+
+  def exception(opts) do
+    property = Keyword.fetch!(opts, :property)
+    msg = opts[:message] || "no value for required property #{inspect(property)} present"
+    %__MODULE__{message: msg, property: property}
+  end
+end
+
 defmodule RDF.Mapping.InvalidSubjectIRIError do
   @moduledoc """
   Raised when a RDF.Mapping has an invalid subject IRI.

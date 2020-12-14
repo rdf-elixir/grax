@@ -4,7 +4,7 @@ defmodule RDF.Mapping.Loader do
   alias RDF.{Literal, IRI, Graph, Description}
   alias RDF.Mapping.Link.Preloader
   alias RDF.Mapping.{InvalidValueError, DescriptionNotFoundError}
-  alias RDF.Mapping.Schema.TypeError
+  alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
 
   import RDF.Utils
 
@@ -55,17 +55,22 @@ defmodule RDF.Mapping.Loader do
     |> Enum.reduce_while({:ok, initial}, fn {property, property_spec}, {:ok, mapping} ->
       property_iri = mapping_mod.__property_map__(property)
 
-      if objects = Description.get(description, property_iri) do
-        handle(property, objects, description, graph, property_spec, opts)
-        |> case do
-          {:ok, mapped_objects} ->
-            {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
+      cond do
+        objects = Description.get(description, property_iri) ->
+          handle(property, objects, description, graph, property_spec, opts)
+          |> case do
+            {:ok, mapped_objects} ->
+              {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
 
-          {:error, _} = error ->
-            {:halt, error}
-        end
-      else
-        {:cont, {:ok, mapping}}
+            {:error, _} = error ->
+              {:halt, error}
+          end
+
+        property_spec[:required] ->
+          {:halt, {:error, RequiredPropertyMissing.exception(property: property)}}
+
+        true ->
+          {:cont, {:ok, mapping}}
       end
     end)
     |> case do

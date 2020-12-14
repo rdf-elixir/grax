@@ -2,7 +2,7 @@ defmodule RDF.Mapping.ValidationTest do
   use RDF.Mapping.TestCase
 
   alias RDF.Mapping.{ValidationError, InvalidSubjectIRIError}
-  alias RDF.Mapping.Schema.TypeError
+  alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
 
   describe "subject IRI validation" do
     test "when missing" do
@@ -188,6 +188,16 @@ defmodule RDF.Mapping.ValidationTest do
       )
     end
 
+    test "missing required properties" do
+      assert Example.Required.validate(%Example.Required{__iri__: IRI.to_string(EX.S)}, []) ==
+               {:error,
+                validation_error(
+                  bar: RequiredPropertyMissing.exception(property: :bar),
+                  baz: RequiredPropertyMissing.exception(property: :baz),
+                  foo: RequiredPropertyMissing.exception(property: :foo)
+                )}
+    end
+
     test "multiple errors per property" do
       assert Example.User.validate(%Example.User{__iri__: IRI.to_string(EX.S), name: [42]}, []) ==
                {:error,
@@ -285,7 +295,7 @@ defmodule RDF.Mapping.ValidationTest do
 
       [
         posts: [%Example.Post{}],
-        posts: [%Example.Post{__iri__: IRI.to_string(EX.S), title: 42}],
+        posts: [%Example.Post{__iri__: IRI.to_string(EX.S), title: 42}]
       ]
       |> assert_validation_error(%Example.User{__iri__: IRI.to_string(EX.S)}, ValidationError)
     end
