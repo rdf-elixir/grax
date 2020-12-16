@@ -1,20 +1,31 @@
 defmodule RDF.Mapping.ValidationTest do
   use RDF.Mapping.TestCase
 
-  alias RDF.Mapping.{ValidationError, InvalidSubjectIRIError}
+  alias RDF.Mapping.{ValidationError, InvalidIdError}
   alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
 
-  describe "subject IRI validation" do
+  describe "subject id validation" do
+    test "with a blank node" do
+      assert Example.User.validate(%Example.User{__id__: ~B"foo"}, []) ==
+               {:ok, %Example.User{__id__: ~B"foo"}}
+    end
+
+    test "with an invalid value" do
+      assert Example.User.validate(%Example.User{__id__: "http://example.com"}, []) ==
+               {:error,
+                validation_error(__id__: InvalidIdError.exception(id: "http://example.com"))}
+    end
+
     test "when missing" do
       assert Example.User.validate(%Example.User{}, []) ==
-               {:error, validation_error(__iri__: InvalidSubjectIRIError.exception(iri: nil))}
+               {:error, validation_error(__id__: InvalidIdError.exception(id: nil))}
     end
   end
 
   test "default values of optional values are always valid" do
     [
-      %Example.Types{__iri__: IRI.to_string(EX.S)},
-      %Example.User{__iri__: IRI.to_string(EX.S)}
+      %Example.Types{__id__: IRI.new(EX.S)},
+      %Example.User{__id__: IRI.new(EX.S)}
     ]
     |> Enum.each(fn %mapping_mod{} = empty_mapping ->
       assert mapping_mod.validate(empty_mapping, []) == {:ok, empty_mapping}
@@ -32,12 +43,12 @@ defmodule RDF.Mapping.ValidationTest do
         email: ["foo@example.com"],
         email: ["foo@example.com", "bar@example.com"]
       ]
-      |> assert_ok_validation(%Example.User{__iri__: IRI.to_string(EX.S)})
+      |> assert_ok_validation(%Example.User{__id__: IRI.new(EX.S)})
 
       [
         numeric: Decimal.from_float(0.5)
       ]
-      |> assert_ok_validation(%Example.Types{__iri__: IRI.to_string(EX.S)})
+      |> assert_ok_validation(%Example.Types{__id__: IRI.new(EX.S)})
 
       [
         foo: nil,
@@ -47,7 +58,7 @@ defmodule RDF.Mapping.ValidationTest do
         bar: ["bar"],
         bar: ["bar", 42, Decimal.from_float(0.5), 3.14]
       ]
-      |> assert_ok_validation(%Example.Untyped{__iri__: IRI.to_string(EX.S)})
+      |> assert_ok_validation(%Example.Untyped{__id__: IRI.new(EX.S)})
     end
 
     test "literal datatype mismatches" do
@@ -123,7 +134,7 @@ defmodule RDF.Mapping.ValidationTest do
         email: [42]
       ]
       |> assert_validation_error(
-        %Example.User{__iri__: IRI.to_string(EX.S)},
+        %Example.User{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: hd(&1),
@@ -138,7 +149,7 @@ defmodule RDF.Mapping.ValidationTest do
         name: ["foo"]
       ]
       |> assert_validation_error(
-        %Example.User{__iri__: IRI.to_string(EX.S)},
+        %Example.User{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: &1,
@@ -151,7 +162,7 @@ defmodule RDF.Mapping.ValidationTest do
         foo: ["foo"]
       ]
       |> assert_validation_error(
-        %Example.Untyped{__iri__: IRI.to_string(EX.S)},
+        %Example.Untyped{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: &1,
@@ -166,7 +177,7 @@ defmodule RDF.Mapping.ValidationTest do
         email: nil
       ]
       |> assert_validation_error(
-        %Example.User{__iri__: IRI.to_string(EX.S)},
+        %Example.User{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: &1,
@@ -179,7 +190,7 @@ defmodule RDF.Mapping.ValidationTest do
         bar: nil
       ]
       |> assert_validation_error(
-        %Example.Untyped{__iri__: IRI.to_string(EX.S)},
+        %Example.Untyped{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: &1,
@@ -189,7 +200,7 @@ defmodule RDF.Mapping.ValidationTest do
     end
 
     test "missing required properties" do
-      assert Example.Required.validate(%Example.Required{__iri__: IRI.to_string(EX.S)}, []) ==
+      assert Example.Required.validate(%Example.Required{__id__: IRI.new(EX.S)}, []) ==
                {:error,
                 validation_error(
                   bar: RequiredPropertyMissing.exception(property: :bar),
@@ -199,14 +210,14 @@ defmodule RDF.Mapping.ValidationTest do
     end
 
     test "multiple errors per property" do
-      assert Example.User.validate(%Example.User{__iri__: IRI.to_string(EX.S), name: [42]}, []) ==
+      assert Example.User.validate(%Example.User{__id__: IRI.new(EX.S), name: [42]}, []) ==
                {:error,
                 validation_error(
                   name: TypeError.exception(type: XSD.String, value: [42]),
                   name: TypeError.exception(type: XSD.String, value: 42)
                 )}
 
-      assert Example.User.validate(%Example.User{__iri__: IRI.to_string(EX.S), email: 42}, []) ==
+      assert Example.User.validate(%Example.User{__id__: IRI.new(EX.S), email: 42}, []) ==
                {:error,
                 validation_error(
                   email: TypeError.exception(type: {:set, XSD.String}, value: 42),
@@ -220,12 +231,12 @@ defmodule RDF.Mapping.ValidationTest do
       [
         posts: [Example.post()]
       ]
-      |> assert_ok_validation(%Example.User{__iri__: IRI.to_string(EX.S)})
+      |> assert_ok_validation(%Example.User{__id__: IRI.new(EX.S)})
 
       [
         author: Example.user(EX.User0)
       ]
-      |> assert_ok_validation(%Example.Post{__iri__: IRI.to_string(EX.S)})
+      |> assert_ok_validation(%Example.Post{__id__: IRI.new(EX.S)})
     end
 
     test "when scalar value is a list" do
@@ -234,7 +245,7 @@ defmodule RDF.Mapping.ValidationTest do
         author: [Example.user(EX.User0)]
       ]
       |> assert_validation_error(
-        %Example.Post{__iri__: IRI.to_string(EX.S)},
+        %Example.Post{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: &1,
@@ -249,7 +260,7 @@ defmodule RDF.Mapping.ValidationTest do
         posts: Example.post()
       ]
       |> assert_validation_error(
-        %Example.User{__iri__: IRI.to_string(EX.S)},
+        %Example.User{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: &1,
@@ -264,7 +275,7 @@ defmodule RDF.Mapping.ValidationTest do
         author: %{}
       ]
       |> assert_validation_error(
-        %Example.Post{__iri__: IRI.to_string(EX.S)},
+        %Example.Post{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: &1,
@@ -277,7 +288,7 @@ defmodule RDF.Mapping.ValidationTest do
         posts: [%{}]
       ]
       |> assert_validation_error(
-        %Example.User{__iri__: IRI.to_string(EX.S)},
+        %Example.User{__id__: IRI.new(EX.S)},
         TypeError,
         &[
           value: hd(&1),
@@ -289,15 +300,15 @@ defmodule RDF.Mapping.ValidationTest do
     test "when the nested mapping is invalid" do
       [
         author: %Example.User{},
-        author: %Example.User{__iri__: IRI.to_string(EX.S), name: 42}
+        author: %Example.User{__id__: IRI.new(EX.S), name: 42}
       ]
-      |> assert_validation_error(%Example.Post{__iri__: IRI.to_string(EX.S)}, ValidationError)
+      |> assert_validation_error(%Example.Post{__id__: IRI.new(EX.S)}, ValidationError)
 
       [
         posts: [%Example.Post{}],
-        posts: [%Example.Post{__iri__: IRI.to_string(EX.S), title: 42}]
+        posts: [%Example.Post{__id__: IRI.new(EX.S), title: 42}]
       ]
-      |> assert_validation_error(%Example.User{__iri__: IRI.to_string(EX.S)}, ValidationError)
+      |> assert_validation_error(%Example.User{__id__: IRI.new(EX.S)}, ValidationError)
     end
   end
 

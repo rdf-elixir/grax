@@ -5,34 +5,34 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "successful mapping" do
     assert %Example.User{
-             __iri__: IRI.to_string(EX.User0),
+             __id__: IRI.new(EX.User0),
              name: "John Doe",
              age: 42,
              email: ~w[jd@example.com john@doe.com],
              password: "secret",
              posts: [
                %Example.Post{
-                 __iri__: IRI.to_string(EX.Post0),
+                 __id__: IRI.new(EX.Post0),
                  title: "Lorem ipsum",
                  content: "Lorem ipsum dolor sit amet, …",
-                 author: %Example.User{__iri__: IRI.to_string(EX.User0)},
+                 author: %Example.User{__id__: IRI.new(EX.User0)},
                  comments: [
                    %Example.Comment{
-                     __iri__: IRI.to_string(EX.Comment1),
+                     __id__: IRI.new(EX.Comment1),
                      content: "First",
-                     about: %Example.Post{__iri__: IRI.to_string(EX.Post0)},
+                     about: %Example.Post{__id__: IRI.new(EX.Post0)},
                      author: %Example.User{
-                       __iri__: IRI.to_string(EX.User1),
+                       __id__: IRI.new(EX.User1),
                        name: "Erika Mustermann",
                        email: ["erika@mustermann.de"]
                      }
                    },
                    %Example.Comment{
-                     __iri__: IRI.to_string(EX.Comment2),
+                     __id__: IRI.new(EX.Comment2),
                      content: "Second",
-                     about: %Example.Post{__iri__: IRI.to_string(EX.Post0)},
+                     about: %Example.Post{__id__: IRI.new(EX.Post0)},
                      author: %Example.User{
-                       __iri__: IRI.to_string(EX.User2),
+                       __id__: IRI.new(EX.User2),
                        name: "Max Mustermann",
                        email: ["max@mustermann.de"]
                      }
@@ -47,7 +47,7 @@ defmodule RDF.Mapping.ToRDFTest do
   test "with invalid struct" do
     assert {:error, %ValidationError{}} =
              %Example.User{
-               __iri__: IRI.to_string(EX.User0),
+               __id__: IRI.new(EX.User0),
                name: "John Doe",
                email: ~w[jd@example.com],
                age: "42"
@@ -57,7 +57,7 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "mapping of untyped scalar properties" do
     assert %Example.Untyped{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              foo: "foo"
            }
            |> Example.Untyped.to_rdf() ==
@@ -67,7 +67,7 @@ defmodule RDF.Mapping.ToRDFTest do
               |> RDF.graph()}
 
     assert %Example.Untyped{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              foo: 42
            }
            |> Example.Untyped.to_rdf() ==
@@ -79,7 +79,7 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "mapping of untyped set properties" do
     assert %Example.Untyped{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              bar: ["bar"]
            }
            |> Example.Untyped.to_rdf() ==
@@ -89,7 +89,7 @@ defmodule RDF.Mapping.ToRDFTest do
               |> RDF.graph()}
 
     assert %Example.Untyped{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              bar: [42, "bar"]
            }
            |> Example.Untyped.to_rdf() ==
@@ -101,7 +101,7 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "type mapping" do
     assert %Example.Types{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              string: "string",
              any_uri: IRI.parse(EX.foo()),
              boolean: true,
@@ -151,7 +151,7 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "numeric type" do
     assert %Example.Types{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              numeric: 42
            }
            |> Example.Types.to_rdf() ==
@@ -161,7 +161,7 @@ defmodule RDF.Mapping.ToRDFTest do
               |> RDF.graph()}
 
     assert %Example.Types{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              numeric: Decimal.from_float(0.5)
            }
            |> Example.Types.to_rdf() ==
@@ -171,7 +171,7 @@ defmodule RDF.Mapping.ToRDFTest do
               |> RDF.graph()}
 
     assert %Example.Types{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              numeric: 3.14
            }
            |> Example.Types.to_rdf() ==
@@ -183,7 +183,7 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "typed set properties" do
     assert %Example.Types{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              numerics: [42, 3.14, Decimal.from_float(0.5)]
            }
            |> Example.Types.to_rdf() ==
@@ -195,7 +195,7 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "inverse properties" do
     assert %Example.InverseProperties{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              name: "subject",
              foo: [Example.user(EX.User0, depth: 0)]
            }
@@ -212,7 +212,7 @@ defmodule RDF.Mapping.ToRDFTest do
 
   test "rdf:type for schema class is defined" do
     assert %Example.ClassDeclaration{
-             __iri__: IRI.to_string(EX.S),
+             __id__: IRI.new(EX.S),
              name: "foo"
            }
            |> Example.ClassDeclaration.to_rdf() ==

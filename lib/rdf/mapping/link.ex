@@ -39,7 +39,7 @@ defmodule RDF.Mapping.Link.Preloader do
   def call(mapping_mod, mapping, graph, description, link_specs, opts) do
     graph_load_path = Keyword.get(opts, :__graph_load_path__, [])
     depth = length(graph_load_path)
-    graph_load_path = [RDF.iri(mapping.__iri__) | graph_load_path]
+    graph_load_path = [mapping.__id__ | graph_load_path]
     opts = Keyword.put(opts, :__graph_load_path__, graph_load_path)
 
     Enum.reduce_while(link_specs, {:ok, mapping}, fn {link, link_spec}, {:ok, mapping} ->

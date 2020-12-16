@@ -1,6 +1,6 @@
 defmodule RDF.Mapping do
   alias RDF.Mapping.{Schema, Link, Loader, Validation, ToRDF}
-  alias RDF.{IRI, Graph, Description}
+  alias RDF.{IRI, BlankNode, Graph, Description}
 
   defmacro __using__(opts) do
     preload_default = Link.Preloader.normalize_spec(Keyword.get(opts, :preload), true)
@@ -17,22 +17,33 @@ defmodule RDF.Mapping do
 
   defmacro __before_compile__(_env) do
     quote do
-      defp __new__(iri) do
-        %__MODULE__{__iri__: IRI.to_string(iri)}
+      def build(%IRI{} = id), do: do_build(id)
+      def build(%BlankNode{} = id), do: do_build(id)
+
+      def build(id) do
+        if iri = IRI.new(id) do
+          do_build(iri)
+        else
+          raise ArgumentError, "invalid id: #{inspect(id)}"
+        end
       end
 
-      @spec iri(struct) :: IRI.t()
-      def iri(%__MODULE__{} = mapping), do: mapping.__iri__
+      def build!(id) do
+        case build(id) do
+          {:ok, mapping} -> mapping
+          {:error, error} -> raise error
+        end
+      end
 
-      @spec load(Graph.t() | Description.t(), IRI.coercible(), opts :: Keyword) ::
+      defp do_build(id) do
+        {:ok, %__MODULE__{__id__: id}}
+      end
+
+      @spec load(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
               {:ok, struct} | {:error, any}
-      def load(graph, iri, opts \\ []) do
-        case __new__(iri) do
-          %__MODULE__{} = initial ->
-            Loader.call(__MODULE__, initial, iri, graph, opts)
-
-          bad ->
-            {:error, "bad result of #{__MODULE__}.__new__/1: #{inspect(bad)}"}
+      def load(graph, id, opts \\ []) do
+        with {:ok, initial} <- build(id) do
+          Loader.call(__MODULE__, initial, graph, opts)
         end
       end
 

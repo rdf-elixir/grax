@@ -57,16 +57,16 @@ defmodule RDF.Mapping.Schema.RequiredPropertyMissing do
   end
 end
 
-defmodule RDF.Mapping.InvalidSubjectIRIError do
+defmodule RDF.Mapping.InvalidIdError do
   @moduledoc """
-  Raised when a RDF.Mapping has an invalid subject IRI.
+  Raised when a RDF.Mapping has an invalid subject id.
   """
-  defexception [:message, :iri]
+  defexception [:message, :id]
 
   def exception(opts) do
-    iri = Keyword.fetch!(opts, :iri)
-    msg = opts[:message] || "invalid subject IRI: #{inspect(iri)}"
-    %__MODULE__{message: msg, iri: iri}
+    id = Keyword.fetch!(opts, :id)
+    msg = opts[:message] || "invalid subject id: #{inspect(id)}"
+    %__MODULE__{message: msg, id: id}
   end
 end
 

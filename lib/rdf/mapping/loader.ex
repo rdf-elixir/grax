@@ -1,14 +1,15 @@
 defmodule RDF.Mapping.Loader do
   @moduledoc false
 
-  alias RDF.{Literal, IRI, Graph, Description}
+  alias RDF.{Literal, IRI, BlankNode, Graph, Description}
   alias RDF.Mapping.Link.Preloader
   alias RDF.Mapping.InvalidValueError
 
   import RDF.Utils
 
-  def call(mapping_mod, initial, %IRI{} = iri, %Graph{} = graph, opts) do
-    description = Graph.description(graph, iri) || Description.new(iri)
+  def call(mapping_mod, initial, %Graph{} = graph, opts) do
+    id = initial.__id__
+    description = Graph.description(graph, id) || Description.new(id)
 
     mapping_mod.__property_spec__()
     |> Enum.reduce_while({:ok, initial}, fn {property, property_spec}, {:ok, mapping} ->
@@ -45,20 +46,12 @@ defmodule RDF.Mapping.Loader do
     end
   end
 
-  def call(mapping, initial, %IRI{} = iri, %Description{} = description, opts) do
-    call(mapping, initial, iri, Graph.new(description), opts)
+  def call(mapping, initial, %Description{} = description, opts) do
+    call(mapping, initial, Graph.new(description), opts)
   end
 
-  def call(_, _, %IRI{}, invalid, _) do
+  def call(_, _, invalid, _) do
     raise ArgumentError, "invalid input data: #{inspect(invalid)}"
-  end
-
-  def call(mapping, initial, iri, data, opts) do
-    if iri = IRI.new(iri) do
-      call(mapping, initial, iri, data, opts)
-    else
-      raise ArgumentError, "invalid IRI: #{inspect(iri)}"
-    end
   end
 
   defp handle(property, objects, description, graph, property_spec, opts)

@@ -15,6 +15,14 @@ defmodule RDF.Mapping.LoaderTest do
              {:ok, %Example.User{Example.user(EX.User0) | posts: []}}
   end
 
+  test "with a description of blank node" do
+    assert example_description(:user)
+           |> Description.delete_predicates(EX.post())
+           |> Description.change_subject(~B"user0")
+           |> Example.User.load(~B"user0") ==
+             {:ok, %{Example.user(EX.User0) | __id__: ~B"user0", posts: []}}
+  end
+
   test "with non-RDF.Data" do
     assert_raise ArgumentError, "invalid input data: %{}", fn ->
       Example.User.load(%{}, EX.User0)
@@ -26,7 +34,7 @@ defmodule RDF.Mapping.LoaderTest do
              {
                :ok,
                %Example.User{
-                 __iri__: IRI.to_string(EX.not_existing()),
+                 __id__: EX.not_existing(),
                  posts: [],
                  comments: []
                }
@@ -65,7 +73,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   numeric: 42
                 }}
 
@@ -74,7 +82,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   numeric: Decimal.from_float(0.5)
                 }}
 
@@ -83,7 +91,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   numeric: 3.14
                 }}
     end
@@ -92,14 +100,14 @@ defmodule RDF.Mapping.LoaderTest do
       assert EX.S |> EX.foo("foo") |> Example.Untyped.load(EX.S) ==
                {:ok,
                 %Example.Untyped{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   foo: "foo"
                 }}
 
       assert EX.S |> EX.foo(42) |> Example.Untyped.load(EX.S) ==
                {:ok,
                 %Example.Untyped{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   foo: 42
                 }}
     end
@@ -108,14 +116,14 @@ defmodule RDF.Mapping.LoaderTest do
       assert EX.S |> EX.bar("bar") |> Example.Untyped.load(EX.S) ==
                {:ok,
                 %Example.Untyped{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   bar: ["bar"]
                 }}
 
       assert EX.S |> EX.bar("bar", 42) |> Example.Untyped.load(EX.S) ==
                {:ok,
                 %Example.Untyped{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   bar: [42, "bar"]
                 }}
     end
@@ -126,7 +134,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   integers: [1]
                 }}
 
@@ -135,7 +143,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   integers: [2, 1, -3]
                 }}
 
@@ -144,7 +152,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Example.Types.load(EX.S) ==
                {:ok,
                 %Example.Types{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   numerics: [Decimal.from_float(0.5), 3.14, 42]
                 }}
     end
@@ -193,7 +201,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Example.User.load(EX.User0) ==
                {:ok,
                 Example.user(EX.User0)
-                |> Map.put(:posts, [%Example.Post{__iri__: IRI.to_string(EX.Post0)}])}
+                |> Map.put(:posts, [%Example.Post{__id__: IRI.new(EX.Post0)}])}
     end
 
     test "when the nested description doesn't match the nested schema" do
@@ -222,7 +230,7 @@ defmodule RDF.Mapping.LoaderTest do
       assert Example.InverseProperties.load(description, EX.S) ==
                {:ok,
                 %Example.InverseProperties{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   name: "subject",
                   foo: []
                 }}
@@ -237,7 +245,7 @@ defmodule RDF.Mapping.LoaderTest do
       assert Example.InverseProperties.load(graph, EX.S) ==
                {:ok,
                 %Example.InverseProperties{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   name: "subject",
                   foo: [Example.user(EX.User0, depth: 0)]
                 }}
@@ -245,7 +253,7 @@ defmodule RDF.Mapping.LoaderTest do
       assert Example.InverseProperties.load(graph, EX.S, preload: 2) ==
                {:ok,
                 %Example.InverseProperties{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   name: "subject",
                   foo: [Example.user(EX.User0, depth: 1)]
                 }}
@@ -261,7 +269,7 @@ defmodule RDF.Mapping.LoaderTest do
       assert Example.InverseProperties.load(graph, EX.S) ==
                {:ok,
                 %Example.InverseProperties{
-                  __iri__: IRI.to_string(EX.S),
+                  __id__: IRI.new(EX.S),
                   foo: [Example.user(EX.User0, depth: 0)]
                 }}
     end

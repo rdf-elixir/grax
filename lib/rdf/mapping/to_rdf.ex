@@ -9,7 +9,7 @@ defmodule RDF.Mapping.ToRDF do
     with {:ok, struct} <- Validation.call(struct, opts) do
       mapping_mod.__property_map__()
       |> Enum.reduce_while(
-        {:ok, Description.new(mapping_mod.iri(struct)), Graph.new()},
+        {:ok, Description.new(struct.__id__), Graph.new()},
         fn {property_name, property_iri}, {:ok, description, graph} ->
           case Map.get(struct, property_name) do
             nil ->
@@ -97,9 +97,9 @@ defmodule RDF.Mapping.ToRDF do
     {:error, TypeError.exception(value: values, type: type)}
   end
 
-  defp map_values(%type{__iri__: iri} = mapping, {:resource, type}, property_spec, opts) do
+  defp map_values(%type{__id__: id} = mapping, {:resource, type}, property_spec, opts) do
     with {:ok, graph} <- type.to_rdf(mapping, opts) do
-      {:ok, IRI.new(iri), graph}
+      {:ok, id, graph}
     end
   end
 

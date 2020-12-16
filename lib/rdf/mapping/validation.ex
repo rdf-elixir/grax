@@ -1,9 +1,9 @@
 defmodule RDF.Mapping.Validation do
   @moduledoc false
 
-  alias RDF.Mapping.{Link, ValidationError, InvalidSubjectIRIError}
+  alias RDF.Mapping.{Link, ValidationError, InvalidIdError}
   alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
-  alias RDF.{Literal, XSD}
+  alias RDF.{IRI, BlankNode, Literal, XSD}
 
   import ValidationError, only: [add_error: 3]
 
@@ -18,11 +18,11 @@ defmodule RDF.Mapping.Validation do
     end
   end
 
-  defp check_subject_iri(validation, %{__iri__: iri}, _) when is_binary(iri),
-    do: validation
+  defp check_subject_iri(validation, %{__id__: %IRI{}}, _), do: validation
+  defp check_subject_iri(validation, %{__id__: %BlankNode{}}, _), do: validation
 
-  defp check_subject_iri(validation, %{__iri__: iri}, _) do
-    add_error(validation, :__iri__, InvalidSubjectIRIError.exception(iri: iri))
+  defp check_subject_iri(validation, %{__id__: id}, _) do
+    add_error(validation, :__id__, InvalidIdError.exception(id: id))
   end
 
   defp check_properties(validation, %mapping_mod{} = mapping, opts) do

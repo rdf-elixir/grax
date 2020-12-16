@@ -43,7 +43,7 @@ defmodule Example do
 
   def user(EX.User0, depth: 0) do
     %Example.User{
-      __iri__: IRI.to_string(EX.User0),
+      __id__: IRI.new(EX.User0),
       name: "John Doe",
       age: 42,
       email: ~w[jd@example.com john@doe.com]
@@ -52,7 +52,7 @@ defmodule Example do
 
   def user(EX.User1, depth: 0) do
     %Example.User{
-      __iri__: IRI.to_string(EX.User1),
+      __id__: IRI.new(EX.User1),
       name: "Erika Mustermann",
       email: ["erika@mustermann.de"]
     }
@@ -60,7 +60,7 @@ defmodule Example do
 
   def user(EX.User2, depth: 0) do
     %Example.User{
-      __iri__: IRI.to_string(EX.User2),
+      __id__: IRI.new(EX.User2),
       name: "Max Mustermann",
       email: ["max@mustermann.de"]
     }
@@ -74,7 +74,7 @@ defmodule Example do
 
   def post(depth: 0) do
     %Example.Post{
-      __iri__: IRI.to_string(EX.Post0),
+      __id__: IRI.new(EX.Post0),
       title: "Lorem ipsum",
       content: "Lorem ipsum dolor sit amet, …"
     }
@@ -91,14 +91,14 @@ defmodule Example do
 
   def comment(EX.Comment1, depth: 0) do
     %Example.Comment{
-      __iri__: IRI.to_string(EX.Comment1),
+      __id__: IRI.new(EX.Comment1),
       content: "First"
     }
   end
 
   def comment(EX.Comment2, depth: 0) do
     %Example.Comment{
-      __iri__: IRI.to_string(EX.Comment2),
+      __id__: IRI.new(EX.Comment2),
       content: "Second"
     }
   end
@@ -149,7 +149,7 @@ defmodule Example do
 
   def types(subject \\ EX.S) do
     %Types{
-      __iri__: IRI.to_string(subject),
+      __id__: IRI.new(subject),
       string: "string",
       any_uri: IRI.parse(EX.foo()),
       boolean: true,

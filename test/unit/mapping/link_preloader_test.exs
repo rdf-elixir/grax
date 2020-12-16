@@ -12,11 +12,50 @@ defmodule RDF.Mapping.Link.PreloaderTest do
            |> Example.SelfLinked.load(EX.A) ==
              {:ok,
               %Example.SelfLinked{
-                __iri__: IRI.to_string(EX.A),
+                __id__: IRI.new(EX.A),
                 name: "a",
                 next: %Example.SelfLinked{
-                  __iri__: IRI.to_string(EX.B),
+                  __id__: IRI.new(EX.B),
                   name: "b"
+                }
+              }}
+  end
+
+  test "link via blank node" do
+    assert RDF.graph([
+             EX.A |> EX.name("a") |> EX.next(~B"b"),
+             ~B"b" |> EX.name("b") |> EX.next(~B"c"),
+             ~B"c" |> EX.name("c")
+           ])
+           |> Example.SelfLinked.load(EX.A) ==
+             {:ok,
+              %Example.SelfLinked{
+                __id__: IRI.new(EX.A),
+                name: "a",
+                next: %Example.SelfLinked{
+                  __id__: ~B"b",
+                  name: "b"
+                }
+              }}
+
+    assert RDF.graph([
+             EX.A |> EX.name("a") |> EX.next(~B"b"),
+             ~B"b" |> EX.name("b") |> EX.next(~B"c"),
+             ~B"c" |> EX.name("c")
+           ])
+           |> Example.SelfLinked.load(EX.A, preload: 3) ==
+             {:ok,
+              %Example.SelfLinked{
+                __id__: IRI.new(EX.A),
+                name: "a",
+                next: %Example.SelfLinked{
+                  __id__: ~B"b",
+                  name: "b",
+                  next: %Example.SelfLinked{
+                    __id__: ~B"c",
+                    name: "c",
+                    next: nil
+                  }
                 }
               }}
   end
@@ -26,7 +65,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.A |> EX.name("a") |> EX.next(EX.A)
            ])
            |> Example.SelfLinked.load(EX.A) ==
-             {:ok, %Example.SelfLinked{__iri__: IRI.to_string(EX.A), name: "a"}}
+             {:ok, %Example.SelfLinked{__id__: IRI.new(EX.A), name: "a"}}
   end
 
   test "link to itself with circle" do
@@ -38,17 +77,17 @@ defmodule RDF.Mapping.Link.PreloaderTest do
            |> Example.Circle.load(EX.A) ==
              {:ok,
               %Example.Circle{
-                __iri__: IRI.to_string(EX.A),
+                __id__: IRI.new(EX.A),
                 name: "a",
                 link2: [],
                 link1: [
                   %Example.Circle{
-                    __iri__: IRI.to_string(EX.B),
+                    __id__: IRI.new(EX.B),
                     name: "b",
                     link2: [],
                     link1: [
                       %Example.Circle{
-                        __iri__: IRI.to_string(EX.C),
+                        __id__: IRI.new(EX.C),
                         name: "c",
                         link2: []
                       }
@@ -70,27 +109,27 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              {
                :ok,
                %Example.Circle{
-                 __iri__: "http://example.com/A",
+                 __id__: IRI.new(EX.A),
                  name: "a",
                  link2: [],
                  link1: [
                    %Example.Circle{
-                     __iri__: "http://example.com/B",
+                     __id__: IRI.new(EX.B),
                      name: "b",
                      link2: [],
                      link1: [
                        %Example.Circle{
-                         __iri__: "http://example.com/D",
+                         __id__: IRI.new(EX.D),
                          name: "d",
                          link2: [],
                          link1: [
                            %Example.Circle{
-                             __iri__: "http://example.com/C",
+                             __id__: IRI.new(EX.C),
                              name: "c",
                              link2: [],
                              link1: [
                                %Example.Circle{
-                                 __iri__: "http://example.com/E",
+                                 __id__: IRI.new(EX.E),
                                  name: "e",
                                  link2: []
                                }
@@ -101,22 +140,22 @@ defmodule RDF.Mapping.Link.PreloaderTest do
                      ]
                    },
                    %Example.Circle{
-                     __iri__: "http://example.com/C",
+                     __id__: IRI.new(EX.C),
                      name: "c",
                      link2: [],
                      link1: [
                        %Example.Circle{
-                         __iri__: "http://example.com/E",
+                         __id__: IRI.new(EX.E),
                          name: "e",
                          link2: [],
                          link1: [
                            %Example.Circle{
-                             __iri__: "http://example.com/B",
+                             __id__: IRI.new(EX.B),
                              name: "b",
                              link2: [],
                              link1: [
                                %Example.Circle{
-                                 __iri__: "http://example.com/D",
+                                 __id__: IRI.new(EX.D),
                                  name: "d",
                                  link2: []
                                }
@@ -143,27 +182,27 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              {
                :ok,
                %Example.Circle{
-                 __iri__: "http://example.com/A",
+                 __id__: IRI.new(EX.A),
                  name: "a",
                  link2: [],
                  link1: [
                    %Example.Circle{
-                     __iri__: "http://example.com/B",
+                     __id__: IRI.new(EX.B),
                      name: "b",
                      link2: [],
                      link1: [
                        %Example.Circle{
-                         __iri__: "http://example.com/D",
+                         __id__: IRI.new(EX.D),
                          name: "d",
                          link1: [],
                          link2: [
                            %Example.Circle{
-                             __iri__: "http://example.com/C",
+                             __id__: IRI.new(EX.C),
                              name: "c",
                              link2: [],
                              link1: [
                                %Example.Circle{
-                                 __iri__: "http://example.com/E",
+                                 __id__: IRI.new(EX.E),
                                  name: "e",
                                  link1: []
                                }
@@ -174,22 +213,22 @@ defmodule RDF.Mapping.Link.PreloaderTest do
                      ]
                    },
                    %Example.Circle{
-                     __iri__: "http://example.com/C",
+                     __id__: IRI.new(EX.C),
                      name: "c",
                      link2: [],
                      link1: [
                        %Example.Circle{
-                         __iri__: "http://example.com/E",
+                         __id__: IRI.new(EX.E),
                          name: "e",
                          link1: [],
                          link2: [
                            %Example.Circle{
-                             __iri__: "http://example.com/B",
+                             __id__: IRI.new(EX.B),
                              name: "b",
                              link2: [],
                              link1: [
                                %Example.Circle{
-                                 __iri__: "http://example.com/D",
+                                 __id__: IRI.new(EX.D),
                                  name: "d",
                                  link1: []
                                }
@@ -214,11 +253,11 @@ defmodule RDF.Mapping.Link.PreloaderTest do
            |> Example.DepthPreloading.load(EX.A) ==
              {:ok,
               %Example.DepthPreloading{
-                __iri__: IRI.to_string(EX.A),
+                __id__: IRI.new(EX.A),
                 next: %Example.DepthPreloading{
-                  __iri__: IRI.to_string(EX.B),
+                  __id__: IRI.new(EX.B),
                   next: %Example.DepthPreloading{
-                    __iri__: "http://example.com/C"
+                    __id__: IRI.new(EX.C)
                   }
                 }
               }}
@@ -234,11 +273,11 @@ defmodule RDF.Mapping.Link.PreloaderTest do
            |> Example.DepthPreloading.load(EX.A, preload: [next: true]) ==
              {:ok,
               %Example.DepthPreloading{
-                __iri__: IRI.to_string(EX.A),
+                __id__: IRI.new(EX.A),
                 next: %Example.DepthPreloading{
-                  __iri__: IRI.to_string(EX.B),
+                  __id__: IRI.new(EX.B),
                   next: %Example.DepthPreloading{
-                    __iri__: IRI.to_string(EX.C)
+                    __id__: IRI.new(EX.C)
                   }
                 }
               }}
