@@ -1,21 +1,7 @@
 defmodule RDF.Mapping.LoaderTest do
   use RDF.Mapping.TestCase
 
-  alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
   alias RDF.Mapping.InvalidValueError
-
-  #  defmodule TestMappingArgs do
-  #    use RDF.Mapping
-  #
-  #    schema do
-  #      property :arg_test, EX.arg_test()
-  #    end
-  #
-  #    def handle_from_rdf(:arg_test, _, %Description{} = desc, %Graph{} = graph, opts) do
-  #      assert desc == Keyword.get(opts, :description)
-  #      assert graph == Keyword.get(opts, :graph)
-  #    end
-  #  end
 
   test "successful mapping from a graph" do
     assert Example.User.load(example_graph(), EX.User0) ==
@@ -37,12 +23,14 @@ defmodule RDF.Mapping.LoaderTest do
 
   test "when no description for the given IRI exists in the graph" do
     assert Example.User.load(example_graph(), EX.not_existing()) ==
-             {:ok,
-              %Example.User{
-                __iri__: IRI.to_string(EX.not_existing()),
-                posts: [],
-                comments: []
-              }}
+             {
+               :ok,
+               %Example.User{
+                 __iri__: IRI.to_string(EX.not_existing()),
+                 posts: [],
+                 comments: []
+               }
+             }
   end
 
   describe "type mapping" do
@@ -67,9 +55,6 @@ defmodule RDF.Mapping.LoaderTest do
              |> EX.unsigned_byte(XSD.unsignedByte(42))
              |> EX.non_positive_integer(XSD.nonPositiveInteger(-42))
              |> EX.negative_integer(XSD.negativeInteger(-42))
-             #      |> EX.date(XSD.date(42))
-             #      |> EX.time(XSD.time(42))
-             #      |> EX.date_time(XSD.date_time(42))
              |> Example.Types.load(EX.S) ==
                {:ok, Example.types()}
     end
@@ -173,28 +158,15 @@ defmodule RDF.Mapping.LoaderTest do
     end
 
     test "when a type does not match the definition in the schema" do
-      assert {:error,
-              %TypeError{
-                type: XSD.Integer,
-                value: ~L"invalid"
-              }} = EX.S |> EX.integer("invalid") |> Example.Types.load(EX.S)
+      assert {:ok, result = %Example.Types{integer: "invalid"}} =
+               EX.S |> EX.integer("invalid") |> Example.Types.load(EX.S)
 
-      integer = XSD.integer(-42)
+      refute Example.Types.valid?(result)
 
-      assert {:error,
-              %TypeError{
-                type: XSD.UnsignedByte,
-                value: ^integer
-              }} = EX.S |> EX.unsigned_byte(integer) |> Example.Types.load(EX.S)
+      assert {:ok, result = %Example.Types{unsigned_byte: -42}} =
+               EX.S |> EX.unsigned_byte(-42) |> Example.Types.load(EX.S)
 
-      # TODO: Do we really wanna be that strict?
-      integer = XSD.integer(42)
-
-      assert {:error,
-              %TypeError{
-                type: XSD.UnsignedByte,
-                value: ^integer
-              }} = EX.S |> EX.unsigned_byte(integer) |> Example.Types.load(EX.S)
+      refute Example.Types.valid?(result)
     end
 
     test "with invalid literals" do
@@ -206,10 +178,13 @@ defmodule RDF.Mapping.LoaderTest do
   end
 
   test "when multiple values exist for a scalar property" do
-    assert {:error, %TypeError{type: XSD.String}} =
+    assert {:ok, %Example.User{} = user} =
              example_graph()
              |> Graph.add({EX.User0, EX.name(), "Jane"})
              |> Example.User.load(EX.User0)
+
+    refute Example.User.valid?(user)
+    assert user.name == ["Jane", Example.user(EX.User0).name]
   end
 
   describe "nested mappings" do
@@ -222,15 +197,21 @@ defmodule RDF.Mapping.LoaderTest do
     end
 
     test "when the nested description doesn't match the nested schema" do
-      assert {:error, %TypeError{type: XSD.String}} =
+      assert {:ok, %Example.User{} = user} =
                example_graph()
                |> Graph.add({EX.Post0, EX.title(), "Other"})
                |> Example.User.load(EX.User0)
 
-      assert {:error, %TypeError{type: XSD.String}} =
+      refute Example.User.valid?(user)
+      assert hd(user.posts).title == [Example.post().title, "Other"]
+
+      assert {:ok, %Example.User{} = user} =
                example_graph()
                |> Graph.put({EX.Post0, EX.title(), 42})
                |> Example.User.load(EX.User0)
+
+      refute Example.User.valid?(user)
+      assert hd(user.posts).title == 42
     end
   end
 
@@ -284,30 +265,5 @@ defmodule RDF.Mapping.LoaderTest do
                   foo: [Example.user(EX.User0, depth: 0)]
                 }}
     end
-  end
-
-  test "required properties" do
-    [
-      RDF.graph(),
-      EX.S |> EX.foo(42) |> EX.bar(42),
-      EX.S |> EX.foo(42) |> EX.baz(42),
-      EX.S |> EX.bar(42) |> EX.baz(42)
-    ]
-    |> Enum.each(fn input ->
-      assert {:error, %RequiredPropertyMissing{}} = Example.Required.load(input, EX.S)
-    end)
-
-    assert EX.S
-           |> EX.foo("foo")
-           |> EX.bar(42)
-           |> EX.baz(42)
-           |> Example.Required.load(EX.S) ==
-             {:ok,
-              %Example.Required{
-                __iri__: IRI.to_string(EX.S),
-                foo: "foo",
-                bar: 42,
-                baz: [42]
-              }}
   end
 end

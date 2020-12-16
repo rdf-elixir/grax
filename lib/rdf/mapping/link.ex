@@ -27,7 +27,7 @@ defmodule RDF.Mapping.Link.Preloader do
   @moduledoc false
 
   alias RDF.{Description, Query}
-  alias RDF.Mapping.Schema.{Type, TypeError}
+  alias RDF.Mapping.Schema.Type
 
   import RDF.Utils
   import RDF.Utils.Guards
@@ -224,8 +224,8 @@ defmodule RDF.Mapping.Link.Preloader do
     map_link(value, type, property_spec, graph, opts)
   end
 
-  defp map_links(values, type, _, _, _) do
-    {:error, TypeError.exception(value: values, type: type)}
+  defp map_links(values, type, property_spec, graph, opts) do
+    map_while_ok(values, &map_link(&1, type, property_spec, graph, opts))
   end
 
   defp map_link(resource, {:resource, module}, property_spec, graph, opts) do
