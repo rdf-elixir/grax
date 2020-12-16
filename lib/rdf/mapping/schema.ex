@@ -39,9 +39,7 @@ defmodule RDF.Mapping.Schema do
 
     postlude =
       quote unquote: false do
-        unless Module.defines?(__MODULE__, {:__struct__, 0}, :def) do
-          defstruct [:__iri__ | @struct_fields]
-        end
+        defstruct [:__iri__ | @struct_fields]
 
         @property_map RDF.Mapping.Schema.property_mapping(@rdf_property_mapping)
         def __property_map__, do: @property_map
