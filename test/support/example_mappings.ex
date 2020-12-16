@@ -245,4 +245,15 @@ defmodule Example do
       property :baz, EX.baz(), type: [], required: true
     end
   end
+
+  defmodule IdsAsPropertyValues do
+    use RDF.Mapping
+
+    schema do
+      property :foo, EX.foo()
+      property :foos, EX.foos(), type: []
+      property :iri, EX.iri(), type: :iri
+      property :iris, EX.iris(), type: [:iri]
+    end
+  end
 end

@@ -79,4 +79,7 @@ defmodule RDF.Mapping.Loader do
       {:error, InvalidValueError.exception(value: literal)}
     end
   end
+
+  defp map_value(%IRI{} = iri, _, _, _, _), do: {:ok, iri}
+  defp map_value(%BlankNode{} = bnode, _, _, _, _), do: {:ok, bnode}
 end

@@ -1,5 +1,5 @@
 defmodule RDF.Mapping.Schema.Type do
-  alias RDF.{Literal, XSD}
+  alias RDF.{IRI, Literal, XSD}
 
   @builtin_type_mapping Map.new(
                           Literal.Datatype.Registry.builtin_datatypes(),
@@ -11,6 +11,8 @@ defmodule RDF.Mapping.Schema.Type do
   def builtins, do: @builtin_type_mapping
 
   def get(type)
+
+  def get(:iri), do: {:ok, IRI}
 
   def get([type]) do
     with {:ok, inner_type} <- get(type) do

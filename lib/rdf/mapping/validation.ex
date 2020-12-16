@@ -99,6 +99,9 @@ defmodule RDF.Mapping.Validation do
   end
 
   defp in_value_space?(value, nil), do: value |> Literal.new() |> Literal.valid?()
+  defp in_value_space?(%BlankNode{}, _), do: false
+  defp in_value_space?(%IRI{}, IRI), do: true
+  defp in_value_space?(%IRI{}, _), do: false
   defp in_value_space?(value, XSD.String), do: is_binary(value)
   defp in_value_space?(%URI{}, XSD.AnyURI), do: true
   defp in_value_space?(_, XSD.AnyURI), do: false

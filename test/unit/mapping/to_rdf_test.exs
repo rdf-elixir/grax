@@ -193,6 +193,38 @@ defmodule RDF.Mapping.ToRDFTest do
               |> RDF.graph()}
   end
 
+  test "blank node values" do
+    assert %Example.IdsAsPropertyValues{
+             __id__: RDF.iri(EX.S),
+             foo: ~B"foo",
+             foos: [~B"foo", ~B"bar"]
+           }
+           |> Example.IdsAsPropertyValues.to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(~B"foo")
+              |> EX.foos(~B"foo", ~B"bar")
+              |> RDF.graph()}
+  end
+
+  test "IRI values" do
+    assert %Example.IdsAsPropertyValues{
+             __id__: RDF.iri(EX.S),
+             foo: RDF.iri(EX.Foo),
+             foos: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)],
+             iri: RDF.iri(EX.Foo),
+             iris: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)]
+           }
+           |> Example.IdsAsPropertyValues.to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(EX.Foo)
+              |> EX.foos(EX.Foo, EX.Bar)
+              |> EX.iri(EX.Foo)
+              |> EX.iris(EX.Foo, EX.Bar)
+              |> RDF.graph()}
+  end
+
   test "inverse properties" do
     assert %Example.InverseProperties{
              __id__: IRI.new(EX.S),

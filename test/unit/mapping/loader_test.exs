@@ -41,6 +41,36 @@ defmodule RDF.Mapping.LoaderTest do
              }
   end
 
+  test "blank node values" do
+    assert EX.S
+           |> EX.foo(~B"foo")
+           |> EX.foos(~B"foo", ~B"bar")
+           |> Example.IdsAsPropertyValues.load(EX.S, []) ==
+             {:ok,
+              %Example.IdsAsPropertyValues{
+                __id__: RDF.iri(EX.S),
+                foo: ~B"foo",
+                foos: [~B"bar", ~B"foo"]
+              }}
+  end
+
+  test "IRI values" do
+    assert EX.S
+           |> EX.foo(EX.Foo)
+           |> EX.foos(EX.Foo, EX.Bar)
+           |> EX.iri(EX.Foo)
+           |> EX.iris(EX.Foo, EX.Bar)
+           |> Example.IdsAsPropertyValues.load(EX.S, []) ==
+             {:ok,
+              %Example.IdsAsPropertyValues{
+                __id__: RDF.iri(EX.S),
+                foo: RDF.iri(EX.Foo),
+                foos: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)],
+                iri: RDF.iri(EX.Foo),
+                iris: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)]
+              }}
+  end
+
   describe "type mapping" do
     test "typed properties" do
       assert EX.S

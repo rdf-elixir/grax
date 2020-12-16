@@ -312,6 +312,74 @@ defmodule RDF.Mapping.ValidationTest do
     end
   end
 
+  test "blank node values" do
+    assert %Example.IdsAsPropertyValues{
+             __id__: RDF.iri(EX.S),
+             foo: ~B"foo",
+             foos: [~B"bar", ~B"foo"]
+           }
+           |> Example.IdsAsPropertyValues.valid?()
+
+    [
+      name: ~B"foo"
+    ]
+    |> assert_validation_error(
+      %Example.User{__id__: IRI.new(EX.S)},
+      TypeError,
+      &[
+        value: &1,
+        type: Example.User.__property_spec__(&2).type
+      ]
+    )
+
+    [
+      email: [~B"foo"]
+    ]
+    |> assert_validation_error(
+      %Example.User{__id__: IRI.new(EX.S)},
+      TypeError,
+      &[
+        value: hd(&1),
+        type: Example.User.__property_spec__(&2).type |> elem(1)
+      ]
+    )
+  end
+
+  test "IRI values" do
+    assert %Example.IdsAsPropertyValues{
+             __id__: RDF.iri(EX.S),
+             foo: RDF.iri(EX.Foo),
+             foos: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)],
+             iri: RDF.iri(EX.Foo),
+             iris: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)]
+           }
+           |> Example.IdsAsPropertyValues.valid?()
+
+    [
+      name: EX.foo()
+    ]
+    |> assert_validation_error(
+      %Example.User{__id__: IRI.new(EX.S)},
+      TypeError,
+      &[
+        value: &1,
+        type: Example.User.__property_spec__(&2).type
+      ]
+    )
+
+    [
+      email: [EX.foo()]
+    ]
+    |> assert_validation_error(
+      %Example.User{__id__: IRI.new(EX.S)},
+      TypeError,
+      &[
+        value: hd(&1),
+        type: Example.User.__property_spec__(&2).type |> elem(1)
+      ]
+    )
+  end
+
   defp assert_ok_validation(properties, %mapping_mod{} = mapping) do
     Enum.each(properties, fn {property, value} ->
       mapping = Map.put(mapping, property, value)

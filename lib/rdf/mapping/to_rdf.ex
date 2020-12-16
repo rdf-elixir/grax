@@ -1,7 +1,7 @@
 defmodule RDF.Mapping.ToRDF do
   @moduledoc false
 
-  alias RDF.{IRI, Literal, XSD, Graph, Description}
+  alias RDF.{IRI, BlankNode, Literal, XSD, Graph, Description}
   alias RDF.Mapping.{Link, Validation}
   alias RDF.Mapping.Schema.TypeError
 
@@ -103,15 +103,9 @@ defmodule RDF.Mapping.ToRDF do
     end
   end
 
-  defp map_values(value, nil, _property_spec, _opts) do
-    {:ok, Literal.new(value), nil}
-  end
-
-  defp map_values(value, XSD.Numeric, _property_spec, _opts) do
-    {:ok, Literal.new(value), nil}
-  end
-
-  defp map_values(value, type, _property_spec, _opts) do
-    {:ok, type.new(value), nil}
-  end
+  defp map_values(%IRI{} = iri, _, _, _), do: {:ok, iri, nil}
+  defp map_values(%BlankNode{} = bnode, nil, _, _), do: {:ok, bnode, nil}
+  defp map_values(value, nil, _, _), do: {:ok, Literal.new(value), nil}
+  defp map_values(value, XSD.Numeric, _, _), do: {:ok, Literal.new(value), nil}
+  defp map_values(value, type, _, _), do: {:ok, type.new(value), nil}
 end
