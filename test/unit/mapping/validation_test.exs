@@ -4,20 +4,27 @@ defmodule RDF.Mapping.ValidationTest do
   alias RDF.Mapping.{ValidationError, InvalidIdError}
   alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
 
+  import RDF.Mapping,
+    only: [
+      validate: 1,
+      validate!: 1,
+      valid?: 1
+    ]
+
   describe "subject id validation" do
     test "with a blank node" do
-      assert Example.User.validate(%Example.User{__id__: ~B"foo"}, []) ==
+      assert validate(%Example.User{__id__: ~B"foo"}) ==
                {:ok, %Example.User{__id__: ~B"foo"}}
     end
 
     test "with an invalid value" do
-      assert Example.User.validate(%Example.User{__id__: "http://example.com"}, []) ==
+      assert validate(%Example.User{__id__: "http://example.com"}) ==
                {:error,
                 validation_error(__id__: InvalidIdError.exception(id: "http://example.com"))}
     end
 
     test "when missing" do
-      assert Example.User.validate(%Example.User{}, []) ==
+      assert validate(%Example.User{}) ==
                {:error, validation_error(__id__: InvalidIdError.exception(id: nil))}
     end
   end
@@ -27,14 +34,14 @@ defmodule RDF.Mapping.ValidationTest do
       %Example.Types{__id__: IRI.new(EX.S)},
       %Example.User{__id__: IRI.new(EX.S)}
     ]
-    |> Enum.each(fn %mapping_mod{} = empty_mapping ->
-      assert mapping_mod.validate(empty_mapping, []) == {:ok, empty_mapping}
+    |> Enum.each(fn empty_mapping ->
+      assert validate(empty_mapping) == {:ok, empty_mapping}
     end)
   end
 
   describe "datatype validation" do
     test "literals with proper datatype and cardinality" do
-      assert Example.types() |> Example.Types.validate([]) == {:ok, Example.types()}
+      assert Example.types() |> validate() == {:ok, Example.types()}
 
       [
         name: nil,
@@ -125,7 +132,7 @@ defmodule RDF.Mapping.ValidationTest do
                |> Enum.reduce(Example.types(), fn {property, value}, mapping ->
                  Map.put(mapping, property, value)
                end)
-               |> Example.Types.validate([])
+               |> validate()
 
       assert errors |> Keyword.keys() |> MapSet.new() ==
                bad_values |> Keyword.keys() |> MapSet.new()
@@ -200,7 +207,7 @@ defmodule RDF.Mapping.ValidationTest do
     end
 
     test "missing required properties" do
-      assert Example.Required.validate(%Example.Required{__id__: IRI.new(EX.S)}, []) ==
+      assert validate(%Example.Required{__id__: IRI.new(EX.S)}) ==
                {:error,
                 validation_error(
                   bar: RequiredPropertyMissing.exception(property: :bar),
@@ -210,14 +217,14 @@ defmodule RDF.Mapping.ValidationTest do
     end
 
     test "multiple errors per property" do
-      assert Example.User.validate(%Example.User{__id__: IRI.new(EX.S), name: [42]}, []) ==
+      assert validate(%Example.User{__id__: IRI.new(EX.S), name: [42]}) ==
                {:error,
                 validation_error(
                   name: TypeError.exception(type: XSD.String, value: [42]),
                   name: TypeError.exception(type: XSD.String, value: 42)
                 )}
 
-      assert Example.User.validate(%Example.User{__id__: IRI.new(EX.S), email: 42}, []) ==
+      assert validate(%Example.User{__id__: IRI.new(EX.S), email: 42}) ==
                {:error,
                 validation_error(
                   email: TypeError.exception(type: {:set, XSD.String}, value: 42),
@@ -318,7 +325,7 @@ defmodule RDF.Mapping.ValidationTest do
              foo: ~B"foo",
              foos: [~B"bar", ~B"foo"]
            }
-           |> Example.IdsAsPropertyValues.valid?()
+           |> valid?()
 
     [
       name: ~B"foo"
@@ -353,7 +360,7 @@ defmodule RDF.Mapping.ValidationTest do
              iri: RDF.iri(EX.Foo),
              iris: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)]
            }
-           |> Example.IdsAsPropertyValues.valid?()
+           |> valid?()
 
     [
       name: EX.foo()
@@ -380,45 +387,43 @@ defmodule RDF.Mapping.ValidationTest do
     )
   end
 
-  defp assert_ok_validation(properties, %mapping_mod{} = mapping) do
+  defp assert_ok_validation(properties, mapping) do
     Enum.each(properties, fn {property, value} ->
       mapping = Map.put(mapping, property, value)
 
-      assert mapping_mod.validate(mapping, []) == {:ok, mapping}
-      assert mapping_mod.validate!(mapping, []) == mapping
-      assert mapping_mod.valid?(mapping, []) == true
+      assert validate(mapping) == {:ok, mapping}
+      assert validate!(mapping) == mapping
+      assert valid?(mapping) == true
     end)
   end
 
-  defp assert_validation_error(failing_properties, %mapping_mod{} = mapping, error) do
+  defp assert_validation_error(failing_properties, mapping, error) do
     Enum.each(failing_properties, fn {property, value} ->
       mapping = Map.put(mapping, property, value)
 
-      assert {:error, %^error{}} = mapping_mod.validate(mapping, [])
+      assert {:error, %^error{}} = validate(mapping)
 
-      assert_raise ValidationError, fn ->
-        mapping_mod.validate!(mapping, [])
-      end
+      assert_raise ValidationError, fn -> validate!(mapping) end
 
-      assert mapping_mod.valid?(mapping, []) == false
+      assert valid?(mapping) == false
     end)
   end
 
-  defp assert_validation_error(failing_properties, %mapping_mod{} = mapping, error, error_args) do
+  defp assert_validation_error(failing_properties, mapping, error, error_args) do
     Enum.each(failing_properties, fn {property, value} ->
       mapping = Map.put(mapping, property, value)
 
-      assert mapping_mod.validate(mapping, []) ==
+      assert validate(mapping) ==
                {:error,
                 validation_error([
                   {property, error.exception(error_args.(value, property))}
                 ])}
 
       assert_raise ValidationError, fn ->
-        mapping_mod.validate!(mapping, [])
+        validate!(mapping)
       end
 
-      assert mapping_mod.valid?(mapping, []) == false
+      assert valid?(mapping) == false
     end)
   end
 

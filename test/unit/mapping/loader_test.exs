@@ -199,12 +199,12 @@ defmodule RDF.Mapping.LoaderTest do
       assert {:ok, result = %Example.Types{integer: "invalid"}} =
                EX.S |> EX.integer("invalid") |> Example.Types.load(EX.S)
 
-      refute Example.Types.valid?(result)
+      refute RDF.Mapping.valid?(result)
 
       assert {:ok, result = %Example.Types{unsigned_byte: -42}} =
                EX.S |> EX.unsigned_byte(-42) |> Example.Types.load(EX.S)
 
-      refute Example.Types.valid?(result)
+      refute RDF.Mapping.valid?(result)
     end
 
     test "with invalid literals" do
@@ -221,7 +221,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Graph.add({EX.User0, EX.name(), "Jane"})
              |> Example.User.load(EX.User0)
 
-    refute Example.User.valid?(user)
+    refute RDF.Mapping.valid?(user)
     assert user.name == ["Jane", Example.user(EX.User0).name]
   end
 
@@ -240,7 +240,7 @@ defmodule RDF.Mapping.LoaderTest do
                |> Graph.add({EX.Post0, EX.title(), "Other"})
                |> Example.User.load(EX.User0)
 
-      refute Example.User.valid?(user)
+      refute RDF.Mapping.valid?(user)
       assert hd(user.posts).title == [Example.post().title, "Other"]
 
       assert {:ok, %Example.User{} = user} =
@@ -248,7 +248,7 @@ defmodule RDF.Mapping.LoaderTest do
                |> Graph.put({EX.Post0, EX.title(), 42})
                |> Example.User.load(EX.User0)
 
-      refute Example.User.valid?(user)
+      refute RDF.Mapping.valid?(user)
       assert hd(user.posts).title == 42
     end
   end

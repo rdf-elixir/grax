@@ -56,24 +56,6 @@ defmodule RDF.Mapping do
       def to_rdf(%__MODULE__{} = mapping, opts \\ []) do
         ToRDF.call(mapping, opts)
       end
-
-      @spec validate(struct, opts :: Keyword) :: {:ok, struct} | {:error, ValidationError.t()}
-      def validate(%__MODULE__{} = mapping, opts \\ []) do
-        Validation.call(mapping, opts)
-      end
-
-      @spec validate!(struct, opts :: Keyword) :: struct
-      def validate!(%__MODULE__{} = mapping, opts \\ []) do
-        case validate(mapping, opts) do
-          {:ok, _} -> mapping
-          {:error, error} -> raise error
-        end
-      end
-
-      @spec valid?(struct, opts :: Keyword) :: boolean
-      def valid?(%__MODULE__{} = mapping, opts \\ []) do
-        match?({:ok, _}, validate(mapping, opts))
-      end
     end
   end
 
@@ -147,5 +129,23 @@ defmodule RDF.Mapping do
       {property, value}, mapping ->
         put!(mapping, property, value)
     end)
+  end
+
+  @spec validate(struct, opts :: Keyword) :: {:ok, struct} | {:error, ValidationError.t()}
+  def validate(%_{} = mapping, opts \\ []) do
+    Validation.call(mapping, opts)
+  end
+
+  @spec validate!(struct, opts :: Keyword) :: struct
+  def validate!(%_{} = mapping, opts \\ []) do
+    case validate(mapping, opts) do
+      {:ok, _} -> mapping
+      {:error, error} -> raise error
+    end
+  end
+
+  @spec valid?(struct, opts :: Keyword) :: boolean
+  def valid?(%_{} = mapping, opts \\ []) do
+    match?({:ok, _}, validate(mapping, opts))
   end
 end
