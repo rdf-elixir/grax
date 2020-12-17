@@ -29,12 +29,7 @@ defmodule RDF.Mapping.Validation do
     mapping_mod.__property_spec__()
     |> Enum.reduce(validation, fn {property, property_spec}, validation ->
       value = Map.get(mapping, property)
-      type = property_spec.type
-      required? = Map.get(property_spec, :required, false)
-
-      validation
-      |> check_cardinality(property, value, type, required?)
-      |> check_datatype(property, value, type, opts)
+      check_property(validation, property, value, property_spec, opts)
     end)
   end
 
@@ -42,12 +37,27 @@ defmodule RDF.Mapping.Validation do
     mapping_mod.__link_spec__()
     |> Enum.reduce(validation, fn {link, link_spec}, validation ->
       value = Map.get(mapping, link)
-      type = link_spec.type
-
-      validation
-      |> check_cardinality(link, value, type, false)
-      |> check_resource_type(link, value, type, opts)
+      check_link(validation, link, value, link_spec, opts)
     end)
+  end
+
+  @doc false
+  def check_property(validation, property, value, property_spec, opts) do
+    type = property_spec.type
+    required? = Map.get(property_spec, :required, false)
+
+    validation
+    |> check_cardinality(property, value, type, required?)
+    |> check_datatype(property, value, type, opts)
+  end
+
+  @doc false
+  def check_link(validation, link, value, link_spec, opts) do
+    type = link_spec.type
+
+    validation
+    |> check_cardinality(link, value, type, false)
+    |> check_resource_type(link, value, type, opts)
   end
 
   defp check_cardinality(validation, _, value, {:set, _}, false) when is_list(value),

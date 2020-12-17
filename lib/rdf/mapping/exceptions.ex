@@ -57,6 +57,19 @@ defmodule RDF.Mapping.Schema.RequiredPropertyMissing do
   end
 end
 
+defmodule RDF.Mapping.Schema.InvalidProperty do
+  @moduledoc """
+  Raised when accessing a property that is not defined on a schema.
+  """
+  defexception [:message, :property]
+
+  def exception(opts) do
+    property = Keyword.fetch!(opts, :property)
+    msg = opts[:message] || "undefined property #{inspect(property)}"
+    %__MODULE__{message: msg, property: property}
+  end
+end
+
 defmodule RDF.Mapping.InvalidIdError do
   @moduledoc """
   Raised when a RDF.Mapping has an invalid subject id.
