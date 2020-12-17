@@ -5,7 +5,7 @@ defmodule RDF.Mapping do
   @__id__property_access_error Schema.InvalidProperty.exception(
                                  property: :__id__,
                                  message:
-                                   "Please use the change_id/2 function to update :__id__ attribute"
+                                   "__id__ can't be changed. Use build/2 to construct a mapping from another with new id."
                                )
 
   defmacro __using__(opts) do
@@ -52,6 +52,12 @@ defmodule RDF.Mapping do
     end
   end
 
+  def build(mod, id, %mod{} = initial) do
+    mod
+    |> build!(id, initial)
+    |> validate()
+  end
+
   def build(mod, id, initial) do
     with {:ok, mapping} <- build(mod, id) do
       put(mapping, initial)
@@ -63,6 +69,10 @@ defmodule RDF.Mapping do
       {:ok, mapping} -> mapping
       {:error, error} -> raise error
     end
+  end
+
+  def build!(mod, id, %mod{} = initial) do
+    struct(initial, __id__: build!(mod, id).__id__)
   end
 
   def build!(mod, id, initial) do

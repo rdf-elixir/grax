@@ -53,6 +53,11 @@ defmodule RDF.MappingTest do
                 }}
     end
 
+    test "with another mapping of the same type" do
+      assert Example.User.build(EX.Other, Example.user(EX.User0)) ==
+               {:ok, %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}}
+    end
+
     test "with invalid property values" do
       assert Example.User.build(EX.User0,
                age: "secret",
@@ -68,6 +73,14 @@ defmodule RDF.MappingTest do
                         type: {:resource, Example.Post}
                       ),
                     foo: InvalidProperty.exception(property: :foo),
+                    age: TypeError.exception(value: "secret", type: XSD.Integer)
+                  ]
+                }}
+
+      assert Example.User.build(EX.Other, Example.user(EX.User0) |> Map.put(:age, "secret")) ==
+               {:error,
+                %ValidationError{
+                  errors: [
                     age: TypeError.exception(value: "secret", type: XSD.Integer)
                   ]
                 }}
@@ -107,6 +120,11 @@ defmodule RDF.MappingTest do
                }
     end
 
+    test "with another mapping of the same type" do
+      assert Example.User.build!(EX.Other, Example.user(EX.User0)) ==
+               %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
+    end
+
     test "with invalid property values" do
       assert Example.User.build!(EX.User0,
                name: "Foo",
@@ -118,6 +136,13 @@ defmodule RDF.MappingTest do
                  name: "Foo",
                  age: "secret",
                  posts: [Example.user(EX.User0)]
+               }
+
+      assert Example.User.build!(EX.Other, Example.user(EX.User0) |> Map.put(:age, "secret")) ==
+               %Example.User{
+                 (Example.user(EX.User0)
+                  |> Map.put(:age, "secret"))
+                 | __id__: RDF.iri(EX.Other)
                }
     end
   end
@@ -193,7 +218,8 @@ defmodule RDF.MappingTest do
                {:error,
                 InvalidProperty.exception(
                   property: :__id__,
-                  message: "Please use the change_id/2 function to update :__id__ attribute"
+                  message:
+                    "__id__ can't be changed. Use build/2 to construct a mapping from another with new id."
                 )}
     end
 
@@ -312,7 +338,7 @@ defmodule RDF.MappingTest do
 
     test "with the __id__ field" do
       assert_raise InvalidProperty,
-                   "Please use the change_id/2 function to update :__id__ attribute",
+                   "__id__ can't be changed. Use build/2 to construct a mapping from another with new id.",
                    fn ->
                      Example.User.build!(EX.User0)
                      |> RDF.Mapping.put!(:__id__, "foo")
