@@ -51,11 +51,6 @@ defmodule RDF.Mapping do
       def __has_property__?(property) do
         Keyword.has_key?(@struct_fields, property)
       end
-
-      @spec to_rdf(struct, opts :: Keyword) :: {:ok, Graph.t()} | {:error, any}
-      def to_rdf(%__MODULE__{} = mapping, opts \\ []) do
-        ToRDF.call(mapping, opts)
-      end
     end
   end
 
@@ -147,5 +142,10 @@ defmodule RDF.Mapping do
   @spec valid?(struct, opts :: Keyword) :: boolean
   def valid?(%_{} = mapping, opts \\ []) do
     match?({:ok, _}, validate(mapping, opts))
+  end
+
+  @spec to_rdf(struct, opts :: Keyword) :: {:ok, Graph.t()} | {:error, any}
+  def to_rdf(%_{} = mapping, opts \\ []) do
+    ToRDF.call(mapping, opts)
   end
 end

@@ -3,6 +3,8 @@ defmodule RDF.Mapping.ToRDFTest do
 
   alias RDF.Mapping.ValidationError
 
+  import RDF.Mapping, only: [to_rdf: 1]
+
   test "successful mapping" do
     assert %Example.User{
              __id__: IRI.new(EX.User0),
@@ -41,7 +43,7 @@ defmodule RDF.Mapping.ToRDFTest do
                }
              ]
            }
-           |> Example.User.to_rdf() == {:ok, example_graph()}
+           |> to_rdf() == {:ok, example_graph()}
   end
 
   test "with invalid struct" do
@@ -52,7 +54,7 @@ defmodule RDF.Mapping.ToRDFTest do
                email: ~w[jd@example.com],
                age: "42"
              }
-             |> Example.User.to_rdf()
+             |> to_rdf()
   end
 
   test "mapping of untyped scalar properties" do
@@ -60,7 +62,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              foo: "foo"
            }
-           |> Example.Untyped.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.foo(XSD.string("foo"))
@@ -70,7 +72,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              foo: 42
            }
-           |> Example.Untyped.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.foo(XSD.integer(42))
@@ -82,7 +84,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              bar: ["bar"]
            }
-           |> Example.Untyped.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.bar(XSD.string("bar"))
@@ -92,7 +94,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              bar: [42, "bar"]
            }
-           |> Example.Untyped.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.bar(XSD.integer(42), XSD.string("bar"))
@@ -123,7 +125,7 @@ defmodule RDF.Mapping.ToRDFTest do
              negative_integer: -42,
              numeric: Decimal.from_float(0.5)
            }
-           |> Example.Types.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.string(XSD.string("string"))
@@ -154,7 +156,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              numeric: 42
            }
-           |> Example.Types.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.numeric(XSD.integer(42))
@@ -164,7 +166,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              numeric: Decimal.from_float(0.5)
            }
-           |> Example.Types.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.numeric(XSD.decimal(0.5))
@@ -174,7 +176,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              numeric: 3.14
            }
-           |> Example.Types.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.numeric(XSD.double(3.14))
@@ -186,7 +188,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              numerics: [42, 3.14, Decimal.from_float(0.5)]
            }
-           |> Example.Types.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.numerics(XSD.integer(42), XSD.double(3.14), XSD.decimal(0.5))
@@ -199,7 +201,7 @@ defmodule RDF.Mapping.ToRDFTest do
              foo: ~B"foo",
              foos: [~B"foo", ~B"bar"]
            }
-           |> Example.IdsAsPropertyValues.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.foo(~B"foo")
@@ -215,7 +217,7 @@ defmodule RDF.Mapping.ToRDFTest do
              iri: RDF.iri(EX.Foo),
              iris: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)]
            }
-           |> Example.IdsAsPropertyValues.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.foo(EX.Foo)
@@ -231,7 +233,7 @@ defmodule RDF.Mapping.ToRDFTest do
              name: "subject",
              foo: [Example.user(EX.User0, depth: 0)]
            }
-           |> Example.InverseProperties.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               [
                 EX.S |> EX.name("subject"),
@@ -247,7 +249,7 @@ defmodule RDF.Mapping.ToRDFTest do
              __id__: IRI.new(EX.S),
              name: "foo"
            }
-           |> Example.ClassDeclaration.to_rdf() ==
+           |> to_rdf() ==
              {:ok,
               EX.S
               |> RDF.type(EX.Class)
