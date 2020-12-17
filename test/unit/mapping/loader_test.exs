@@ -31,14 +31,7 @@ defmodule RDF.Mapping.LoaderTest do
 
   test "when no description for the given IRI exists in the graph" do
     assert Example.User.load(example_graph(), EX.not_existing()) ==
-             {
-               :ok,
-               %Example.User{
-                 __id__: EX.not_existing(),
-                 posts: [],
-                 comments: []
-               }
-             }
+             Example.User.build(EX.not_existing(), posts: [], comments: [])
   end
 
   test "blank node values" do
@@ -46,12 +39,10 @@ defmodule RDF.Mapping.LoaderTest do
            |> EX.foo(~B"foo")
            |> EX.foos(~B"foo", ~B"bar")
            |> Example.IdsAsPropertyValues.load(EX.S, []) ==
-             {:ok,
-              %Example.IdsAsPropertyValues{
-                __id__: RDF.iri(EX.S),
-                foo: ~B"foo",
-                foos: [~B"bar", ~B"foo"]
-              }}
+             Example.IdsAsPropertyValues.build(EX.S,
+               foo: ~B"foo",
+               foos: [~B"bar", ~B"foo"]
+             )
   end
 
   test "IRI values" do
@@ -61,14 +52,12 @@ defmodule RDF.Mapping.LoaderTest do
            |> EX.iri(EX.Foo)
            |> EX.iris(EX.Foo, EX.Bar)
            |> Example.IdsAsPropertyValues.load(EX.S, []) ==
-             {:ok,
-              %Example.IdsAsPropertyValues{
-                __id__: RDF.iri(EX.S),
-                foo: RDF.iri(EX.Foo),
-                foos: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)],
-                iri: RDF.iri(EX.Foo),
-                iris: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)]
-              }}
+             Example.IdsAsPropertyValues.build(EX.S,
+               foo: RDF.iri(EX.Foo),
+               foos: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)],
+               iri: RDF.iri(EX.Foo),
+               iris: [RDF.iri(EX.Bar), RDF.iri(EX.Foo)]
+             )
   end
 
   describe "type mapping" do
@@ -101,98 +90,58 @@ defmodule RDF.Mapping.LoaderTest do
       assert EX.S
              |> EX.numeric(XSD.integer(42))
              |> Example.Types.load(EX.S) ==
-               {:ok,
-                %Example.Types{
-                  __id__: IRI.new(EX.S),
-                  numeric: 42
-                }}
+               Example.Types.build(EX.S, numeric: 42)
 
       assert EX.S
              |> EX.numeric(XSD.decimal(0.5))
              |> Example.Types.load(EX.S) ==
-               {:ok,
-                %Example.Types{
-                  __id__: IRI.new(EX.S),
-                  numeric: Decimal.from_float(0.5)
-                }}
+               Example.Types.build(EX.S, numeric: Decimal.from_float(0.5))
 
       assert EX.S
              |> EX.numeric(XSD.float(3.14))
              |> Example.Types.load(EX.S) ==
-               {:ok,
-                %Example.Types{
-                  __id__: IRI.new(EX.S),
-                  numeric: 3.14
-                }}
+               Example.Types.build(EX.S, numeric: 3.14)
     end
 
     test "untyped scalar properties" do
       assert EX.S |> EX.foo("foo") |> Example.Untyped.load(EX.S) ==
-               {:ok,
-                %Example.Untyped{
-                  __id__: IRI.new(EX.S),
-                  foo: "foo"
-                }}
+               Example.Untyped.build(EX.S, foo: "foo")
 
       assert EX.S |> EX.foo(42) |> Example.Untyped.load(EX.S) ==
-               {:ok,
-                %Example.Untyped{
-                  __id__: IRI.new(EX.S),
-                  foo: 42
-                }}
+               Example.Untyped.build(EX.S, foo: 42)
     end
 
     test "untyped set properties" do
       assert EX.S |> EX.bar("bar") |> Example.Untyped.load(EX.S) ==
-               {:ok,
-                %Example.Untyped{
-                  __id__: IRI.new(EX.S),
-                  bar: ["bar"]
-                }}
+               Example.Untyped.build(EX.S, bar: ["bar"])
 
       assert EX.S |> EX.bar("bar", 42) |> Example.Untyped.load(EX.S) ==
-               {:ok,
-                %Example.Untyped{
-                  __id__: IRI.new(EX.S),
-                  bar: [42, "bar"]
-                }}
+               Example.Untyped.build(EX.S, bar: [42, "bar"])
     end
 
     test "typed set properties" do
       assert EX.S
              |> EX.integers(XSD.integer(1))
              |> Example.Types.load(EX.S) ==
-               {:ok,
-                %Example.Types{
-                  __id__: IRI.new(EX.S),
-                  integers: [1]
-                }}
+               Example.Types.build(EX.S, integers: [1])
 
       assert EX.S
              |> EX.integers(XSD.integer(1), XSD.byte(2), XSD.negativeInteger(-3))
              |> Example.Types.load(EX.S) ==
-               {:ok,
-                %Example.Types{
-                  __id__: IRI.new(EX.S),
-                  integers: [2, 1, -3]
-                }}
+               Example.Types.build(EX.S, integers: [2, 1, -3])
 
       assert EX.S
              |> EX.numerics(XSD.integer(42), XSD.decimal(0.5), XSD.float(3.14))
              |> Example.Types.load(EX.S) ==
-               {:ok,
-                %Example.Types{
-                  __id__: IRI.new(EX.S),
-                  numerics: [Decimal.from_float(0.5), 3.14, 42]
-                }}
+               Example.Types.build(EX.S, numerics: [Decimal.from_float(0.5), 3.14, 42])
     end
 
     test "type derivations are taken into account" do
-      assert {:ok, %Example.Types{int: 42}} =
-               EX.S |> EX.int(XSD.byte(42)) |> Example.Types.load(EX.S)
+      assert EX.S |> EX.int(XSD.byte(42)) |> Example.Types.load(EX.S) ==
+               Example.Types.build(EX.S, int: 42)
 
-      assert {:ok, %Example.Types{double: 3.14}} =
-               EX.S |> EX.double(XSD.float(3.14)) |> Example.Types.load(EX.S)
+      assert EX.S |> EX.double(XSD.float(3.14)) |> Example.Types.load(EX.S) ==
+               Example.Types.build(EX.S, double: 3.14)
     end
 
     test "when a type does not match the definition in the schema" do
@@ -231,7 +180,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Example.User.load(EX.User0) ==
                {:ok,
                 Example.user(EX.User0)
-                |> Map.put(:posts, [%Example.Post{__id__: IRI.new(EX.Post0)}])}
+                |> Map.put(:posts, [Example.Post.build!(EX.Post0)])}
     end
 
     test "when the nested description doesn't match the nested schema" do
@@ -258,12 +207,7 @@ defmodule RDF.Mapping.LoaderTest do
       description = EX.S |> EX.name("subject")
 
       assert Example.InverseProperties.load(description, EX.S) ==
-               {:ok,
-                %Example.InverseProperties{
-                  __id__: IRI.new(EX.S),
-                  name: "subject",
-                  foo: []
-                }}
+               Example.InverseProperties.build(EX.S, name: "subject", foo: [])
 
       graph =
         Graph.new([
@@ -273,20 +217,16 @@ defmodule RDF.Mapping.LoaderTest do
         ])
 
       assert Example.InverseProperties.load(graph, EX.S) ==
-               {:ok,
-                %Example.InverseProperties{
-                  __id__: IRI.new(EX.S),
-                  name: "subject",
-                  foo: [Example.user(EX.User0, depth: 0)]
-                }}
+               Example.InverseProperties.build(EX.S,
+                 name: "subject",
+                 foo: [Example.user(EX.User0, depth: 0)]
+               )
 
       assert Example.InverseProperties.load(graph, EX.S, preload: 2) ==
-               {:ok,
-                %Example.InverseProperties{
-                  __id__: IRI.new(EX.S),
-                  name: "subject",
-                  foo: [Example.user(EX.User0, depth: 1)]
-                }}
+               Example.InverseProperties.build(EX.S,
+                 name: "subject",
+                 foo: [Example.user(EX.User0, depth: 1)]
+               )
     end
 
     test "when a resource exists only as an object" do
@@ -297,11 +237,9 @@ defmodule RDF.Mapping.LoaderTest do
         ])
 
       assert Example.InverseProperties.load(graph, EX.S) ==
-               {:ok,
-                %Example.InverseProperties{
-                  __id__: IRI.new(EX.S),
-                  foo: [Example.user(EX.User0, depth: 0)]
-                }}
+               Example.InverseProperties.build(EX.S,
+                 foo: [Example.user(EX.User0, depth: 0)]
+               )
     end
   end
 end

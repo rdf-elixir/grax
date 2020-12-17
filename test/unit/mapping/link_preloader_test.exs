@@ -10,15 +10,10 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.C |> EX.name("c")
            ])
            |> Example.SelfLinked.load(EX.A) ==
-             {:ok,
-              %Example.SelfLinked{
-                __id__: IRI.new(EX.A),
-                name: "a",
-                next: %Example.SelfLinked{
-                  __id__: IRI.new(EX.B),
-                  name: "b"
-                }
-              }}
+             Example.SelfLinked.build(EX.A,
+               name: "a",
+               next: Example.SelfLinked.build!(EX.B, name: "b")
+             )
   end
 
   test "link via blank node" do
@@ -28,15 +23,10 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              ~B"c" |> EX.name("c")
            ])
            |> Example.SelfLinked.load(EX.A) ==
-             {:ok,
-              %Example.SelfLinked{
-                __id__: IRI.new(EX.A),
-                name: "a",
-                next: %Example.SelfLinked{
-                  __id__: ~B"b",
-                  name: "b"
-                }
-              }}
+             Example.SelfLinked.build(EX.A,
+               name: "a",
+               next: Example.SelfLinked.build!(~B"b", name: "b")
+             )
 
     assert RDF.graph([
              EX.A |> EX.name("a") |> EX.next(~B"b"),
@@ -44,28 +34,20 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              ~B"c" |> EX.name("c")
            ])
            |> Example.SelfLinked.load(EX.A, preload: 3) ==
-             {:ok,
-              %Example.SelfLinked{
-                __id__: IRI.new(EX.A),
-                name: "a",
-                next: %Example.SelfLinked{
-                  __id__: ~B"b",
-                  name: "b",
-                  next: %Example.SelfLinked{
-                    __id__: ~B"c",
-                    name: "c",
-                    next: nil
-                  }
-                }
-              }}
+             Example.SelfLinked.build(EX.A,
+               name: "a",
+               next:
+                 Example.SelfLinked.build!(~B"b",
+                   name: "b",
+                   next: Example.SelfLinked.build!(~B"c", name: "c", next: nil)
+                 )
+             )
   end
 
   test "direct link to itself" do
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.next(EX.A)
-           ])
+    assert RDF.graph([EX.A |> EX.name("a") |> EX.next(EX.A)])
            |> Example.SelfLinked.load(EX.A) ==
-             {:ok, %Example.SelfLinked{__id__: IRI.new(EX.A), name: "a"}}
+             Example.SelfLinked.build(EX.A, name: "a")
   end
 
   test "link to itself with circle" do
@@ -75,26 +57,17 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.C |> EX.name("c") |> EX.link1(EX.A)
            ])
            |> Example.Circle.load(EX.A) ==
-             {:ok,
-              %Example.Circle{
-                __id__: IRI.new(EX.A),
-                name: "a",
-                link2: [],
-                link1: [
-                  %Example.Circle{
-                    __id__: IRI.new(EX.B),
-                    name: "b",
-                    link2: [],
-                    link1: [
-                      %Example.Circle{
-                        __id__: IRI.new(EX.C),
-                        name: "c",
-                        link2: []
-                      }
-                    ]
-                  }
-                ]
-              }}
+             Example.Circle.build(EX.A,
+               name: "a",
+               link2: [],
+               link1: [
+                 Example.Circle.build!(EX.B,
+                   name: "b",
+                   link2: [],
+                   link1: [Example.Circle.build!(EX.C, name: "c", link2: [])]
+                 )
+               ]
+             )
   end
 
   test "indirect circle" do
@@ -106,68 +79,46 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.E |> EX.name("e") |> EX.link1(EX.B)
            ])
            |> Example.Circle.load(EX.A) ==
-             {
-               :ok,
-               %Example.Circle{
-                 __id__: IRI.new(EX.A),
-                 name: "a",
-                 link2: [],
-                 link1: [
-                   %Example.Circle{
-                     __id__: IRI.new(EX.B),
-                     name: "b",
-                     link2: [],
-                     link1: [
-                       %Example.Circle{
-                         __id__: IRI.new(EX.D),
-                         name: "d",
-                         link2: [],
-                         link1: [
-                           %Example.Circle{
-                             __id__: IRI.new(EX.C),
-                             name: "c",
-                             link2: [],
-                             link1: [
-                               %Example.Circle{
-                                 __id__: IRI.new(EX.E),
-                                 name: "e",
-                                 link2: []
-                               }
-                             ]
-                           }
-                         ]
-                       }
-                     ]
-                   },
-                   %Example.Circle{
-                     __id__: IRI.new(EX.C),
-                     name: "c",
-                     link2: [],
-                     link1: [
-                       %Example.Circle{
-                         __id__: IRI.new(EX.E),
-                         name: "e",
-                         link2: [],
-                         link1: [
-                           %Example.Circle{
-                             __id__: IRI.new(EX.B),
-                             name: "b",
-                             link2: [],
-                             link1: [
-                               %Example.Circle{
-                                 __id__: IRI.new(EX.D),
-                                 name: "d",
-                                 link2: []
-                               }
-                             ]
-                           }
-                         ]
-                       }
-                     ]
-                   }
-                 ]
-               }
-             }
+             Example.Circle.build(EX.A,
+               name: "a",
+               link2: [],
+               link1: [
+                 Example.Circle.build!(EX.B,
+                   name: "b",
+                   link2: [],
+                   link1: [
+                     Example.Circle.build!(EX.D,
+                       name: "d",
+                       link2: [],
+                       link1: [
+                         Example.Circle.build!(EX.C,
+                           name: "c",
+                           link2: [],
+                           link1: [Example.Circle.build!(EX.E, name: "e", link2: [])]
+                         )
+                       ]
+                     )
+                   ]
+                 ),
+                 Example.Circle.build!(EX.C,
+                   name: "c",
+                   link2: [],
+                   link1: [
+                     Example.Circle.build!(EX.E,
+                       name: "e",
+                       link2: [],
+                       link1: [
+                         Example.Circle.build!(EX.B,
+                           name: "b",
+                           link2: [],
+                           link1: [Example.Circle.build!(EX.D, name: "d", link2: [])]
+                         )
+                       ]
+                     )
+                   ]
+                 )
+               ]
+             )
   end
 
   test "indirect circle over different properties" do
@@ -179,68 +130,46 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.E |> EX.name("e") |> EX.link2(EX.B)
            ])
            |> Example.Circle.load(EX.A) ==
-             {
-               :ok,
-               %Example.Circle{
-                 __id__: IRI.new(EX.A),
-                 name: "a",
-                 link2: [],
-                 link1: [
-                   %Example.Circle{
-                     __id__: IRI.new(EX.B),
-                     name: "b",
-                     link2: [],
-                     link1: [
-                       %Example.Circle{
-                         __id__: IRI.new(EX.D),
-                         name: "d",
-                         link1: [],
-                         link2: [
-                           %Example.Circle{
-                             __id__: IRI.new(EX.C),
-                             name: "c",
-                             link2: [],
-                             link1: [
-                               %Example.Circle{
-                                 __id__: IRI.new(EX.E),
-                                 name: "e",
-                                 link1: []
-                               }
-                             ]
-                           }
-                         ]
-                       }
-                     ]
-                   },
-                   %Example.Circle{
-                     __id__: IRI.new(EX.C),
-                     name: "c",
-                     link2: [],
-                     link1: [
-                       %Example.Circle{
-                         __id__: IRI.new(EX.E),
-                         name: "e",
-                         link1: [],
-                         link2: [
-                           %Example.Circle{
-                             __id__: IRI.new(EX.B),
-                             name: "b",
-                             link2: [],
-                             link1: [
-                               %Example.Circle{
-                                 __id__: IRI.new(EX.D),
-                                 name: "d",
-                                 link1: []
-                               }
-                             ]
-                           }
-                         ]
-                       }
-                     ]
-                   }
-                 ]
-               }
-             }
+             Example.Circle.build(EX.A,
+               name: "a",
+               link2: [],
+               link1: [
+                 Example.Circle.build!(EX.B,
+                   name: "b",
+                   link2: [],
+                   link1: [
+                     Example.Circle.build!(EX.D,
+                       name: "d",
+                       link1: [],
+                       link2: [
+                         Example.Circle.build!(EX.C,
+                           name: "c",
+                           link2: [],
+                           link1: [Example.Circle.build!(EX.E, name: "e", link1: [])]
+                         )
+                       ]
+                     )
+                   ]
+                 ),
+                 Example.Circle.build!(EX.C,
+                   name: "c",
+                   link2: [],
+                   link1: [
+                     Example.Circle.build!(EX.E,
+                       name: "e",
+                       link1: [],
+                       link2: [
+                         Example.Circle.build!(EX.B,
+                           name: "b",
+                           link2: [],
+                           link1: [Example.Circle.build!(EX.D, name: "d", link1: [])]
+                         )
+                       ]
+                     )
+                   ]
+                 )
+               ]
+             )
   end
 
   test "depth preloading" do
@@ -251,16 +180,12 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.D |> EX.name("d")
            ])
            |> Example.DepthPreloading.load(EX.A) ==
-             {:ok,
-              %Example.DepthPreloading{
-                __id__: IRI.new(EX.A),
-                next: %Example.DepthPreloading{
-                  __id__: IRI.new(EX.B),
-                  next: %Example.DepthPreloading{
-                    __id__: IRI.new(EX.C)
-                  }
-                }
-              }}
+             Example.DepthPreloading.build(EX.A,
+               next:
+                 Example.DepthPreloading.build!(EX.B,
+                   next: Example.DepthPreloading.build!(EX.C)
+                 )
+             )
   end
 
   test "manual preload control" do
@@ -271,16 +196,12 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              EX.D |> EX.name("d")
            ])
            |> Example.DepthPreloading.load(EX.A, preload: [next: true]) ==
-             {:ok,
-              %Example.DepthPreloading{
-                __id__: IRI.new(EX.A),
-                next: %Example.DepthPreloading{
-                  __id__: IRI.new(EX.B),
-                  next: %Example.DepthPreloading{
-                    __id__: IRI.new(EX.C)
-                  }
-                }
-              }}
+             Example.DepthPreloading.build(EX.A,
+               next:
+                 Example.DepthPreloading.build!(EX.B,
+                   next: Example.DepthPreloading.build!(EX.C)
+                 )
+             )
 
     assert Example.User.load(example_graph(), EX.User0, preload: false) ==
              {:ok, Example.user(EX.User0, depth: 0)}

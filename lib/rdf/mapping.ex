@@ -2,6 +2,12 @@ defmodule RDF.Mapping do
   alias RDF.Mapping.{Schema, Link, Loader, Validation, ToRDF, ValidationError}
   alias RDF.{IRI, BlankNode, Graph, Description}
 
+  @__id__property_access_error Schema.InvalidProperty.exception(
+                                 property: :__id__,
+                                 message:
+                                   "Please use the change_id/2 function to update :__id__ attribute"
+                               )
+
   defmacro __using__(opts) do
     preload_default = Link.Preloader.normalize_spec(Keyword.get(opts, :preload), true)
 
@@ -17,27 +23,10 @@ defmodule RDF.Mapping do
 
   defmacro __before_compile__(_env) do
     quote do
-      def build(%IRI{} = id), do: do_build(id)
-      def build(%BlankNode{} = id), do: do_build(id)
-
-      def build(id) do
-        if iri = IRI.new(id) do
-          do_build(iri)
-        else
-          raise ArgumentError, "invalid id: #{inspect(id)}"
-        end
-      end
-
-      def build!(id) do
-        case build(id) do
-          {:ok, mapping} -> mapping
-          {:error, error} -> raise error
-        end
-      end
-
-      defp do_build(id) do
-        {:ok, %__MODULE__{__id__: id}}
-      end
+      def build(id), do: RDF.Mapping.build(__MODULE__, id)
+      def build(id, initial), do: RDF.Mapping.build(__MODULE__, id, initial)
+      def build!(id), do: RDF.Mapping.build!(__MODULE__, id)
+      def build!(id, initial), do: RDF.Mapping.build!(__MODULE__, id, initial)
 
       @spec load(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
               {:ok, struct} | {:error, any}
@@ -48,17 +37,44 @@ defmodule RDF.Mapping do
       end
 
       @doc false
-      def __has_property__?(property) do
-        Keyword.has_key?(@struct_fields, property)
-      end
+      def __has_property__?(property), do: Keyword.has_key?(@struct_fields, property)
     end
   end
 
-  @__id__property_access_error Schema.InvalidProperty.exception(
-                                 property: :__id__,
-                                 message:
-                                   "Please use the change_id/2 function to update :__id__ attribute"
-                               )
+  def build(mod, %IRI{} = id), do: {:ok, do_build(mod, id)}
+  def build(mod, %BlankNode{} = id), do: {:ok, do_build(mod, id)}
+
+  def build(mod, id) do
+    if iri = IRI.new(id) do
+      {:ok, do_build(mod, iri)}
+    else
+      raise ArgumentError, "invalid id: #{inspect(id)}"
+    end
+  end
+
+  def build(mod, id, initial) do
+    with {:ok, mapping} <- build(mod, id) do
+      put(mapping, initial)
+    end
+  end
+
+  def build!(mod, id) do
+    case build(mod, id) do
+      {:ok, mapping} -> mapping
+      {:error, error} -> raise error
+    end
+  end
+
+  def build!(mod, id, initial) do
+    mod
+    |> build!(id)
+    |> put!(initial)
+  end
+
+  defp do_build(mod, id) do
+    struct(mod, __id__: id)
+  end
+
   def put(_, :__id__, _), do: {:error, @__id__property_access_error}
 
   def put(%mapping_mod{} = mapping, property, value) do

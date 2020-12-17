@@ -18,6 +18,110 @@ defmodule RDF.MappingTest do
     end
   end
 
+  describe "build/2" do
+    test "with a map of valid property values" do
+      assert Example.User.build(EX.User0, %{
+               name: "Foo",
+               email: ["foo@example.com"],
+               password: "secret",
+               posts: Example.post(depth: 0)
+             }) ==
+               {:ok,
+                %Example.User{
+                  __id__: IRI.new(EX.User0),
+                  name: "Foo",
+                  email: ["foo@example.com"],
+                  password: "secret",
+                  posts: [Example.post(depth: 0)]
+                }}
+    end
+
+    test "with a keyword list of valid property values" do
+      assert Example.User.build(EX.User0,
+               name: "Foo",
+               email: "foo@example.com",
+               password: "secret",
+               posts: Example.post(depth: 0)
+             ) ==
+               {:ok,
+                %Example.User{
+                  __id__: IRI.new(EX.User0),
+                  name: "Foo",
+                  email: ["foo@example.com"],
+                  password: "secret",
+                  posts: [Example.post(depth: 0)]
+                }}
+    end
+
+    test "with invalid property values" do
+      assert Example.User.build(EX.User0,
+               age: "secret",
+               foo: "foo",
+               posts: Example.User.build!(EX.Bar)
+             ) ==
+               {:error,
+                %ValidationError{
+                  errors: [
+                    posts:
+                      TypeError.exception(
+                        value: Example.User.build!(EX.Bar),
+                        type: {:resource, Example.Post}
+                      ),
+                    foo: InvalidProperty.exception(property: :foo),
+                    age: TypeError.exception(value: "secret", type: XSD.Integer)
+                  ]
+                }}
+    end
+  end
+
+  describe "build!/2" do
+    test "with a map of valid property values" do
+      assert Example.User.build!(EX.User0, %{
+               name: "Foo",
+               email: "foo@example.com",
+               password: "secret",
+               posts: Example.post(depth: 0)
+             }) ==
+               %Example.User{
+                 __id__: IRI.new(EX.User0),
+                 name: "Foo",
+                 email: ["foo@example.com"],
+                 password: "secret",
+                 posts: [Example.post(depth: 0)]
+               }
+    end
+
+    test "with a keyword list of valid property values" do
+      assert Example.User.build!(EX.User0,
+               name: "Foo",
+               email: ["foo@example.com"],
+               password: "secret",
+               posts: Example.post(depth: 0)
+             ) ==
+               %Example.User{
+                 __id__: IRI.new(EX.User0),
+                 name: "Foo",
+                 email: ["foo@example.com"],
+                 password: "secret",
+                 posts: [Example.post(depth: 0)]
+               }
+    end
+
+    test "with invalid property values" do
+      assert Example.User.build!(EX.User0,
+               name: "Foo",
+               age: "secret",
+               posts: Example.user(EX.User0)
+             ) ==
+               %Example.User{
+                 __id__: IRI.new(EX.User0),
+                 name: "Foo",
+                 age: "secret",
+                 posts: [Example.user(EX.User0)]
+               }
+    end
+  end
+
   describe "put/3" do
     test "when the property exists and the value type matches the schema" do
       assert Example.User.build!(EX.User0)
