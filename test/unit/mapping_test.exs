@@ -157,6 +157,13 @@ defmodule RDF.MappingTest do
                   name: "Foo"
                 }}
 
+      assert Example.IdsAsPropertyValues.build!(EX.S)
+             |> RDF.Mapping.put!(:iri, EX.foo()) ==
+               %Example.IdsAsPropertyValues{
+                 __id__: IRI.new(EX.S),
+                 iri: EX.foo()
+               }
+
       assert Example.User.build!(EX.User0)
              |> RDF.Mapping.put(:email, ["foo@example.com"]) ==
                {:ok,
@@ -176,6 +183,10 @@ defmodule RDF.MappingTest do
       assert Example.User.build!(EX.User0)
              |> RDF.Mapping.put(:age, "secret") ==
                {:error, TypeError.exception(value: "secret", type: XSD.Integer)}
+
+      assert Example.IdsAsPropertyValues.build!(EX.S)
+             |> RDF.Mapping.put(:iri, "foo") ==
+               {:error, TypeError.exception(value: "foo", type: RDF.IRI)}
 
       assert Example.Required.build!(EX.Foo)
              |> RDF.Mapping.put(:foo, nil) ==

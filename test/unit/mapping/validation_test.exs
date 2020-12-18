@@ -363,6 +363,18 @@ defmodule RDF.Mapping.ValidationTest do
            |> valid?()
 
     [
+      iri: "foo"
+    ]
+    |> assert_validation_error(
+      %Example.IdsAsPropertyValues{__id__: IRI.new(EX.S)},
+      TypeError,
+      &[
+        value: &1,
+        type: Example.IdsAsPropertyValues.__property__(&2).type
+      ]
+    )
+
+    [
       name: EX.foo()
     ]
     |> assert_validation_error(
