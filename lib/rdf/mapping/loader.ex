@@ -15,7 +15,7 @@ defmodule RDF.Mapping.Loader do
     |> Enum.reduce_while({:ok, initial}, fn {property, property_schema}, {:ok, mapping} ->
       cond do
         objects = Description.get(description, property_schema.iri) ->
-          handle(property, objects, description, graph, property_schema, opts)
+          handle(objects, description, graph, property_schema)
           |> case do
             {:ok, mapped_objects} ->
               {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
@@ -52,25 +52,22 @@ defmodule RDF.Mapping.Loader do
     raise ArgumentError, "invalid input data: #{inspect(invalid)}"
   end
 
-  defp handle(property, objects, description, graph, property_schema, opts)
+  defp handle(objects, description, graph, property_schema)
 
-  defp handle(_property, objects, _description, graph, property_schema, opts) do
-    map_values(objects, property_schema.type, property_schema, graph, opts)
+  defp handle(objects, description, graph, %{from_rdf: from_rdf} = property_schema)
+       when not is_nil(from_rdf) do
+    apply(property_schema.mapping, from_rdf, [objects, description, graph])
   end
 
-  defp map_values(values, {:set, type}, property_schema, graph, opts) do
-    map_while_ok(values, &map_value(&1, type, property_schema, graph, opts))
+  defp handle(objects, _description, _graph, property_schema) do
+    map_values(objects, property_schema.type)
   end
 
-  defp map_values([value], type, property_schema, graph, opts) do
-    map_value(value, type, property_schema, graph, opts)
-  end
+  defp map_values(values, {:set, _type}), do: map_while_ok(values, &map_value(&1))
+  defp map_values([value], _type), do: map_value(value)
+  defp map_values(values, _type), do: map_while_ok(values, &map_value(&1))
 
-  defp map_values(values, type, property_schema, graph, opts) do
-    map_while_ok(values, &map_value(&1, type, property_schema, graph, opts))
-  end
-
-  defp map_value(%Literal{} = literal, _type, _property_schema, _graph, _opts) do
+  defp map_value(%Literal{} = literal) do
     if Literal.valid?(literal) do
       {:ok, Literal.value(literal)}
     else
@@ -78,6 +75,6 @@ defmodule RDF.Mapping.Loader do
     end
   end
 
-  defp map_value(%IRI{} = iri, _, _, _, _), do: {:ok, iri}
-  defp map_value(%BlankNode{} = bnode, _, _, _, _), do: {:ok, bnode}
+  defp map_value(%IRI{} = iri), do: {:ok, iri}
+  defp map_value(%BlankNode{} = bnode), do: {:ok, bnode}
 end

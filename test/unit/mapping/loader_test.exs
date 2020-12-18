@@ -242,4 +242,35 @@ defmodule RDF.Mapping.LoaderTest do
                )
     end
   end
+
+  describe "custom mapping" do
+    test "untyped data properties" do
+      assert EX.S
+             |> EX.foo(~L"foo")
+             |> EX.foos(~L"foo1", ~L"foo2")
+             |> Example.CustomMapping.load(EX.S) ==
+               Example.CustomMapping.build(EX.S,
+                 foo: {:foo, "foo"},
+                 foos: [{:foo, "foo1"}, {:foo, "foo2"}]
+               )
+    end
+
+    test "typed data properties" do
+      assert EX.S
+             |> EX.bar(EX.test())
+             |> EX.bars(EX.test1(), EX.test2())
+             |> Example.CustomMapping.load(EX.S) ==
+               Example.CustomMapping.build(EX.S,
+                 bar: "test",
+                 bars: ["test1", "test2"]
+               )
+    end
+
+    test "when the custom from_rdf mapping returns an error tuple" do
+      assert EX.S
+             |> EX.foo(~L"foo1", ~L"foo2")
+             |> Example.CustomMapping.load(EX.S) ==
+               {:error, "multiple :foo values found"}
+    end
+  end
 end

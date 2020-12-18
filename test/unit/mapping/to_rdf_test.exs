@@ -220,4 +220,44 @@ defmodule RDF.Mapping.ToRDFTest do
               |> EX.name("foo")
               |> RDF.graph()}
   end
+
+  describe "custom mapping" do
+    test "untyped data properties" do
+      assert Example.CustomMapping.build!(EX.S,
+               foo: {:foo, "foo"},
+               foos: [{:foo, "foo1"}, {:foo, "foo2"}]
+             )
+             |> to_rdf() ==
+               {:ok,
+                EX.S
+                |> EX.foo(~L"foo")
+                |> EX.foos(~L"foo1", ~L"foo2")
+                |> RDF.graph()}
+    end
+
+    test "typed data properties" do
+      assert Example.CustomMapping.build!(EX.S, bar: "test")
+             |> to_rdf() ==
+               {:ok,
+                EX.S
+                |> EX.bar(EX.test())
+                |> RDF.graph()}
+    end
+
+    test "creation of additional triples" do
+      assert Example.CustomMapping.build!(EX.S, bars: ["test1", "test2"])
+             |> to_rdf() ==
+               {:ok,
+                EX.S
+                |> EX.bars(EX.test1())
+                |> EX.other(EX.test2())
+                |> RDF.graph()}
+    end
+
+    test "when the custom to_rdf mapping returns an error tuple" do
+      assert Example.CustomMapping.build!(EX.S, bars: ["test1"])
+             |> to_rdf() ==
+               {:error, "not enough bars"}
+    end
+  end
 end

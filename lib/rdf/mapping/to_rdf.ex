@@ -5,13 +5,13 @@ defmodule RDF.Mapping.ToRDF do
   alias RDF.Mapping.{Link, Validation}
   alias RDF.Mapping.Schema.TypeError
 
-  def call(%mapping_mod{} = struct, opts) do
-    with {:ok, struct} <- Validation.call(struct, opts) do
+  def call(%mapping_mod{} = mapping, opts) do
+    with {:ok, mapping} <- Validation.call(mapping, opts) do
       mapping_mod.__properties__()
       |> Enum.reduce_while(
-        {:ok, Description.new(struct.__id__), Graph.new()},
+        {:ok, Description.new(mapping.__id__), Graph.new()},
         fn {property_name, property_schema}, {:ok, description, graph} ->
-          case Map.get(struct, property_name) do
+          case Map.get(mapping, property_name) do
             nil ->
               {:cont, {:ok, description, graph}}
 
@@ -22,7 +22,7 @@ defmodule RDF.Mapping.ToRDF do
               {:cont, {:ok, description, graph}}
 
             values ->
-              case map_values(values, property_schema.type, property_schema, opts) do
+              case handle(values, mapping, property_schema, opts) do
                 {:ok, values, additions} ->
                   {:cont,
                    add_statements(graph, description, property_schema.iri, values, additions)}
@@ -69,6 +69,18 @@ defmodule RDF.Mapping.ToRDF do
       Description.add(description, {property, values}),
       if(additions, do: Graph.add(graph, additions), else: graph)
     }
+  end
+
+  defp handle(values, mapping, %{to_rdf: to_rdf} = property_schema, _opts)
+       when not is_nil(to_rdf) do
+    case apply(property_schema.mapping, to_rdf, [values, mapping]) do
+      {:ok, values} -> {:ok, values, nil}
+      pass_through -> pass_through
+    end
+  end
+
+  defp handle(values, _, property_schema, opts) do
+    map_values(values, property_schema.type, property_schema, opts)
   end
 
   defp map_values(values, {:set, type}, property_schema, opts) when is_list(values) do

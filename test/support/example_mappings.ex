@@ -1,6 +1,8 @@
 defmodule Example do
   alias Example.NS.EX
-  alias RDF.IRI
+  alias RDF.{IRI, Description, Graph}
+
+  import ExUnit.Assertions
 
   @compile {:no_warn_undefined, Example.NS.EX}
 
@@ -255,5 +257,76 @@ defmodule Example do
       property :iri, EX.iri(), type: :iri
       property :iris, EX.iris(), type: [:iri]
     end
+  end
+
+  defmodule CustomMapping do
+    use RDF.Mapping
+
+    @compile {:no_warn_undefined, Example.NS.EX}
+
+    schema do
+      property :foo, EX.foo(), from_rdf: :to_foo, to_rdf: :from_foo
+      property :foos, EX.foos(), type: [], from_rdf: :to_foos, to_rdf: :from_foos
+      property :bar, EX.bar(), type: :string, from_rdf: :to_bar, to_rdf: :from_bar
+      property :bars, EX.bars(), type: [:string], from_rdf: :to_bars, to_rdf: :from_bars
+    end
+
+    def to_foo([object], description, graph) do
+      assert %Description{} = description
+      assert Description.include?(description, {EX.foo(), object})
+      assert %Graph{} = graph
+      assert Graph.include?(graph, {description.subject, EX.foo(), object})
+
+      {:ok, {:foo, to_string(object)}}
+    end
+
+    def to_foo(_, _, _) do
+      {:error, "multiple :foo values found"}
+    end
+
+    def from_foo({:foo, objects}, mapping) do
+      assert %__MODULE__{} = mapping
+
+      {:ok,
+       objects
+       |> List.wrap()
+       |> Enum.map(&RDF.literal/1)}
+    end
+
+    def to_foos(objects, description, graph) do
+      assert %Description{} = description
+      assert Description.include?(description, {EX.foos(), objects})
+      assert %Graph{} = graph
+      assert Graph.include?(graph, {description.subject, EX.foos(), objects})
+
+      {:ok, Enum.map(objects, &{:foo, to_string(&1)})}
+    end
+
+    def from_foos(objects, _mapping) do
+      {:ok, Enum.map(objects, fn {:foo, object} -> RDF.literal(object) end)}
+    end
+
+    def to_bar([%IRI{} = iri], _, _) do
+      {:ok, do_to_bar(iri)}
+    end
+
+    def from_bar(value, _mapping) do
+      {:ok, apply(EX, String.to_atom(value), [])}
+    end
+
+    def to_bars(iris, _, _) do
+      {:ok, Enum.map(iris, &do_to_bar/1)}
+    end
+
+    def from_bars([_], _mapping) do
+      {:error, "not enough bars"}
+    end
+
+    def from_bars([value | rest], mapping) do
+      {:ok, apply(EX, String.to_atom(value), []),
+       {mapping.__id__, EX.other(), Enum.map(rest, &apply(EX, String.to_atom(&1), []))}}
+    end
+
+    defp do_to_bar(iri), do: IRI.parse(iri).path |> Path.basename()
   end
 end
