@@ -123,7 +123,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.Types.__property_spec__(&2).type
+          type: Example.Types.__property__(&2).type
         ]
       )
 
@@ -145,7 +145,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: hd(&1),
-          type: Example.User.__property_spec__(&2).type |> elem(1)
+          type: Example.User.__property__(&2).type |> elem(1)
         ]
       )
     end
@@ -160,7 +160,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.User.__property_spec__(&2).type
+          type: Example.User.__property__(&2).type
         ]
       )
 
@@ -173,7 +173,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.Untyped.__property_spec__(&2).type
+          type: Example.Untyped.__property__(&2).type
         ]
       )
     end
@@ -188,7 +188,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.User.__property_spec__(&2).type
+          type: Example.User.__property__(&2).type
         ]
       )
 
@@ -201,7 +201,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.Untyped.__property_spec__(&2).type
+          type: Example.Untyped.__property__(&2).type
         ]
       )
     end
@@ -256,7 +256,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.Post.__link_spec__(&2).type
+          type: Example.Post.__property__(&2).type
         ]
       )
     end
@@ -271,7 +271,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.User.__link_spec__(&2).type
+          type: Example.User.__property__(&2).type
         ]
       )
     end
@@ -286,7 +286,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.Post.__link_spec__(&2).type
+          type: Example.Post.__property__(&2).type
         ]
       )
 
@@ -299,7 +299,7 @@ defmodule RDF.Mapping.ValidationTest do
         TypeError,
         &[
           value: hd(&1),
-          type: Example.User.__link_spec__(&2).type |> elem(1)
+          type: Example.User.__property__(&2).type |> elem(1)
         ]
       )
     end
@@ -335,7 +335,7 @@ defmodule RDF.Mapping.ValidationTest do
       TypeError,
       &[
         value: &1,
-        type: Example.User.__property_spec__(&2).type
+        type: Example.User.__property__(&2).type
       ]
     )
 
@@ -347,7 +347,7 @@ defmodule RDF.Mapping.ValidationTest do
       TypeError,
       &[
         value: hd(&1),
-        type: Example.User.__property_spec__(&2).type |> elem(1)
+        type: Example.User.__property__(&2).type |> elem(1)
       ]
     )
   end
@@ -370,7 +370,7 @@ defmodule RDF.Mapping.ValidationTest do
       TypeError,
       &[
         value: &1,
-        type: Example.User.__property_spec__(&2).type
+        type: Example.User.__property__(&2).type
       ]
     )
 
@@ -382,7 +382,7 @@ defmodule RDF.Mapping.ValidationTest do
       TypeError,
       &[
         value: hd(&1),
-        type: Example.User.__property_spec__(&2).type |> elem(1)
+        type: Example.User.__property__(&2).type |> elem(1)
       ]
     )
   end

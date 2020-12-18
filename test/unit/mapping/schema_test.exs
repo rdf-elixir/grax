@@ -48,7 +48,7 @@ defmodule RDF.Mapping.SchemaTest do
 
   test "type of default values must match the type" do
     assert_raise ArgumentError,
-                 ~S(default value "foo" doesn't match type Elixir.RDF.XSD.Integer),
+                 ~S(default value "foo" doesn't match type RDF.XSD.Integer),
                  fn ->
                    defmodule DefaultValueTypeMismatch do
                      use RDF.Mapping
@@ -70,19 +70,6 @@ defmodule RDF.Mapping.SchemaTest do
         end
       end
     end
-  end
-
-  test "property_mapping/1" do
-    assert RDF.Mapping.Schema.property_mapping(
-             foo: EX.foo(),
-             bar: EX.Bar,
-             baz: {:inverse, EX.Baz}
-           ) ==
-             %{
-               foo: RDF.iri(EX.foo()),
-               bar: RDF.iri(EX.Bar),
-               baz: {:inverse, RDF.iri(EX.Baz)}
-             }
   end
 
   test "__class__/0" do

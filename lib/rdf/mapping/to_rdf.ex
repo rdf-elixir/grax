@@ -7,10 +7,10 @@ defmodule RDF.Mapping.ToRDF do
 
   def call(%mapping_mod{} = struct, opts) do
     with {:ok, struct} <- Validation.call(struct, opts) do
-      mapping_mod.__property_map__()
+      mapping_mod.__properties__()
       |> Enum.reduce_while(
         {:ok, Description.new(struct.__id__), Graph.new()},
-        fn {property_name, property_iri}, {:ok, description, graph} ->
+        fn {property_name, property_schema}, {:ok, description, graph} ->
           case Map.get(struct, property_name) do
             nil ->
               {:cont, {:ok, description, graph}}
@@ -22,13 +22,10 @@ defmodule RDF.Mapping.ToRDF do
               {:cont, {:ok, description, graph}}
 
             values ->
-              property_spec =
-                mapping_mod.__property_spec__(property_name) ||
-                  mapping_mod.__link_spec__(property_name)
-
-              case map_values(values, property_spec.type, property_spec, opts) do
+              case map_values(values, property_schema.type, property_schema, opts) do
                 {:ok, values, additions} ->
-                  {:cont, add_statements(graph, description, property_iri, values, additions)}
+                  {:cont,
+                   add_statements(graph, description, property_schema.iri, values, additions)}
 
                 error ->
                   {:halt, error}
@@ -74,12 +71,12 @@ defmodule RDF.Mapping.ToRDF do
     }
   end
 
-  defp map_values(values, {:set, type}, property_spec, opts) when is_list(values) do
+  defp map_values(values, {:set, type}, property_schema, opts) when is_list(values) do
     Enum.reduce_while(
       values,
       {:ok, [], Graph.new()},
       fn value, {:ok, mapped, graph} ->
-        case map_values(value, type, property_spec, opts) do
+        case map_values(value, type, property_schema, opts) do
           {:ok, mapped_value, nil} ->
             {:cont, {:ok, [mapped_value | mapped], graph}}
 
@@ -97,7 +94,7 @@ defmodule RDF.Mapping.ToRDF do
     {:error, TypeError.exception(value: values, type: type)}
   end
 
-  defp map_values(%type{__id__: id} = mapping, {:resource, type}, property_spec, opts) do
+  defp map_values(%type{__id__: id} = mapping, {:resource, type}, _property_schema, opts) do
     with {:ok, graph} <- RDF.Mapping.to_rdf(mapping, opts) do
       {:ok, id, graph}
     end

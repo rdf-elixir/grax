@@ -26,34 +26,33 @@ defmodule RDF.Mapping.Validation do
   end
 
   defp check_properties(validation, %mapping_mod{} = mapping, opts) do
-    mapping_mod.__property_spec__()
-    |> Enum.reduce(validation, fn {property, property_spec}, validation ->
+    mapping_mod.__properties__(:data)
+    |> Enum.reduce(validation, fn {property, property_schema}, validation ->
       value = Map.get(mapping, property)
-      check_property(validation, property, value, property_spec, opts)
+      check_property(validation, property, value, property_schema, opts)
     end)
   end
 
   defp check_links(validation, %mapping_mod{} = mapping, opts) do
-    mapping_mod.__link_spec__()
-    |> Enum.reduce(validation, fn {link, link_spec}, validation ->
+    mapping_mod.__properties__(:link)
+    |> Enum.reduce(validation, fn {link, link_schema}, validation ->
       value = Map.get(mapping, link)
-      check_link(validation, link, value, link_spec, opts)
+      check_link(validation, link, value, link_schema, opts)
     end)
   end
 
   @doc false
-  def check_property(validation, property, value, property_spec, opts) do
-    type = property_spec.type
-    required? = Map.get(property_spec, :required, false)
+  def check_property(validation, property, value, property_schema, opts) do
+    type = property_schema.type
 
     validation
-    |> check_cardinality(property, value, type, required?)
+    |> check_cardinality(property, value, type, property_schema.required)
     |> check_datatype(property, value, type, opts)
   end
 
   @doc false
-  def check_link(validation, link, value, link_spec, opts) do
-    type = link_spec.type
+  def check_link(validation, link, value, link_schema, opts) do
+    type = link_schema.type
 
     validation
     |> check_cardinality(link, value, type, false)

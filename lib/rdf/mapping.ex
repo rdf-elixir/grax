@@ -38,6 +38,8 @@ defmodule RDF.Mapping do
 
       @doc false
       def __has_property__?(property), do: Keyword.has_key?(@struct_fields, property)
+
+      Module.delete_attribute(__MODULE__, :rdf_property_acc)
     end
   end
 
@@ -90,11 +92,14 @@ defmodule RDF.Mapping do
   def put(%mapping_mod{} = mapping, property, value) do
     if mapping_mod.__has_property__?(property) do
       cond do
-        property_spec = mapping_mod.__property_spec__(property) ->
-          do_put_property(:check_property, mapping, property, value, property_spec)
+        property_schema = mapping_mod.__property__(property) ->
+          validation =
+            case property_schema.__struct__ do
+              Schema.DataProperty -> :check_property
+              Schema.LinkProperty -> :check_link
+            end
 
-        link_spec = mapping_mod.__link_spec__(property) ->
-          do_put_property(:check_link, mapping, property, value, link_spec)
+          do_put_property(validation, mapping, property, value, property_schema)
 
         # it's a virtual property
         true ->
@@ -121,11 +126,11 @@ defmodule RDF.Mapping do
     end
   end
 
-  defp do_put_property(validation, mapping, property, value, property_spec) do
-    value = if Schema.Type.set?(property_spec.type), do: List.wrap(value), else: value
+  defp do_put_property(validation, mapping, property, value, property_schema) do
+    value = if Schema.Type.set?(property_schema.type), do: List.wrap(value), else: value
 
     Validation
-    |> apply(validation, [ValidationError.exception(), property, value, property_spec, []])
+    |> apply(validation, [ValidationError.exception(), property, value, property_schema, []])
     |> case do
       %{errors: []} -> {:ok, struct!(mapping, [{property, value}])}
       %{errors: errors} -> {:error, errors[property]}
@@ -135,12 +140,12 @@ defmodule RDF.Mapping do
   def put!(_, :__id__, _), do: raise(@__id__property_access_error)
 
   def put!(%mapping_mod{} = mapping, property, value) do
-    property_spec =
-      mapping_mod.__property_spec__(property) ||
-        mapping_mod.__link_spec__(property)
+    property_schema = mapping_mod.__property__(property)
 
     value =
-      if property_spec && Schema.Type.set?(property_spec.type), do: List.wrap(value), else: value
+      if property_schema && Schema.Type.set?(property_schema.type),
+        do: List.wrap(value),
+        else: value
 
     struct!(mapping, [{property, value}])
   end

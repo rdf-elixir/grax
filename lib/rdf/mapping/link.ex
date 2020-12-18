@@ -36,17 +36,17 @@ defmodule RDF.Mapping.Link.Preloader do
 
   def default, do: @default
 
-  def call(mapping_mod, mapping, graph, description, link_specs, opts) do
+  def call(mapping_mod, mapping, graph, description, link_schemas, opts) do
     graph_load_path = Keyword.get(opts, :__graph_load_path__, [])
     depth = length(graph_load_path)
     graph_load_path = [mapping.__id__ | graph_load_path]
     opts = Keyword.put(opts, :__graph_load_path__, graph_load_path)
 
-    Enum.reduce_while(link_specs, {:ok, mapping}, fn {link, link_spec}, {:ok, mapping} ->
+    Enum.reduce_while(link_schemas, {:ok, mapping}, fn {link, link_schema}, {:ok, mapping} ->
       {preload?, next_preload_opt, max_preload_depth} =
         next_preload_opt(
           Keyword.get(opts, :preload),
-          Map.get(link_spec, :preload),
+          link_schema.preload,
           mapping_mod,
           link,
           depth,
@@ -54,13 +54,12 @@ defmodule RDF.Mapping.Link.Preloader do
         )
 
       if preload? do
-        property_iri = mapping_mod.__property_map__(link)
-        objects = objects(graph, description, property_iri)
+        objects = objects(graph, description, link_schema.iri)
 
         cond do
           is_nil(objects) ->
             {:cont,
-             {:ok, Map.put(mapping, link, if(Type.set?(link_spec.type), do: [], else: nil))}}
+             {:ok, Map.put(mapping, link, if(Type.set?(link_schema.type), do: [], else: nil))}}
 
           circle?(objects, graph_load_path) ->
             {:cont, {:ok, mapping}}
@@ -74,7 +73,7 @@ defmodule RDF.Mapping.Link.Preloader do
               end
               |> Keyword.put(:__max_preload_depth__, max_preload_depth)
 
-            handle(link, objects, description, graph, link_spec, opts)
+            handle(link, objects, description, graph, link_schema, opts)
             |> case do
               {:ok, mapped_objects} ->
                 {:cont, {:ok, Map.put(mapping, link, mapped_objects)}}
@@ -210,25 +209,25 @@ defmodule RDF.Mapping.Link.Preloader do
     Enum.any?(objects, &(&1 in graph_load_path))
   end
 
-  defp handle(property, objects, description, graph, property_spec, opts)
+  defp handle(property, objects, description, graph, property_schema, opts)
 
-  defp handle(_property, objects, _description, graph, property_spec, opts) do
-    map_links(objects, property_spec.type, property_spec, graph, opts)
+  defp handle(_property, objects, _description, graph, property_schema, opts) do
+    map_links(objects, property_schema.type, property_schema, graph, opts)
   end
 
-  defp map_links(values, {:set, type}, property_spec, graph, opts) do
-    map_while_ok(values, &map_link(&1, type, property_spec, graph, opts))
+  defp map_links(values, {:set, type}, property_schema, graph, opts) do
+    map_while_ok(values, &map_link(&1, type, property_schema, graph, opts))
   end
 
-  defp map_links([value], type, property_spec, graph, opts) do
-    map_link(value, type, property_spec, graph, opts)
+  defp map_links([value], type, property_schema, graph, opts) do
+    map_link(value, type, property_schema, graph, opts)
   end
 
-  defp map_links(values, type, property_spec, graph, opts) do
-    map_while_ok(values, &map_link(&1, type, property_spec, graph, opts))
+  defp map_links(values, type, property_schema, graph, opts) do
+    map_while_ok(values, &map_link(&1, type, property_schema, graph, opts))
   end
 
-  defp map_link(resource, {:resource, module}, property_spec, graph, opts) do
+  defp map_link(resource, {:resource, module}, property_schema, graph, opts) do
     module.load(graph, resource, opts)
   end
 end
