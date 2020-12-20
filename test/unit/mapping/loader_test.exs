@@ -82,6 +82,10 @@ defmodule RDF.Mapping.LoaderTest do
              |> EX.unsigned_byte(XSD.unsignedByte(42))
              |> EX.non_positive_integer(XSD.nonPositiveInteger(-42))
              |> EX.negative_integer(XSD.negativeInteger(-42))
+             |> EX.numeric(XSD.integer(42))
+             |> EX.date_time(XSD.date_time("2020-01-01T00:00:00Z"))
+             |> EX.date(XSD.date(~D[2020-01-01]))
+             |> EX.time(XSD.time(~T[00:00:00]))
              |> Example.Types.load(EX.S) ==
                {:ok, Example.types()}
     end
@@ -101,6 +105,30 @@ defmodule RDF.Mapping.LoaderTest do
              |> EX.numeric(XSD.float(3.14))
              |> Example.Types.load(EX.S) ==
                Example.Types.build(EX.S, numeric: 3.14)
+    end
+
+    test "date type" do
+      assert EX.S
+             |> EX.date(XSD.date(~D[2020-01-01]))
+             |> Example.Types.load(EX.S) ==
+               Example.Types.build(EX.S, date: ~D[2020-01-01])
+
+      assert EX.S
+             |> EX.date(XSD.date("2020-01-01Z"))
+             |> Example.Types.load(EX.S) ==
+               Example.Types.build(EX.S, date: {~D[2020-01-01], "Z"})
+    end
+
+    test "time type" do
+      assert EX.S
+             |> EX.time(XSD.time(~T[00:00:00]))
+             |> Example.Types.load(EX.S) ==
+               Example.Types.build(EX.S, time: ~T[00:00:00])
+
+      assert EX.S
+             |> EX.time(XSD.time("00:00:00Z"))
+             |> Example.Types.load(EX.S) ==
+               Example.Types.build(EX.S, time: {~T[00:00:00], true})
     end
 
     test "untyped scalar properties" do

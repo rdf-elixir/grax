@@ -1,5 +1,5 @@
 %{
   "decimal": {:hex, :decimal, "1.9.0", "83e8daf59631d632b171faabafb4a9f4242c514b0a06ba3df493951c08f64d07", [:mix], [], "hexpm", "b1f2343568eed6928f3e751cf2dffde95bfaa19dd95d09e8a9ea92ccfd6f7d85"},
   "protocol_ex": {:hex, :protocol_ex, "0.4.3", "4acbe35da85109dc40315c1139bb7a65ebc7fc102d384cd8b3038384fbb9b282", [:mix], [], "hexpm", "6ca5ddb3505c9c86f17cd3f19838b34bf89966ae17078f79f81983b6a4391fe9"},
-  "rdf": {:hex, :rdf, "0.9.1", "5747c6046eed440b56a7ffcfd449ed8b6568b3e22770209e040c988554215644", [:mix], [{:decimal, "~> 1.5", [hex: :decimal, repo: "hexpm", optional: false]}, {:protocol_ex, "~> 0.4", [hex: :protocol_ex, repo: "hexpm", optional: false]}], "hexpm", "94c29b7db026abcab667800a6ec9d0b1376ac17e571fef27c8c8c0e30a5643e2"},
+  "rdf": {:git, "https://github.com/rdf-elixir/rdf-ex.git", "ed403d917500e44924d6015993baf35ac7ab3aa0", []},
 }

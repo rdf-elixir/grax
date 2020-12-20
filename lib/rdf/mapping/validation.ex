@@ -129,7 +129,7 @@ defmodule RDF.Mapping.Validation do
       true -> true
     end
     |> if do
-      type.new(value).literal.value == value
+      value |> type.new(as_value: true) |> Literal.valid?()
     end
   end
 

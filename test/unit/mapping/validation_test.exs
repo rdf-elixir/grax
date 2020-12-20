@@ -53,7 +53,10 @@ defmodule RDF.Mapping.ValidationTest do
       |> assert_ok_validation(%Example.User{__id__: IRI.new(EX.S)})
 
       [
-        numeric: Decimal.from_float(0.5)
+        numeric: Decimal.from_float(0.5),
+        date: {~D[2020-01-01], "Z"},
+        time: {~T[00:00:00], true},
+        time: {~T[00:00:00], "+01:00"}
       ]
       |> assert_ok_validation(%Example.Types{__id__: IRI.new(EX.S)})
 
@@ -114,7 +117,11 @@ defmodule RDF.Mapping.ValidationTest do
         non_positive_integer: "-42",
         non_positive_integer: 42,
         negative_integer: "-42",
-        negative_integer: 42
+        negative_integer: 42,
+        date_time: "invalid",
+        date_time: "2020-01-01T00:00:00Z",
+        date: "2020-01-01",
+        time: "00:00:00"
       ]
 
       assert_validation_error(

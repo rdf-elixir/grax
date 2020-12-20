@@ -85,29 +85,7 @@ defmodule RDF.Mapping.ToRDFTest do
   end
 
   test "type mapping" do
-    assert Example.Types.build!(EX.S,
-             string: "string",
-             any_uri: IRI.parse(EX.foo()),
-             boolean: true,
-             integer: 42,
-             decimal: Decimal.from_float(0.5),
-             double: 3.14,
-             float: 3.14,
-             long: 42,
-             int: 42,
-             short: 42,
-             byte: 42,
-             non_negative_integer: 42,
-             positive_integer: 42,
-             unsigned_long: 42,
-             unsigned_int: 42,
-             unsigned_short: 42,
-             unsigned_byte: 42,
-             non_positive_integer: -42,
-             negative_integer: -42,
-             numeric: Decimal.from_float(0.5)
-           )
-           |> to_rdf() ==
+    assert Example.types() |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.string(XSD.string("string"))
@@ -129,7 +107,10 @@ defmodule RDF.Mapping.ToRDFTest do
               |> EX.unsigned_byte(XSD.unsignedByte(42))
               |> EX.non_positive_integer(XSD.nonPositiveInteger(-42))
               |> EX.negative_integer(XSD.negativeInteger(-42))
-              |> EX.numeric(XSD.decimal(0.5))
+              |> EX.numeric(XSD.integer(42))
+              |> EX.date_time(XSD.date_time(~U[2020-01-01 00:00:00Z]))
+              |> EX.date(XSD.date(~D[2020-01-01]))
+              |> EX.time(XSD.time(~T[00:00:00]))
               |> RDF.graph()}
   end
 
@@ -153,6 +134,45 @@ defmodule RDF.Mapping.ToRDFTest do
              {:ok,
               EX.S
               |> EX.numeric(XSD.double(3.14))
+              |> RDF.graph()}
+  end
+
+  test "date type" do
+    assert Example.Types.build!(EX.S, date: ~D[2020-01-01])
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.date(XSD.date(~D[2020-01-01]))
+              |> RDF.graph()}
+
+    assert Example.Types.build!(EX.S, date: {~D[2020-01-01], "Z"})
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.date(XSD.date("2020-01-01Z"))
+              |> RDF.graph()}
+  end
+
+  test "time type" do
+    assert Example.Types.build!(EX.S, time: ~T[00:00:00])
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.time(XSD.time(~T[00:00:00]))
+              |> RDF.graph()}
+
+    assert Example.Types.build!(EX.S, time: {~T[00:00:00], true})
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.time(XSD.time("00:00:00Z"))
+              |> RDF.graph()}
+
+    assert Example.Types.build!(EX.S, time: {~T[01:00:00], "+01:00"})
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.time(XSD.time("01:00:00+01:00"))
               |> RDF.graph()}
   end
 

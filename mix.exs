@@ -29,7 +29,7 @@ defmodule RDF.Mapping.MixProject do
 
   defp deps do
     [
-      {:rdf, "~> 0.9"}
+      {:rdf, github: "rdf-elixir/rdf-ex"}
     ]
   end
 

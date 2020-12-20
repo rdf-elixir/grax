@@ -170,7 +170,11 @@ defmodule Example do
       unsigned_short: 42,
       unsigned_byte: 42,
       non_positive_integer: -42,
-      negative_integer: -42
+      negative_integer: -42,
+      numeric: 42,
+      date_time: ~U[2020-01-01 00:00:00Z],
+      date: ~D[2020-01-01],
+      time: ~T[00:00:00]
     }
   end
 
