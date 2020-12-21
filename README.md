@@ -1,21 +1,16 @@
 # RDF.Mapping
 
-**TODO: Add description**
+A RDF data mapper for Elixir which maps RDF data from [RDF.ex] data structures to Elixir structs.
 
-## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `rdf_mapping` to your list of dependencies in `mix.exs`:
+## Acknowledgements
 
-```elixir
-def deps do
-  [
-    {:rdf_mapping, "~> 0.1.0"}
-  ]
-end
-```
+The development of this project was sponsored by [NetzeBW](https://www.netze-bw.de/) for [NETZlive](https://www.netze-bw.de/unsernetz/netzinnovationen/digitalisierung/netzlive).
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/rdf_mapping](https://hexdocs.pm/rdf_mapping).
 
+## License and Copyright
+
+(c) 2020-present Marcel Otto. MIT Licensed, see [LICENSE](LICENSE.md) for details.
+
+
+[RDF.ex]:               https://github.com/rdf-elixir/rdf-ex
