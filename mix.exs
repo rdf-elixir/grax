@@ -7,7 +7,7 @@ defmodule RDF.Mapping.MixProject do
     [
       app: :rdf_mapping,
       version: @version,
-      elixir: "~> 1.11",
+      elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
@@ -17,7 +17,7 @@ defmodule RDF.Mapping.MixProject do
 
   defp description do
     """
-    A toolkit for mappings between RDF and Elixir.
+    A RDF data mapper for Elixir.
     """
   end
 
