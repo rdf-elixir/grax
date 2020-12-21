@@ -1,7 +1,8 @@
 defmodule RDF.Mapping.LoaderTest do
   use RDF.Mapping.TestCase
 
-  alias RDF.Mapping.InvalidValueError
+  alias RDF.Mapping.{ValidationError, InvalidValueError}
+  alias RDF.Mapping.Schema.TypeError
 
   test "successful mapping from a graph" do
     assert Example.User.load(example_graph(), EX.User0) ==
@@ -172,31 +173,59 @@ defmodule RDF.Mapping.LoaderTest do
                Example.Types.build(EX.S, double: 3.14)
     end
 
-    test "when a type does not match the definition in the schema" do
-      assert {:ok, result = %Example.Types{integer: "invalid"}} =
-               EX.S |> EX.integer("invalid") |> Example.Types.load(EX.S)
+    test "load/2 when a type does not match the definition in the schema" do
+      assert {:error,
+              %ValidationError{
+                errors: [
+                  integer: %TypeError{
+                    type: XSD.Integer,
+                    value: "invalid"
+                  }
+                ]
+              }} = EX.S |> EX.integer("invalid") |> Example.Types.load(EX.S)
+    end
+
+    test "load!/2 when a type does not match the definition in the schema" do
+      assert result =
+               %Example.Types{integer: "invalid"} =
+               EX.S |> EX.integer("invalid") |> Example.Types.load!(EX.S)
 
       refute RDF.Mapping.valid?(result)
 
-      assert {:ok, result = %Example.Types{unsigned_byte: -42}} =
-               EX.S |> EX.unsigned_byte(-42) |> Example.Types.load(EX.S)
+      assert result =
+               %Example.Types{unsigned_byte: -42} =
+               EX.S |> EX.unsigned_byte(-42) |> Example.Types.load!(EX.S)
 
       refute RDF.Mapping.valid?(result)
     end
 
-    test "with invalid literals" do
+    test "load/2 with invalid literals" do
       invalid = XSD.integer("invalid")
 
       assert {:error, %InvalidValueError{value: ^invalid}} =
                EX.S |> EX.integer(invalid) |> Example.Types.load(EX.S)
     end
+
+    test "load!/2 with invalid literals" do
+      assert_raise InvalidValueError, fn ->
+        EX.S |> EX.integer(XSD.integer("invalid")) |> Example.Types.load!(EX.S)
+      end
+    end
   end
 
-  test "when multiple values exist for a scalar property" do
-    assert {:ok, %Example.User{} = user} =
+  test "load/2 when multiple values exist for a scalar property" do
+    assert {:error, %ValidationError{}} =
              example_graph()
              |> Graph.add({EX.User0, EX.name(), "Jane"})
              |> Example.User.load(EX.User0)
+  end
+
+  test "load!/2 when multiple values exist for a scalar property" do
+    assert %Example.User{} =
+             user =
+             example_graph()
+             |> Graph.add({EX.User0, EX.name(), "Jane"})
+             |> Example.User.load!(EX.User0)
 
     refute RDF.Mapping.valid?(user)
     assert user.name == ["Jane", Example.user(EX.User0).name]
@@ -211,19 +240,28 @@ defmodule RDF.Mapping.LoaderTest do
                 |> Map.put(:posts, [Example.Post.build!(EX.Post0)])}
     end
 
-    test "when the nested description doesn't match the nested schema" do
-      assert {:ok, %Example.User{} = user} =
+    test "load/2 when the nested description doesn't match the nested schema" do
+      assert {:error, %ValidationError{}} =
                example_graph()
                |> Graph.add({EX.Post0, EX.title(), "Other"})
                |> Example.User.load(EX.User0)
+    end
+
+    test "load!/2 when the nested description doesn't match the nested schema" do
+      assert %Example.User{} =
+               user =
+               example_graph()
+               |> Graph.add({EX.Post0, EX.title(), "Other"})
+               |> Example.User.load!(EX.User0)
 
       refute RDF.Mapping.valid?(user)
       assert hd(user.posts).title == [Example.post().title, "Other"]
 
-      assert {:ok, %Example.User{} = user} =
+      assert %Example.User{} =
+               user =
                example_graph()
                |> Graph.put({EX.Post0, EX.title(), 42})
-               |> Example.User.load(EX.User0)
+               |> Example.User.load!(EX.User0)
 
       refute RDF.Mapping.valid?(user)
       assert hd(user.posts).title == 42

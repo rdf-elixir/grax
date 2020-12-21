@@ -30,11 +30,11 @@ defmodule RDF.Mapping do
 
       @spec load(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
               {:ok, struct} | {:error, any}
-      def load(graph, id, opts \\ []) do
-        with {:ok, initial} <- build(id) do
-          Loader.call(__MODULE__, initial, graph, opts)
-        end
-      end
+      def load(graph, id, opts \\ []), do: RDF.Mapping.load(__MODULE__, id, graph, opts)
+
+      @spec load!(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
+              struct
+      def load!(graph, id, opts \\ []), do: RDF.Mapping.load!(__MODULE__, id, graph, opts)
 
       @doc false
       def __has_property__?(property), do: Keyword.has_key?(@struct_fields, property)
@@ -85,6 +85,36 @@ defmodule RDF.Mapping do
 
   defp do_build(mod, id) do
     struct(mod, __id__: id)
+  end
+
+  def load(mod, id, graph, opts \\ []) do
+    validate? = Keyword.get(opts, :validate, true)
+    opts = Keyword.put(opts, :validate, validate?)
+
+    do_load(mod, id, graph, validate?, opts)
+  end
+
+  def load!(mod, id, graph, opts \\ []) do
+    validate? = Keyword.get(opts, :validate, false)
+    opts = Keyword.put_new(opts, :validate, validate?)
+
+    with {:ok, mapping} <- do_load(mod, id, graph, validate?, opts) do
+      mapping
+    else
+      {:error, error} -> raise error
+    end
+  end
+
+  defp do_load(mod, id, graph, false, opts) do
+    with {:ok, initial} <- build(mod, id) do
+      Loader.call(mod, initial, graph, opts)
+    end
+  end
+
+  defp do_load(mod, id, graph, true, opts) do
+    with {:ok, mapping} <- do_load(mod, id, graph, false, opts) do
+      validate(mapping, opts)
+    end
   end
 
   def put(_, :__id__, _), do: {:error, @__id__property_access_error}
