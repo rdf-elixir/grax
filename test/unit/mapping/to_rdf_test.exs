@@ -11,6 +11,7 @@ defmodule RDF.Mapping.ToRDFTest do
              age: 42,
              email: ~w[jd@example.com john@doe.com],
              password: "secret",
+             customer_type: :premium_user,
              posts: [
                Example.Post.build!(EX.Post0,
                  title: "Lorem ipsum",

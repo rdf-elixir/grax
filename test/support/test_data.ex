@@ -3,7 +3,7 @@ defmodule RDF.Mapping.TestData do
   alias Example.NS.EX
 
   @example_user EX.User0
-                |> RDF.type(EX.User)
+                |> RDF.type(EX.User, EX.PremiumUser)
                 |> EX.name("John Doe")
                 |> EX.age(42)
                 |> EX.email("jd@example.com", "john@doe.com")

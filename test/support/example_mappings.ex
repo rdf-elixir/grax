@@ -11,12 +11,23 @@ defmodule Example do
 
     schema EX.User do
       property :name, EX.name(), type: :string
-      property :age, EX.age(), type: :integer
       property :email, EX.email(), type: [:string]
+      property :age, EX.age(), type: :integer
       property :password, nil
+
+      property :customer_type, RDF.type(),
+        from_rdf: :customer_type_from_rdf,
+        to_rdf: :customer_type_to_rdf
 
       link :posts, EX.post(), type: [Example.Post]
       link :comments, EX.comment(), type: [Example.Comment]
+
+      def customer_type_from_rdf(types, _description, _graph) do
+        {:ok, if(RDF.iri(EX.PremiumUser) in types, do: :premium_user)}
+      end
+
+      def customer_type_to_rdf(:premium_user, _user), do: {:ok, EX.PremiumUser}
+      def customer_type_to_rdf(_, _), do: {:ok, nil}
     end
   end
 
@@ -48,7 +59,8 @@ defmodule Example do
       __id__: IRI.new(EX.User0),
       name: "John Doe",
       age: 42,
-      email: ~w[jd@example.com john@doe.com]
+      email: ~w[jd@example.com john@doe.com],
+      customer_type: :premium_user
     }
   end
 
