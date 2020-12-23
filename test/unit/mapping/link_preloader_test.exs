@@ -205,6 +205,101 @@ defmodule RDF.Mapping.Link.PreloaderTest do
              {:ok, Example.user(EX.User0, depth: 3)}
   end
 
+  test "with preload opt no circle check is performed" do
+    assert RDF.graph([
+             EX.A |> EX.name("a") |> EX.link1(EX.B),
+             EX.B |> EX.name("b") |> EX.link1(EX.C),
+             EX.C |> EX.name("c") |> EX.link1(EX.A)
+           ])
+           |> Example.Circle.load(EX.A, preload: 4) ==
+             Example.Circle.build(EX.A,
+               name: "a",
+               link2: [],
+               link1: [
+                 Example.Circle.build!(EX.B,
+                   name: "b",
+                   link2: [],
+                   link1: [
+                     Example.Circle.build!(EX.C,
+                       name: "c",
+                       link2: [],
+                       link1: [
+                         Example.Circle.build!(EX.A,
+                           name: "a",
+                           link2: [],
+                           link1: [
+                             Example.Circle.build!(EX.B, name: "b")
+                           ]
+                         )
+                       ]
+                     )
+                   ]
+                 )
+               ]
+             )
+
+    assert RDF.graph([
+             EX.A |> EX.name("a") |> EX.link1(EX.B, EX.C),
+             EX.B |> EX.name("b") |> EX.link1(EX.D),
+             EX.C |> EX.name("c") |> EX.link1(EX.E),
+             EX.D |> EX.name("d") |> EX.link1(EX.C),
+             EX.E |> EX.name("e") |> EX.link1(EX.B)
+           ])
+           |> Example.Circle.load(EX.A, preload: 5) ==
+             Example.Circle.build(EX.A,
+               name: "a",
+               link2: [],
+               link1: [
+                 Example.Circle.build!(EX.B,
+                   name: "b",
+                   link2: [],
+                   link1: [
+                     Example.Circle.build!(EX.D,
+                       name: "d",
+                       link2: [],
+                       link1: [
+                         Example.Circle.build!(EX.C,
+                           name: "c",
+                           link2: [],
+                           link1: [
+                             Example.Circle.build!(EX.E,
+                               name: "e",
+                               link2: [],
+                               link1: [Example.Circle.build!(EX.B, name: "b")]
+                             )
+                           ]
+                         )
+                       ]
+                     )
+                   ]
+                 ),
+                 Example.Circle.build!(EX.C,
+                   name: "c",
+                   link2: [],
+                   link1: [
+                     Example.Circle.build!(EX.E,
+                       name: "e",
+                       link2: [],
+                       link1: [
+                         Example.Circle.build!(EX.B,
+                           name: "b",
+                           link2: [],
+                           link1: [
+                             Example.Circle.build!(EX.D,
+                               name: "d",
+                               link2: [],
+                               link1: [Example.Circle.build!(EX.C, name: "c")]
+                             )
+                           ]
+                         )
+                       ]
+                     )
+                   ]
+                 )
+               ]
+             )
+  end
+
   describe "next_preload_opt" do
     test "from preload opt" do
       %{

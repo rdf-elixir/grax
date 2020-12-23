@@ -60,7 +60,9 @@ defmodule RDF.Mapping.Link.Preloader do
             {:cont,
              {:ok, Map.put(mapping, link, if(Type.set?(link_schema.type), do: [], else: nil))}}
 
-          circle?(objects, graph_load_path) ->
+          # The circle check is not needed when preload opts are given as there finite depth
+          # overwrite any additive preload depths by properties which may cause infinite preloads
+          is_nil(next_preload_opt) and circle?(objects, graph_load_path) ->
             {:cont, {:ok, mapping}}
 
           true ->

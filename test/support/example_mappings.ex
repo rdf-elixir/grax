@@ -95,8 +95,11 @@ defmodule Example do
   end
 
   def post(depth: depth) do
-    %Example.Post{post(depth: 0) | comments: comments(depth: depth - 1)}
-    #    %Example.Post{post(depth: 0) | comments: comments(depth: 0), author: user(depth: 0)}
+    %Example.Post{
+      post(depth: 0)
+      | comments: comments(depth: depth - 1),
+        author: user(EX.User0, depth: depth - 1)
+    }
   end
 
   def comments(depth: depth) do
@@ -120,16 +123,16 @@ defmodule Example do
   def comment(EX.Comment1, depth: depth) do
     %Example.Comment{
       comment(EX.Comment1, depth: 0)
-      | author: user(EX.User1, depth: depth - 1)
-        #        about: post(depth: depth - 1)
+      | author: user(EX.User1, depth: depth - 1),
+        about: post(depth: depth - 1)
     }
   end
 
   def comment(EX.Comment2, depth: depth) do
     %Example.Comment{
       comment(EX.Comment2, depth: 0)
-      | author: user(EX.User2, depth: depth - 1)
-        #        about: post(depth: depth - 1)
+      | author: user(EX.User2, depth: depth - 1),
+        about: post(depth: depth - 1)
     }
   end
 
