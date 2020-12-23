@@ -224,6 +224,7 @@ defmodule RDF.Mapping.Link.PreloaderTest do
     assert Example.User.load(example_graph(), EX.User0, preload: [posts: false]) ==
              {:ok, Example.user(EX.User0, depth: 1)}
 
+    # TODO: Shouldn't this mean that ONLY posts are preloaded?
     assert Example.User.load(example_graph(), EX.User0, preload: :posts) ==
              {:ok, Example.user(EX.User0, depth: 1)}
 
@@ -242,8 +243,13 @@ defmodule RDF.Mapping.Link.PreloaderTest do
     assert Example.User.load(example_graph(), EX.User0, preload: [posts: :other]) ==
              {:ok, Example.user(EX.User0, depth: 1)}
 
+    # TODO: Shouldn't this mean that ONLY posts and comments are preloaded?
     assert Example.User.load(example_graph(), EX.User0, preload: [posts: :comments]) ==
              {:ok, Example.user(EX.User0, depth: 2)}
+
+    # TODO: with circle
+    #    assert Example.User.load(example_graph(), EX.User0, preload: [posts: :author]) ==
+    #             {:ok, Example.user(EX.User0, depth: 2)}
   end
 
   describe "next_preload_opt" do
