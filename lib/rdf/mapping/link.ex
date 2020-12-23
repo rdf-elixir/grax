@@ -30,7 +30,6 @@ defmodule RDF.Mapping.Link.Preloader do
   alias RDF.Mapping.Schema.Type
 
   import RDF.Utils
-  import RDF.Utils.Guards
 
   @default {:depth, 1}
 
@@ -142,12 +141,6 @@ defmodule RDF.Mapping.Link.Preloader do
 
         {new_depth - depth > 0, {:depth, new_depth},
          max_depth(new_depth, preload_spec, mapping_mod, depth)}
-
-      property when is_ordinary_atom(property) ->
-        {true, property, max_depth(parent_max_depth, preload_spec, mapping_mod, depth)}
-
-      link_preload_opt when is_list(link_preload_opt) ->
-        {true, link_preload_opt, max_depth(parent_max_depth, preload_spec, mapping_mod, depth)}
     end
   end
 
@@ -161,30 +154,7 @@ defmodule RDF.Mapping.Link.Preloader do
   @doc false
   def preload_opt(link, opts)
 
-  def preload_opt(link, property) when is_ordinary_atom(property),
-    do: preload_opt(link, link == property || nil)
-
-  def preload_opt(link, opts) when is_list(opts) do
-    cond do
-      Keyword.keyword?(opts) ->
-        case Keyword.get(opts, link) do
-          nil -> nil
-          link_preload_opt when is_list(link_preload_opt) -> link_preload_opt
-          property when is_ordinary_atom(property) -> property
-          preload_opt -> normalize_spec(preload_opt) |> relative_depth()
-        end
-
-      link in opts ->
-        preload_opt(link, true)
-
-      true ->
-        nil
-    end
-  end
-
   def preload_opt(_link, opts), do: normalize_spec(opts)
-
-  defp relative_depth({depth_type, depth}, offset \\ 1), do: {depth_type, offset + depth}
 
   @doc false
   def normalize_spec(preload_value, spec_semantics \\ false)
