@@ -35,7 +35,6 @@ defmodule RDF.Mapping.Loader do
           mapping,
           graph,
           description,
-          mapping_mod.__properties__(:link),
           opts
         )
 

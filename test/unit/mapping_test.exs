@@ -496,6 +496,61 @@ defmodule RDF.MappingTest do
     end
   end
 
+  describe "preload/3" do
+    test "without errors" do
+      assert Example.user(EX.User0, depth: 0)
+             |> RDF.Mapping.preload(example_graph()) ==
+               {:ok, Example.user(EX.User0, depth: 1)}
+
+      assert Example.user(EX.User0, depth: 0)
+             |> RDF.Mapping.preload(example_graph(), true) ==
+               {:ok, Example.user(EX.User0, depth: 1)}
+
+      assert Example.user(EX.User0, depth: 0)
+             |> RDF.Mapping.preload(example_graph(), 1) ==
+               {:ok, Example.user(EX.User0, depth: 1)}
+
+      assert Example.user(EX.User0, depth: 1)
+             |> RDF.Mapping.preload(example_graph(), 1) ==
+               {:ok, Example.user(EX.User0, depth: 1)}
+
+      assert Example.user(EX.User0, depth: 0)
+             |> RDF.Mapping.preload(example_graph(), 2) ==
+               {:ok, Example.user(EX.User0, depth: 2)}
+
+      assert Example.user(EX.User0, depth: 1)
+             |> RDF.Mapping.preload(example_graph(), 2) ==
+               {:ok, Example.user(EX.User0, depth: 2)}
+    end
+
+    test "with validation errors" do
+      graph_with_error = example_graph() |> Graph.add({EX.Post0, EX.title(), "Other"})
+
+      assert {:error, %ValidationError{}} =
+               Example.user(EX.User0, depth: 0)
+               |> RDF.Mapping.preload(graph_with_error)
+    end
+  end
+
+  describe "preload!/3" do
+    test "without errors" do
+      assert Example.user(EX.User0, depth: 0)
+             |> RDF.Mapping.preload!(example_graph()) ==
+               Example.user(EX.User0, depth: 1)
+    end
+
+    test "with validation errors" do
+      graph_with_error = example_graph() |> Graph.add({EX.Post0, EX.title(), "Other"})
+
+      post = Example.post(depth: 0)
+
+      assert Example.user(EX.User0, depth: 0)
+             |> RDF.Mapping.preload!(graph_with_error) ==
+               Example.user(EX.User0, depth: 1)
+               |> RDF.Mapping.put!(:posts, [RDF.Mapping.put!(post, :title, [post.title, "Other"])])
+    end
+  end
+
   test "__has_property__?/2" do
     assert Example.User.__has_property__?(:name) == true
     assert Example.User.__has_property__?(:posts) == true

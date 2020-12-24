@@ -117,6 +117,18 @@ defmodule RDF.Mapping do
     end
   end
 
+  def preload(%mapping_mod{} = mapping, graph, preload_value \\ true) do
+    Link.Preloader.call(mapping_mod, mapping, graph, preload: preload_value)
+  end
+
+  def preload!(%mapping_mod{} = mapping, graph, preload_value \\ true) do
+    Link.Preloader.call(mapping_mod, mapping, graph, preload: preload_value, validate: false)
+    |> case do
+      {:ok, mapping} -> mapping
+      {:error, error} -> raise error
+    end
+  end
+
   def put(_, :__id__, _), do: {:error, @__id__property_access_error}
 
   def put(%mapping_mod{} = mapping, property, value) do

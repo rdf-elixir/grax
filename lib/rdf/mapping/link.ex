@@ -26,7 +26,7 @@ end
 defmodule RDF.Mapping.Link.Preloader do
   @moduledoc false
 
-  alias RDF.{Description, Query}
+  alias RDF.{Description, Graph, Query}
   alias RDF.Mapping.Schema.Type
 
   import RDF.Utils
@@ -35,11 +35,17 @@ defmodule RDF.Mapping.Link.Preloader do
 
   def default, do: @default
 
-  def call(mapping_mod, mapping, graph, description, link_schemas, opts) do
+  def call(mapping_mod, mapping, graph, opts) do
+    description = Graph.description(graph, mapping.__id__) || Description.new(mapping.__id__)
+    call(mapping_mod, mapping, graph, description, opts)
+  end
+
+  def call(mapping_mod, mapping, graph, description, opts) do
     graph_load_path = Keyword.get(opts, :__graph_load_path__, [])
     depth = length(graph_load_path)
     graph_load_path = [mapping.__id__ | graph_load_path]
     opts = Keyword.put(opts, :__graph_load_path__, graph_load_path)
+    link_schemas = mapping_mod.__properties__(:link)
 
     Enum.reduce_while(link_schemas, {:ok, mapping}, fn {link, link_schema}, {:ok, mapping} ->
       {preload?, next_preload_opt, max_preload_depth} =
