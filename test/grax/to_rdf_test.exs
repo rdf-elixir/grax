@@ -1,9 +1,9 @@
-defmodule RDF.Mapping.ToRDFTest do
-  use RDF.Mapping.TestCase
+defmodule Grax.ToRDFTest do
+  use Grax.TestCase
 
-  alias RDF.Mapping.ValidationError
+  alias Grax.ValidationError
 
-  import RDF.Mapping, only: [to_rdf: 1]
+  import Grax, only: [to_rdf: 1]
 
   test "successful mapping" do
     assert Example.User.build!(EX.User0,

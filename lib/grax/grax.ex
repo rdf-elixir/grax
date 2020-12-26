@@ -1,11 +1,11 @@
-defmodule RDF.Mapping do
-  alias RDF.Mapping.{Schema, Link, Loader, Validation, ToRDF, ValidationError}
+defmodule Grax do
+  alias Grax.{Schema, Link, Loader, ToRDF, Validation, ValidationError}
   alias RDF.{IRI, BlankNode, Graph, Description}
 
   @__id__property_access_error Schema.InvalidProperty.exception(
                                  property: :__id__,
                                  message:
-                                   "__id__ can't be changed. Use build/2 to construct a mapping from another with new id."
+                                   "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id."
                                )
 
   defmacro __using__(opts) do
@@ -16,25 +16,25 @@ defmodule RDF.Mapping do
 
       @before_compile unquote(__MODULE__)
 
-      @rdf_mapping_preload_default unquote(preload_default)
-      def __preload_default__(), do: @rdf_mapping_preload_default
+      @grax_preload_default unquote(preload_default)
+      def __preload_default__(), do: @grax_preload_default
     end
   end
 
   defmacro __before_compile__(_env) do
     quote do
-      def build(id), do: RDF.Mapping.build(__MODULE__, id)
-      def build(id, initial), do: RDF.Mapping.build(__MODULE__, id, initial)
-      def build!(id), do: RDF.Mapping.build!(__MODULE__, id)
-      def build!(id, initial), do: RDF.Mapping.build!(__MODULE__, id, initial)
+      def build(id), do: Grax.build(__MODULE__, id)
+      def build(id, initial), do: Grax.build(__MODULE__, id, initial)
+      def build!(id), do: Grax.build!(__MODULE__, id)
+      def build!(id, initial), do: Grax.build!(__MODULE__, id, initial)
 
       @spec load(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
               {:ok, struct} | {:error, any}
-      def load(graph, id, opts \\ []), do: RDF.Mapping.load(__MODULE__, id, graph, opts)
+      def load(graph, id, opts \\ []), do: Grax.load(__MODULE__, id, graph, opts)
 
       @spec load!(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
               struct
-      def load!(graph, id, opts \\ []), do: RDF.Mapping.load!(__MODULE__, id, graph, opts)
+      def load!(graph, id, opts \\ []), do: Grax.load!(__MODULE__, id, graph, opts)
 
       @doc false
       def __has_property__?(property), do: Keyword.has_key?(@struct_fields, property)

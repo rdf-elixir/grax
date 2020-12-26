@@ -1,8 +1,8 @@
-defmodule RDF.Mapping.LoaderTest do
-  use RDF.Mapping.TestCase
+defmodule Grax.LoaderTest do
+  use Grax.TestCase
 
-  alias RDF.Mapping.{ValidationError, InvalidValueError}
-  alias RDF.Mapping.Schema.TypeError
+  alias Grax.{ValidationError, InvalidValueError}
+  alias Grax.Schema.TypeError
 
   test "successful mapping from a graph" do
     assert Example.User.load(example_graph(), EX.User0) ==
@@ -190,13 +190,13 @@ defmodule RDF.Mapping.LoaderTest do
                %Example.Types{integer: "invalid"} =
                EX.S |> EX.integer("invalid") |> Example.Types.load!(EX.S)
 
-      refute RDF.Mapping.valid?(result)
+      refute Grax.valid?(result)
 
       assert result =
                %Example.Types{unsigned_byte: -42} =
                EX.S |> EX.unsigned_byte(-42) |> Example.Types.load!(EX.S)
 
-      refute RDF.Mapping.valid?(result)
+      refute Grax.valid?(result)
     end
 
     test "load/2 with invalid literals" do
@@ -227,7 +227,7 @@ defmodule RDF.Mapping.LoaderTest do
              |> Graph.add({EX.User0, EX.name(), "Jane"})
              |> Example.User.load!(EX.User0)
 
-    refute RDF.Mapping.valid?(user)
+    refute Grax.valid?(user)
     assert user.name == ["Jane", Example.user(EX.User0).name]
   end
 
@@ -254,7 +254,7 @@ defmodule RDF.Mapping.LoaderTest do
                |> Graph.add({EX.Post0, EX.title(), "Other"})
                |> Example.User.load!(EX.User0)
 
-      refute RDF.Mapping.valid?(user)
+      refute Grax.valid?(user)
       assert hd(user.posts).title == [Example.post().title, "Other"]
 
       assert %Example.User{} =
@@ -263,7 +263,7 @@ defmodule RDF.Mapping.LoaderTest do
                |> Graph.put({EX.Post0, EX.title(), 42})
                |> Example.User.load!(EX.User0)
 
-      refute RDF.Mapping.valid?(user)
+      refute Grax.valid?(user)
       assert hd(user.posts).title == 42
     end
   end

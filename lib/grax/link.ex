@@ -1,4 +1,4 @@
-defmodule RDF.Mapping.Link.NotLoaded do
+defmodule Grax.Link.NotLoaded do
   @moduledoc !"""
              Struct returned by links when they are not loaded.
 
@@ -18,16 +18,16 @@ defmodule RDF.Mapping.Link.NotLoaded do
   defimpl Inspect do
     def inspect(not_loaded, _opts) do
       msg = "link #{inspect(not_loaded.__field__)} is not loaded"
-      ~s(#RDF.Mapping.Link.NotLoaded<#{msg}>)
+      ~s(#Grax.Link.NotLoaded<#{msg}>)
     end
   end
 end
 
-defmodule RDF.Mapping.Link.Preloader do
+defmodule Grax.Link.Preloader do
   @moduledoc false
 
   alias RDF.{Description, Graph, Query}
-  alias RDF.Mapping.Schema.Type
+  alias Grax.Schema.Type
 
   import RDF.Utils
 

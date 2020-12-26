@@ -1,12 +1,12 @@
-defmodule RDF.Mapping.Schema do
+defmodule Grax.Schema do
   @moduledoc false
 
-  alias RDF.Mapping.Schema.{DataProperty, LinkProperty}
-  alias RDF.Mapping.Link
+  alias Grax.Schema.{DataProperty, LinkProperty}
+  alias Grax.Link
   alias RDF.IRI
 
   @doc """
-  Defines a mapping schema.
+  Defines a Grax schema.
   """
   defmacro schema(class \\ nil, do: block) do
     schema(__CALLER__, class, block)
@@ -15,14 +15,14 @@ defmodule RDF.Mapping.Schema do
   defp schema(caller, class, block) do
     prelude =
       quote do
-        if line = Module.get_attribute(__MODULE__, :rdf_mapping_schema_defined) do
+        if line = Module.get_attribute(__MODULE__, :grax_schema_defined) do
           raise "schema already defined for #{inspect(__MODULE__)} on line #{line}"
         end
 
-        @rdf_mapping_schema_defined unquote(caller.line)
+        @grax_schema_defined unquote(caller.line)
 
-        @rdf_mapping_schema_class if unquote(class), do: IRI.to_string(unquote(class))
-        def __class__(), do: @rdf_mapping_schema_class
+        @grax_schema_class if unquote(class), do: IRI.to_string(unquote(class))
+        def __class__(), do: @grax_schema_class
 
         Module.register_attribute(__MODULE__, :struct_fields, accumulate: true)
         Module.register_attribute(__MODULE__, :rdf_property_acc, accumulate: true)
@@ -59,7 +59,7 @@ defmodule RDF.Mapping.Schema do
 
   defmacro property(name, iri, opts \\ []) do
     quote do
-      RDF.Mapping.Schema.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+      Grax.Schema.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
     end
   end
 
@@ -75,7 +75,7 @@ defmodule RDF.Mapping.Schema do
       |> Keyword.put(:preload, Link.Preloader.normalize_spec(Keyword.get(opts, :preload), true))
 
     quote do
-      RDF.Mapping.Schema.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+      Grax.Schema.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
     end
   end
 

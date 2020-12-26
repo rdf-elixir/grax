@@ -1,4 +1,4 @@
-defmodule RDF.Mapping.Schema.Property do
+defmodule Grax.Schema.Property do
   @moduledoc false
 
   @shared_attrs [:mapping, :name, :iri, :type, :from_rdf, :to_rdf]
@@ -19,10 +19,10 @@ defmodule RDF.Mapping.Schema.Property do
   defp normalize_iri(iri), do: RDF.iri!(iri)
 end
 
-defmodule RDF.Mapping.Schema.DataProperty do
+defmodule Grax.Schema.DataProperty do
   @moduledoc false
 
-  alias RDF.Mapping.Schema.{Property, Type}
+  alias Grax.Schema.{Property, Type}
   alias RDF.Literal
 
   defstruct Property.shared_attrs() ++ [:required, :default]
@@ -71,11 +71,11 @@ defmodule RDF.Mapping.Schema.DataProperty do
   end
 end
 
-defmodule RDF.Mapping.Schema.LinkProperty do
+defmodule Grax.Schema.LinkProperty do
   @moduledoc false
 
-  alias RDF.Mapping.Schema.Property
-  alias RDF.Mapping.Link
+  alias Grax.Schema.Property
+  alias Grax.Link
 
   defstruct Property.shared_attrs() ++ [:preload]
 

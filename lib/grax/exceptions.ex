@@ -1,6 +1,6 @@
-defmodule RDF.Mapping.ValidationError do
+defmodule Grax.ValidationError do
   @moduledoc """
-  Raised when the validation of a RDF.Mapping fails.
+  Raised when the validation of a Grax fails.
   """
   defexception [:errors]
 
@@ -30,7 +30,7 @@ defmodule RDF.Mapping.ValidationError do
   end
 end
 
-defmodule RDF.Mapping.Schema.TypeError do
+defmodule Grax.Schema.TypeError do
   @moduledoc """
   Raised when a property value doesn't match the specified type during decoding from RDF.
   """
@@ -44,7 +44,7 @@ defmodule RDF.Mapping.Schema.TypeError do
   end
 end
 
-defmodule RDF.Mapping.Schema.RequiredPropertyMissing do
+defmodule Grax.Schema.RequiredPropertyMissing do
   @moduledoc """
   Raised when a required property is not present.
   """
@@ -57,7 +57,7 @@ defmodule RDF.Mapping.Schema.RequiredPropertyMissing do
   end
 end
 
-defmodule RDF.Mapping.Schema.InvalidProperty do
+defmodule Grax.Schema.InvalidProperty do
   @moduledoc """
   Raised when accessing a property that is not defined on a schema.
   """
@@ -70,9 +70,9 @@ defmodule RDF.Mapping.Schema.InvalidProperty do
   end
 end
 
-defmodule RDF.Mapping.InvalidIdError do
+defmodule Grax.InvalidIdError do
   @moduledoc """
-  Raised when a RDF.Mapping has an invalid subject id.
+  Raised when a Grax has an invalid subject id.
   """
   defexception [:message, :id]
 
@@ -83,7 +83,7 @@ defmodule RDF.Mapping.InvalidIdError do
   end
 end
 
-defmodule RDF.Mapping.InvalidValueError do
+defmodule Grax.InvalidValueError do
   @moduledoc """
   Raised when an invalid literal is encountered during decoding from RDF.
   """

@@ -1,10 +1,10 @@
-defmodule RDF.Mapping.ValidationTest do
-  use RDF.Mapping.TestCase
+defmodule Grax.ValidationTest do
+  use Grax.TestCase
 
-  alias RDF.Mapping.{ValidationError, InvalidIdError}
-  alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
+  alias Grax.{ValidationError, InvalidIdError}
+  alias Grax.Schema.{TypeError, RequiredPropertyMissing}
 
-  import RDF.Mapping,
+  import Grax,
     only: [
       validate: 1,
       validate!: 1,

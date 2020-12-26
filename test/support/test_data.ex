@@ -1,4 +1,4 @@
-defmodule RDF.Mapping.TestData do
+defmodule Grax.TestData do
   alias RDF.Graph
   alias Example.NS.EX
 

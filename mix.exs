@@ -1,13 +1,13 @@
-defmodule RDF.Mapping.MixProject do
+defmodule Grax.MixProject do
   use Mix.Project
 
-  @repo_url "https://github.com/rdf-elixir/rdf-mapping"
+  @repo_url "https://github.com/rdf-elixir/grax"
 
   @version File.read!("VERSION") |> String.trim()
 
   def project do
     [
-      app: :rdf_mapping,
+      app: :grax,
       version: @version,
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
@@ -19,9 +19,9 @@ defmodule RDF.Mapping.MixProject do
       description: description(),
 
       # Docs
-      name: "RDF.Mapping",
+      name: "Grax",
       docs: [
-        main: "RDF.Mapping",
+        main: "Grax",
         source_url: @repo_url,
         source_ref: "v#{@version}",
         extras: ["CHANGELOG.md"]

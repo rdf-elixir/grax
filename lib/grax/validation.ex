@@ -1,8 +1,8 @@
-defmodule RDF.Mapping.Validation do
+defmodule Grax.Validation do
   @moduledoc false
 
-  alias RDF.Mapping.{Link, ValidationError, InvalidIdError}
-  alias RDF.Mapping.Schema.{TypeError, RequiredPropertyMissing}
+  alias Grax.{Link, ValidationError, InvalidIdError}
+  alias Grax.Schema.{TypeError, RequiredPropertyMissing}
   alias RDF.{IRI, BlankNode, Literal, XSD}
 
   import ValidationError, only: [add_error: 3]

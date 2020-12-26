@@ -1,4 +1,4 @@
-defmodule RDF.Mapping.TestCase do
+defmodule Grax.TestCase do
   use ExUnit.CaseTemplate
 
   alias RDF.{Dataset, Graph, Description, IRI}
@@ -10,7 +10,7 @@ defmodule RDF.Mapping.TestCase do
       alias Example.NS.EX
 
       import unquote(__MODULE__)
-      import RDF.Mapping.TestData
+      import Grax.TestData
       import RDF, only: [iri: 1, literal: 1, bnode: 1]
       import RDF.Sigils
 

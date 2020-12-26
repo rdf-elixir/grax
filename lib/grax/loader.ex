@@ -1,9 +1,9 @@
-defmodule RDF.Mapping.Loader do
+defmodule Grax.Loader do
   @moduledoc false
 
   alias RDF.{Literal, IRI, BlankNode, Graph, Description}
-  alias RDF.Mapping.Link.Preloader
-  alias RDF.Mapping.InvalidValueError
+  alias Grax.Link.Preloader
+  alias Grax.InvalidValueError
 
   import RDF.Utils
 

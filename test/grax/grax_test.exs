@@ -1,10 +1,10 @@
-defmodule RDF.MappingTest do
-  use RDF.Mapping.TestCase
+defmodule GraxTest do
+  use Grax.TestCase
 
-  doctest RDF.Mapping
+  doctest Grax
 
-  alias RDF.Mapping.ValidationError
-  alias RDF.Mapping.Schema.{TypeError, InvalidProperty, RequiredPropertyMissing}
+  alias Grax.ValidationError
+  alias Grax.Schema.{TypeError, InvalidProperty, RequiredPropertyMissing}
 
   describe "build/1" do
     test "with a string id" do
@@ -53,7 +53,7 @@ defmodule RDF.MappingTest do
                 }}
     end
 
-    test "with another mapping of the same type" do
+    test "with another Grax.Schema mapping of the same type" do
       assert Example.User.build(EX.Other, Example.user(EX.User0)) ==
                {:ok, %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}}
     end
@@ -120,7 +120,7 @@ defmodule RDF.MappingTest do
                }
     end
 
-    test "with another mapping of the same type" do
+    test "with another Grax.Schema mapping of the same type" do
       assert Example.User.build!(EX.Other, Example.user(EX.User0)) ==
                %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
     end
@@ -150,7 +150,7 @@ defmodule RDF.MappingTest do
   describe "put/3" do
     test "when the property exists and the value type matches the schema" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:name, "Foo") ==
+             |> Grax.put(:name, "Foo") ==
                {:ok,
                 %Example.User{
                   __id__: IRI.new(EX.User0),
@@ -158,14 +158,14 @@ defmodule RDF.MappingTest do
                 }}
 
       assert Example.IdsAsPropertyValues.build!(EX.S)
-             |> RDF.Mapping.put!(:iri, EX.foo()) ==
+             |> Grax.put!(:iri, EX.foo()) ==
                %Example.IdsAsPropertyValues{
                  __id__: IRI.new(EX.S),
                  iri: EX.foo()
                }
 
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:email, ["foo@example.com"]) ==
+             |> Grax.put(:email, ["foo@example.com"]) ==
                {:ok,
                 %Example.User{
                   __id__: IRI.new(EX.User0),
@@ -175,27 +175,27 @@ defmodule RDF.MappingTest do
 
     test "when the property does not exist" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:foo, "foo") ==
+             |> Grax.put(:foo, "foo") ==
                {:error, InvalidProperty.exception(property: :foo)}
     end
 
     test "when the value type does not match the schema" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:age, "secret") ==
+             |> Grax.put(:age, "secret") ==
                {:error, TypeError.exception(value: "secret", type: XSD.Integer)}
 
       assert Example.IdsAsPropertyValues.build!(EX.S)
-             |> RDF.Mapping.put(:iri, "foo") ==
+             |> Grax.put(:iri, "foo") ==
                {:error, TypeError.exception(value: "foo", type: RDF.IRI)}
 
       assert Example.Required.build!(EX.Foo)
-             |> RDF.Mapping.put(:foo, nil) ==
+             |> Grax.put(:foo, nil) ==
                {:error, RequiredPropertyMissing.exception(property: :foo)}
     end
 
     test "scalar values on a set property" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:email, "foo@example.com") ==
+             |> Grax.put(:email, "foo@example.com") ==
                {:ok,
                 %Example.User{
                   __id__: IRI.new(EX.User0),
@@ -205,17 +205,17 @@ defmodule RDF.MappingTest do
 
     test "previous values are overwritten" do
       assert Example.user(EX.User0)
-             |> RDF.Mapping.put(:name, "Foo") ==
+             |> Grax.put(:name, "Foo") ==
                {:ok, %Example.User{Example.user(EX.User0) | name: "Foo"}}
 
       assert Example.user(EX.User0)
-             |> RDF.Mapping.put(:email, ["foo@example.com"]) ==
+             |> Grax.put(:email, ["foo@example.com"]) ==
                {:ok, %Example.User{Example.user(EX.User0) | email: ["foo@example.com"]}}
     end
 
     test "with virtual properties" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:password, "secret") ==
+             |> Grax.put(:password, "secret") ==
                {:ok,
                 %Example.User{
                   __id__: IRI.new(EX.User0),
@@ -225,18 +225,18 @@ defmodule RDF.MappingTest do
 
     test "with the __id__ field" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:__id__, "foo") ==
+             |> Grax.put(:__id__, "foo") ==
                {:error,
                 InvalidProperty.exception(
                   property: :__id__,
                   message:
-                    "__id__ can't be changed. Use build/2 to construct a mapping from another with new id."
+                    "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id."
                 )}
     end
 
-    test "with a link property and a proper mapping struct" do
+    test "with a link property and a proper Grax.Schema struct" do
       assert Example.SelfLinked.build!(EX.Foo)
-             |> RDF.Mapping.put(:next, Example.SelfLinked.build!(EX.Bar)) ==
+             |> Grax.put(:next, Example.SelfLinked.build!(EX.Bar)) ==
                {:ok,
                 %Example.SelfLinked{
                   __id__: IRI.new(EX.Foo),
@@ -244,7 +244,7 @@ defmodule RDF.MappingTest do
                 }}
 
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:posts, [Example.post(depth: 0)]) ==
+             |> Grax.put(:posts, [Example.post(depth: 0)]) ==
                {:ok,
                 %Example.User{
                   __id__: IRI.new(EX.User0),
@@ -252,7 +252,7 @@ defmodule RDF.MappingTest do
                 }}
 
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(:posts, Example.post(depth: 0)) ==
+             |> Grax.put(:posts, Example.post(depth: 0)) ==
                {:ok,
                 %Example.User{
                   __id__: IRI.new(EX.User0),
@@ -260,9 +260,9 @@ defmodule RDF.MappingTest do
                 }}
     end
 
-    test "with a link property and a wrong mapping struct" do
+    test "with a link property and a wrong Grax.Schema struct" do
       assert Example.SelfLinked.build!(EX.Foo)
-             |> RDF.Mapping.put(:next, Example.User.build!(EX.Bar)) ==
+             |> Grax.put(:next, Example.User.build!(EX.Bar)) ==
                {:error,
                 TypeError.exception(
                   value: Example.User.build!(EX.Bar),
@@ -272,19 +272,19 @@ defmodule RDF.MappingTest do
 
     test "with nil value" do
       assert Example.user(EX.User0)
-             |> RDF.Mapping.put(:name, nil) ==
+             |> Grax.put(:name, nil) ==
                {:ok, %Example.User{Example.user(EX.User0) | name: nil}}
 
       assert Example.user(EX.User0)
-             |> RDF.Mapping.put(:email, nil) ==
+             |> Grax.put(:email, nil) ==
                {:ok, %Example.User{Example.user(EX.User0) | email: []}}
 
       assert Example.user(EX.User0)
-             |> RDF.Mapping.put(:posts, nil) ==
+             |> Grax.put(:posts, nil) ==
                {:ok, %Example.User{Example.user(EX.User0) | posts: []}}
 
       assert Example.SelfLinked.build!(EX.Foo)
-             |> RDF.Mapping.put(:next, nil) ==
+             |> Grax.put(:next, nil) ==
                {:ok, %Example.SelfLinked{__id__: IRI.new(EX.Foo), next: nil}}
     end
   end
@@ -292,14 +292,14 @@ defmodule RDF.MappingTest do
   describe "put!/3" do
     test "when the property exists and the value type matches the schema" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(:name, "Foo") ==
+             |> Grax.put!(:name, "Foo") ==
                %Example.User{
                  __id__: IRI.new(EX.User0),
                  name: "Foo"
                }
 
       assert Example.user(EX.User0)
-             |> RDF.Mapping.put!(:email, ["foo@example.com"]) ==
+             |> Grax.put!(:email, ["foo@example.com"]) ==
                %Example.User{
                  Example.user(EX.User0)
                  | email: ["foo@example.com"]
@@ -309,20 +309,20 @@ defmodule RDF.MappingTest do
     test "when the property does not exist" do
       assert_raise KeyError, fn ->
         Example.User.build!(EX.User0)
-        |> RDF.Mapping.put!(:foo, "foo")
+        |> Grax.put!(:foo, "foo")
       end
     end
 
     test "when the value type does not match the schema" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(:age, "secret") ==
+             |> Grax.put!(:age, "secret") ==
                %Example.User{
                  __id__: IRI.new(EX.User0),
                  age: "secret"
                }
 
       assert Example.Required.build!(EX.Foo)
-             |> RDF.Mapping.put!(:foo, nil) ==
+             |> Grax.put!(:foo, nil) ==
                %Example.Required{
                  __id__: IRI.new(EX.Foo),
                  foo: nil
@@ -331,7 +331,7 @@ defmodule RDF.MappingTest do
 
     test "scalar values on a set property" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(:email, "foo@example.com") ==
+             |> Grax.put!(:email, "foo@example.com") ==
                %Example.User{
                  __id__: IRI.new(EX.User0),
                  email: ["foo@example.com"]
@@ -340,7 +340,7 @@ defmodule RDF.MappingTest do
 
     test "with virtual properties" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(:password, "secret") ==
+             |> Grax.put!(:password, "secret") ==
                %Example.User{
                  __id__: IRI.new(EX.User0),
                  password: "secret"
@@ -349,39 +349,39 @@ defmodule RDF.MappingTest do
 
     test "with the __id__ field" do
       assert_raise InvalidProperty,
-                   "__id__ can't be changed. Use build/2 to construct a mapping from another with new id.",
+                   "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id.",
                    fn ->
                      Example.User.build!(EX.User0)
-                     |> RDF.Mapping.put!(:__id__, "foo")
+                     |> Grax.put!(:__id__, "foo")
                    end
     end
 
-    test "with a link property and a proper mapping struct" do
+    test "with a link property and a proper Grax.Schema struct" do
       assert Example.SelfLinked.build!(EX.Foo)
-             |> RDF.Mapping.put!(:next, Example.SelfLinked.build!(EX.Bar)) ==
+             |> Grax.put!(:next, Example.SelfLinked.build!(EX.Bar)) ==
                %Example.SelfLinked{
                  __id__: IRI.new(EX.Foo),
                  next: Example.SelfLinked.build!(EX.Bar)
                }
 
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(:posts, [Example.post(depth: 0)]) ==
+             |> Grax.put!(:posts, [Example.post(depth: 0)]) ==
                %Example.User{
                  __id__: IRI.new(EX.User0),
                  posts: [Example.post(depth: 0)]
                }
 
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(:posts, Example.post(depth: 0)) ==
+             |> Grax.put!(:posts, Example.post(depth: 0)) ==
                %Example.User{
                  __id__: IRI.new(EX.User0),
                  posts: [Example.post(depth: 0)]
                }
     end
 
-    test "with a link property and a wrong mapping struct" do
+    test "with a link property and a wrong Grax.Schema struct" do
       assert Example.SelfLinked.build!(EX.Foo)
-             |> RDF.Mapping.put!(:next, Example.User.build!(EX.Bar)) ==
+             |> Grax.put!(:next, Example.User.build!(EX.Bar)) ==
                %Example.SelfLinked{__id__: IRI.new(EX.Foo), next: Example.User.build!(EX.Bar)}
     end
   end
@@ -389,7 +389,7 @@ defmodule RDF.MappingTest do
   describe "put/2" do
     test "with a map of valid property values" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(%{
+             |> Grax.put(%{
                name: "Foo",
                email: ["foo@example.com"],
                password: "secret",
@@ -407,7 +407,7 @@ defmodule RDF.MappingTest do
 
     test "with a keyword list of valid property values" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(
+             |> Grax.put(
                name: "Foo",
                email: "foo@example.com",
                password: "secret",
@@ -425,7 +425,7 @@ defmodule RDF.MappingTest do
 
     test "with invalid property values" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put(
+             |> Grax.put(
                age: "secret",
                foo: "foo",
                posts: Example.User.build!(EX.Bar)
@@ -448,7 +448,7 @@ defmodule RDF.MappingTest do
   describe "put!/2" do
     test "with a map of valid property values" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(%{
+             |> Grax.put!(%{
                name: "Foo",
                email: ["foo@example.com"],
                password: "secret",
@@ -465,7 +465,7 @@ defmodule RDF.MappingTest do
 
     test "with a keyword list of valid property values" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(
+             |> Grax.put!(
                name: "Foo",
                email: "foo@example.com",
                password: "secret",
@@ -482,7 +482,7 @@ defmodule RDF.MappingTest do
 
     test "with invalid property values" do
       assert Example.User.build!(EX.User0)
-             |> RDF.Mapping.put!(
+             |> Grax.put!(
                name: "Foo",
                age: "secret",
                posts: Example.user(EX.User0)
@@ -499,27 +499,27 @@ defmodule RDF.MappingTest do
   describe "preload/3" do
     test "without errors" do
       assert Example.user(EX.User0, depth: 0)
-             |> RDF.Mapping.preload(example_graph()) ==
+             |> Grax.preload(example_graph()) ==
                {:ok, Example.user(EX.User0, depth: 1)}
 
       assert Example.user(EX.User0, depth: 0)
-             |> RDF.Mapping.preload(example_graph(), true) ==
+             |> Grax.preload(example_graph(), true) ==
                {:ok, Example.user(EX.User0, depth: 1)}
 
       assert Example.user(EX.User0, depth: 0)
-             |> RDF.Mapping.preload(example_graph(), 1) ==
+             |> Grax.preload(example_graph(), 1) ==
                {:ok, Example.user(EX.User0, depth: 1)}
 
       assert Example.user(EX.User0, depth: 1)
-             |> RDF.Mapping.preload(example_graph(), 1) ==
+             |> Grax.preload(example_graph(), 1) ==
                {:ok, Example.user(EX.User0, depth: 1)}
 
       assert Example.user(EX.User0, depth: 0)
-             |> RDF.Mapping.preload(example_graph(), 2) ==
+             |> Grax.preload(example_graph(), 2) ==
                {:ok, Example.user(EX.User0, depth: 2)}
 
       assert Example.user(EX.User0, depth: 1)
-             |> RDF.Mapping.preload(example_graph(), 2) ==
+             |> Grax.preload(example_graph(), 2) ==
                {:ok, Example.user(EX.User0, depth: 2)}
     end
 
@@ -528,14 +528,14 @@ defmodule RDF.MappingTest do
 
       assert {:error, %ValidationError{}} =
                Example.user(EX.User0, depth: 0)
-               |> RDF.Mapping.preload(graph_with_error)
+               |> Grax.preload(graph_with_error)
     end
   end
 
   describe "preload!/3" do
     test "without errors" do
       assert Example.user(EX.User0, depth: 0)
-             |> RDF.Mapping.preload!(example_graph()) ==
+             |> Grax.preload!(example_graph()) ==
                Example.user(EX.User0, depth: 1)
     end
 
@@ -545,9 +545,9 @@ defmodule RDF.MappingTest do
       post = Example.post(depth: 0)
 
       assert Example.user(EX.User0, depth: 0)
-             |> RDF.Mapping.preload!(graph_with_error) ==
+             |> Grax.preload!(graph_with_error) ==
                Example.user(EX.User0, depth: 1)
-               |> RDF.Mapping.put!(:posts, [RDF.Mapping.put!(post, :title, [post.title, "Other"])])
+               |> Grax.put!(:posts, [Grax.put!(post, :title, [post.title, "Other"])])
     end
   end
 

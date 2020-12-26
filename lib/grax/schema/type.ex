@@ -1,4 +1,4 @@
-defmodule RDF.Mapping.Schema.Type do
+defmodule Grax.Schema.Type do
   @moduledoc false
 
   alias RDF.{IRI, Literal, XSD}

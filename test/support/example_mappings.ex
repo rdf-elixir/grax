@@ -7,7 +7,7 @@ defmodule Example do
   @compile {:no_warn_undefined, Example.NS.EX}
 
   defmodule User do
-    use RDF.Mapping
+    use Grax
 
     schema EX.User do
       property :name, EX.name(), type: :string
@@ -32,7 +32,7 @@ defmodule Example do
   end
 
   defmodule Post do
-    use RDF.Mapping
+    use Grax
 
     schema EX.Post do
       property :title, EX.title(), type: :string
@@ -43,7 +43,7 @@ defmodule Example do
   end
 
   defmodule Comment do
-    use RDF.Mapping
+    use Grax
 
     schema EX.Comment do
       property :content, EX.content(), type: :string
@@ -137,7 +137,7 @@ defmodule Example do
   end
 
   defmodule Untyped do
-    use RDF.Mapping
+    use Grax
 
     schema do
       property :foo, EX.foo()
@@ -146,10 +146,10 @@ defmodule Example do
   end
 
   defmodule Types do
-    use RDF.Mapping
+    use Grax
 
     schema do
-      RDF.Mapping.Schema.Type.builtins()
+      Grax.Schema.Type.builtins()
       |> Enum.each(fn {type, _} ->
         property type, apply(EX, type, []), type: type
       end)
@@ -194,7 +194,7 @@ defmodule Example do
   end
 
   defmodule DefaultValues do
-    use RDF.Mapping
+    use Grax
 
     schema do
       property :foo, EX.foo(), default: "foo"
@@ -206,7 +206,7 @@ defmodule Example do
   end
 
   defmodule SelfLinked do
-    use RDF.Mapping
+    use Grax
 
     schema do
       property :name, EX.name(), type: :string
@@ -215,7 +215,7 @@ defmodule Example do
   end
 
   defmodule Circle do
-    use RDF.Mapping
+    use Grax
 
     schema do
       property :name, EX.name(), type: :string
@@ -225,7 +225,7 @@ defmodule Example do
   end
 
   defmodule DepthPreloading do
-    use RDF.Mapping
+    use Grax
 
     schema do
       link :next, EX.next(), type: Example.DepthPreloading, preload: 2
@@ -233,7 +233,7 @@ defmodule Example do
   end
 
   defmodule AddDepthPreloading do
-    use RDF.Mapping, preload: +3
+    use Grax, preload: +3
 
     schema do
       link :next, EX.next(), type: Example.AddDepthPreloading, preload: +2
@@ -241,7 +241,7 @@ defmodule Example do
   end
 
   defmodule InverseProperties do
-    use RDF.Mapping
+    use Grax
 
     schema do
       property :name, EX.name()
@@ -250,7 +250,7 @@ defmodule Example do
   end
 
   defmodule ClassDeclaration do
-    use RDF.Mapping
+    use Grax
 
     schema EX.Class do
       property :name, EX.name()
@@ -258,7 +258,7 @@ defmodule Example do
   end
 
   defmodule Required do
-    use RDF.Mapping
+    use Grax
 
     schema do
       property :foo, EX.foo(), required: true
@@ -268,7 +268,7 @@ defmodule Example do
   end
 
   defmodule IdsAsPropertyValues do
-    use RDF.Mapping
+    use Grax
 
     schema do
       property :foo, EX.foo()
@@ -279,7 +279,7 @@ defmodule Example do
   end
 
   defmodule CustomMapping do
-    use RDF.Mapping
+    use Grax
 
     @compile {:no_warn_undefined, Example.NS.EX}
 

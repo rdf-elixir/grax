@@ -1,9 +1,9 @@
-defmodule RDF.Mapping.ToRDF do
+defmodule Grax.ToRDF do
   @moduledoc false
 
   alias RDF.{IRI, BlankNode, Literal, XSD, Graph, Description}
-  alias RDF.Mapping.{Link, Validation}
-  alias RDF.Mapping.Schema.TypeError
+  alias Grax.{Link, Validation}
+  alias Grax.Schema.TypeError
 
   def call(%mapping_mod{} = mapping, opts) do
     with {:ok, mapping} <- Validation.call(mapping, opts) do
@@ -107,7 +107,7 @@ defmodule RDF.Mapping.ToRDF do
   end
 
   defp map_values(%type{__id__: id} = mapping, {:resource, type}, _property_schema, opts) do
-    with {:ok, graph} <- RDF.Mapping.to_rdf(mapping, opts) do
+    with {:ok, graph} <- Grax.to_rdf(mapping, opts) do
       {:ok, id, graph}
     end
   end

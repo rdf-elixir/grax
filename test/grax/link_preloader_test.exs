@@ -1,7 +1,7 @@
-defmodule RDF.Mapping.Link.PreloaderTest do
-  use RDF.Mapping.TestCase
+defmodule Grax.Link.PreloaderTest do
+  use Grax.TestCase
 
-  alias RDF.Mapping.Link.Preloader
+  alias Grax.Link.Preloader
 
   test "link to itself without circle" do
     assert RDF.graph([
