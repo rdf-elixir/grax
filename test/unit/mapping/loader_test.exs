@@ -231,7 +231,7 @@ defmodule RDF.Mapping.LoaderTest do
     assert user.name == ["Jane", Example.user(EX.User0).name]
   end
 
-  describe "nested mappings" do
+  describe "preloading of nested mappings" do
     test "when no description of the associated resource exists" do
       assert example_description(:user)
              |> Example.User.load(EX.User0) ==
