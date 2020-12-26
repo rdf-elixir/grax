@@ -1,4 +1,6 @@
 defmodule RDF.Mapping.Schema.Property do
+  @moduledoc false
+
   @shared_attrs [:mapping, :name, :iri, :type, :from_rdf, :to_rdf]
 
   def shared_attrs, do: @shared_attrs
@@ -18,6 +20,8 @@ defmodule RDF.Mapping.Schema.Property do
 end
 
 defmodule RDF.Mapping.Schema.DataProperty do
+  @moduledoc false
+
   alias RDF.Mapping.Schema.{Property, Type}
   alias RDF.Literal
 
@@ -68,6 +72,8 @@ defmodule RDF.Mapping.Schema.DataProperty do
 end
 
 defmodule RDF.Mapping.Schema.LinkProperty do
+  @moduledoc false
+
   alias RDF.Mapping.Schema.Property
   alias RDF.Mapping.Link
 

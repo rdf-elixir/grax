@@ -1,4 +1,6 @@
 defmodule RDF.Mapping.Schema.Type do
+  @moduledoc false
+
   alias RDF.{IRI, Literal, XSD}
 
   @builtin_type_mapping Map.new(

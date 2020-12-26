@@ -1,12 +1,12 @@
 defmodule RDF.Mapping.Link.NotLoaded do
-  @moduledoc """
-  Struct returned by links when they are not loaded.
+  @moduledoc !"""
+             Struct returned by links when they are not loaded.
 
-  The fields are:
+             The fields are:
 
-    * `__field__` - the link field in `owner`
-    * `__owner__` - the schema that owns the link
-  """
+               * `__field__` - the link field in `owner`
+               * `__owner__` - the schema that owns the link
+             """
 
   @type t :: %__MODULE__{
           __field__: atom(),

@@ -1,4 +1,6 @@
 defmodule RDF.Mapping.Schema do
+  @moduledoc false
+
   alias RDF.Mapping.Schema.{DataProperty, LinkProperty}
   alias RDF.Mapping.Link
   alias RDF.IRI
