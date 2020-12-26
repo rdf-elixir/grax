@@ -1,6 +1,8 @@
 defmodule RDF.Mapping.MixProject do
   use Mix.Project
 
+  @repo_url "https://github.com/rdf-elixir/rdf-mapping"
+
   @version File.read!("VERSION") |> String.trim()
 
   def project do
@@ -11,14 +13,39 @@ defmodule RDF.Mapping.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
-      description: description()
+
+      # Hex
+      package: package(),
+      description: description(),
+
+      # Docs
+      name: "RDF.Mapping",
+      docs: [
+        main: "RDF.Mapping",
+        source_url: @repo_url,
+        source_ref: "v#{@version}",
+        extras: ["CHANGELOG.md"]
+      ]
     ]
   end
 
   defp description do
     """
-    A RDF data mapper for Elixir.
+    A light-weight RDF graph data mapper for Elixir.
     """
+  end
+
+  defp package do
+    [
+      maintainers: ["Marcel Otto"],
+      licenses: ["MIT"],
+      links: %{
+        "Homepage" => "https://rdf-elixir.dev",
+        "GitHub" => @repo_url,
+        "Changelog" => @repo_url <> "/blob/master/CHANGELOG.md"
+      },
+      files: ~w[lib src/*.xrl src/*.yrl priv mix.exs .formatter.exs VERSION *.md]
+    ]
   end
 
   def application do
@@ -29,7 +56,9 @@ defmodule RDF.Mapping.MixProject do
 
   defp deps do
     [
-      {:rdf, github: "rdf-elixir/rdf-ex"}
+      {:rdf, github: "rdf-elixir/rdf-ex"},
+      {:dialyxir, "~> 1.0", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.23", only: :dev, runtime: false}
     ]
   end
 
