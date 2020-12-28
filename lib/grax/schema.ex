@@ -57,6 +57,12 @@ defmodule Grax.Schema do
     end
   end
 
+  defmacro property([{name, iri} | opts]) do
+    quote do
+      Grax.Schema.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+    end
+  end
+
   defmacro property(name, iri, opts \\ []) do
     quote do
       Grax.Schema.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
@@ -76,6 +82,12 @@ defmodule Grax.Schema do
 
     quote do
       Grax.Schema.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+    end
+  end
+
+  defmacro link([{name, iri} | opts]) do
+    quote do
+      link(unquote(name), unquote(iri), unquote(opts))
     end
   end
 

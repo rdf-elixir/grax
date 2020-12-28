@@ -27,7 +27,7 @@ defmodule Grax.SchemaTest do
           use Grax
 
           schema do
-            link :a, EX.a(), type: A, default: :foo
+            link a: EX.a(), type: A, default: :foo
           end
         end
       end
@@ -39,7 +39,7 @@ defmodule Grax.SchemaTest do
           use Grax
 
           schema do
-            property :a, EX.a(), type: [], default: :foo
+            property a: EX.a(), type: [], default: :foo
           end
         end
       end
@@ -54,7 +54,7 @@ defmodule Grax.SchemaTest do
                      use Grax
 
                      schema do
-                       property :a, EX.a(), type: :integer, default: "foo"
+                       property a: EX.a(), type: :integer, default: "foo"
                      end
                    end
                  end
@@ -66,7 +66,7 @@ defmodule Grax.SchemaTest do
         use Grax
 
         schema do
-          link :a, EX.a(), type: nil
+          link a: EX.a(), type: nil
         end
       end
     end

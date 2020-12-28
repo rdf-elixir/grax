@@ -10,17 +10,17 @@ defmodule Example do
     use Grax
 
     schema EX.User do
-      property :name, EX.name(), type: :string
-      property :email, EX.email(), type: [:string]
-      property :age, EX.age(), type: :integer
-      property :password, nil
+      property name: EX.name(), type: :string
+      property email: EX.email(), type: [:string]
+      property age: EX.age(), type: :integer
+      property password: nil
 
-      property :customer_type, RDF.type(),
-        from_rdf: :customer_type_from_rdf,
-        to_rdf: :customer_type_to_rdf
+      property customer_type: RDF.type(),
+               from_rdf: :customer_type_from_rdf,
+               to_rdf: :customer_type_to_rdf
 
-      link :posts, EX.post(), type: [Example.Post]
-      link :comments, EX.comment(), type: [Example.Comment]
+      link posts: EX.post(), type: [Example.Post]
+      link comments: EX.comment(), type: [Example.Comment]
 
       def customer_type_from_rdf(types, _description, _graph) do
         {:ok, if(RDF.iri(EX.PremiumUser) in types, do: :premium_user)}
@@ -35,10 +35,10 @@ defmodule Example do
     use Grax
 
     schema EX.Post do
-      property :title, EX.title(), type: :string
-      property :content, EX.content(), type: :string
-      link :author, EX.author(), type: Example.User
-      link :comments, EX.comment(), type: [Example.Comment]
+      property title: EX.title(), type: :string
+      property content: EX.content(), type: :string
+      link author: EX.author(), type: Example.User
+      link comments: EX.comment(), type: [Example.Comment]
     end
   end
 
@@ -46,9 +46,9 @@ defmodule Example do
     use Grax
 
     schema EX.Comment do
-      property :content, EX.content(), type: :string
-      link :about, EX.about(), type: Example.Post
-      link :author, EX.author(), type: Example.User
+      property content: EX.content(), type: :string
+      link about: EX.about(), type: Example.Post
+      link author: EX.author(), type: Example.User
     end
   end
 
@@ -140,8 +140,8 @@ defmodule Example do
     use Grax
 
     schema do
-      property :foo, EX.foo()
-      property :bar, EX.bar(), type: []
+      property foo: EX.foo()
+      property bar: EX.bar(), type: []
     end
   end
 
@@ -197,11 +197,11 @@ defmodule Example do
     use Grax
 
     schema do
-      property :foo, EX.foo(), default: "foo"
-      property :bar, EX.bar(), type: :string, default: "bar"
-      property :baz, EX.baz(), type: :integer, default: 42
-      link :user, EX.user(), type: Example.User
-      link :posts, EX.post(), type: [Example.Post]
+      property foo: EX.foo(), default: "foo"
+      property bar: EX.bar(), type: :string, default: "bar"
+      property baz: EX.baz(), type: :integer, default: 42
+      link user: EX.user(), type: Example.User
+      link posts: EX.post(), type: [Example.Post]
     end
   end
 
@@ -209,8 +209,8 @@ defmodule Example do
     use Grax
 
     schema do
-      property :name, EX.name(), type: :string
-      link :next, EX.next(), type: Example.SelfLinked, preload: true
+      property name: EX.name(), type: :string
+      link next: EX.next(), type: Example.SelfLinked, preload: true
     end
   end
 
@@ -218,9 +218,9 @@ defmodule Example do
     use Grax
 
     schema do
-      property :name, EX.name(), type: :string
-      link :link1, EX.link1(), type: [Example.Circle], preload: +1
-      link :link2, EX.link2(), type: [Example.Circle], preload: +1
+      property name: EX.name(), type: :string
+      link link1: EX.link1(), type: [Example.Circle], preload: +1
+      link link2: EX.link2(), type: [Example.Circle], preload: +1
     end
   end
 
@@ -228,7 +228,7 @@ defmodule Example do
     use Grax
 
     schema do
-      link :next, EX.next(), type: Example.DepthPreloading, preload: 2
+      link next: EX.next(), type: Example.DepthPreloading, preload: 2
     end
   end
 
@@ -236,7 +236,7 @@ defmodule Example do
     use Grax, preload: +3
 
     schema do
-      link :next, EX.next(), type: Example.AddDepthPreloading, preload: +2
+      link next: EX.next(), type: Example.AddDepthPreloading, preload: +2
     end
   end
 
@@ -244,8 +244,8 @@ defmodule Example do
     use Grax
 
     schema do
-      property :name, EX.name()
-      link :foo, -EX.foo(), type: [Example.User]
+      property name: EX.name()
+      link foo: -EX.foo(), type: [Example.User]
     end
   end
 
@@ -253,7 +253,7 @@ defmodule Example do
     use Grax
 
     schema EX.Class do
-      property :name, EX.name()
+      property name: EX.name()
     end
   end
 
@@ -261,9 +261,9 @@ defmodule Example do
     use Grax
 
     schema do
-      property :foo, EX.foo(), required: true
-      property :bar, EX.bar(), type: :integer, required: true
-      property :baz, EX.baz(), type: [], required: true
+      property foo: EX.foo(), required: true
+      property bar: EX.bar(), type: :integer, required: true
+      property baz: EX.baz(), type: [], required: true
     end
   end
 
@@ -271,10 +271,10 @@ defmodule Example do
     use Grax
 
     schema do
-      property :foo, EX.foo()
-      property :foos, EX.foos(), type: []
-      property :iri, EX.iri(), type: :iri
-      property :iris, EX.iris(), type: [:iri]
+      property foo: EX.foo()
+      property foos: EX.foos(), type: []
+      property iri: EX.iri(), type: :iri
+      property iris: EX.iris(), type: [:iri]
     end
   end
 
@@ -284,10 +284,10 @@ defmodule Example do
     @compile {:no_warn_undefined, Example.NS.EX}
 
     schema do
-      property :foo, EX.foo(), from_rdf: :to_foo, to_rdf: :from_foo
-      property :foos, EX.foos(), type: [], from_rdf: :to_foos, to_rdf: :from_foos
-      property :bar, EX.bar(), type: :string, from_rdf: :to_bar, to_rdf: :from_bar
-      property :bars, EX.bars(), type: [:string], from_rdf: :to_bars, to_rdf: :from_bars
+      property foo: EX.foo(), from_rdf: :to_foo, to_rdf: :from_foo
+      property foos: EX.foos(), type: [], from_rdf: :to_foos, to_rdf: :from_foos
+      property bar: EX.bar(), type: :string, from_rdf: :to_bar, to_rdf: :from_bar
+      property bars: EX.bars(), type: [:string], from_rdf: :to_bars, to_rdf: :from_bars
     end
 
     def to_foo([object], description, graph) do
