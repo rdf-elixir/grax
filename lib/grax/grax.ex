@@ -1,20 +1,20 @@
 defmodule Grax do
-  alias Grax.{Schema, Validator, ValidationError}
+  alias Grax.{Entity, Validator, ValidationError}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph, Description}
 
-  @__id__property_access_error Schema.InvalidProperty.exception(
+  @__id__property_access_error Entity.InvalidProperty.exception(
                                  property: :__id__,
                                  message:
-                                   "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id."
+                                   "__id__ can't be changed. Use build/2 to construct a new Grax.Entity mapping from another with a new id."
                                )
 
   defmacro __using__(opts) do
     preload_default = opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec()
 
     quote do
-      import Schema, only: [schema: 1, schema: 2]
+      import Entity, only: [schema: 1, schema: 2]
 
       @before_compile unquote(__MODULE__)
 
@@ -169,8 +169,8 @@ defmodule Grax do
         property_schema = mapping_mod.__property__(property) ->
           validation =
             case property_schema.__struct__ do
-              Schema.DataProperty -> :check_property
-              Schema.LinkProperty -> :check_link
+              Entity.DataProperty -> :check_property
+              Entity.LinkProperty -> :check_link
             end
 
           do_put_property(validation, mapping, property, value, property_schema)
@@ -180,7 +180,7 @@ defmodule Grax do
           {:ok, struct!(mapping, [{property, value}])}
       end
     else
-      {:error, Schema.InvalidProperty.exception(property: property)}
+      {:error, Entity.InvalidProperty.exception(property: property)}
     end
   end
 
@@ -201,7 +201,7 @@ defmodule Grax do
   end
 
   defp do_put_property(validation, mapping, property, value, property_schema) do
-    value = if Schema.Property.value_set?(property_schema), do: List.wrap(value), else: value
+    value = if Entity.Property.value_set?(property_schema), do: List.wrap(value), else: value
 
     Validator
     |> apply(validation, [ValidationError.exception(), property, value, property_schema, []])
@@ -217,7 +217,7 @@ defmodule Grax do
     property_schema = mapping_mod.__property__(property)
 
     value =
-      if property_schema && Schema.Property.value_set?(property_schema),
+      if property_schema && Entity.Property.value_set?(property_schema),
         do: List.wrap(value),
         else: value
 

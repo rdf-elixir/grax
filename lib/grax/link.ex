@@ -5,7 +5,7 @@ defmodule Grax.Link.NotLoaded do
              The fields are:
 
                * `__field__` - the link field in `owner`
-               * `__owner__` - the schema that owns the link
+               * `__owner__` - the entity that owns the link
              """
 
   @type t :: %__MODULE__{

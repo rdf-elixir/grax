@@ -2,7 +2,7 @@ defmodule Grax.RDF.Preloader do
   @moduledoc false
 
   alias RDF.{Description, Graph, Query}
-  alias Grax.Schema
+  alias Grax.Entity
 
   import RDF.Utils
 
@@ -43,7 +43,7 @@ defmodule Grax.RDF.Preloader do
               Map.put(
                 mapping,
                 link,
-                if(Schema.Property.value_set?(link_schema), do: [], else: nil)
+                if(Entity.Property.value_set?(link_schema), do: [], else: nil)
               )}}
 
           # The circle check is not needed when preload opts are given as there finite depth

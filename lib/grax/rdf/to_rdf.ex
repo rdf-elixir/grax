@@ -3,7 +3,7 @@ defmodule Grax.RDF.Mapper do
 
   alias RDF.{IRI, BlankNode, Literal, XSD, Graph, Description}
   alias Grax.{Link, Validator}
-  alias Grax.Schema.TypeError
+  alias Grax.Entity.TypeError
 
   def call(%mapping_mod{} = mapping, opts) do
     with {:ok, mapping} <- Validator.call(mapping, opts) do
