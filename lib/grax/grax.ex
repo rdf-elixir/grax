@@ -201,7 +201,7 @@ defmodule Grax do
   end
 
   defp do_put_property(validation, mapping, property, value, property_schema) do
-    value = if Schema.Type.set?(property_schema.type), do: List.wrap(value), else: value
+    value = if Schema.Property.value_set?(property_schema), do: List.wrap(value), else: value
 
     Validation
     |> apply(validation, [ValidationError.exception(), property, value, property_schema, []])
@@ -217,7 +217,7 @@ defmodule Grax do
     property_schema = mapping_mod.__property__(property)
 
     value =
-      if property_schema && Schema.Type.set?(property_schema.type),
+      if property_schema && Schema.Property.value_set?(property_schema),
         do: List.wrap(value),
         else: value
 

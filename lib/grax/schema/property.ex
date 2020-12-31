@@ -17,6 +17,10 @@ defmodule Grax.Schema.Property do
 
   defp normalize_iri({:inverse, iri}), do: {:inverse, RDF.iri!(iri)}
   defp normalize_iri(iri), do: RDF.iri!(iri)
+
+  def value_set?(%{type: type}), do: value_set?(type)
+  def value_set?({:set, _}), do: true
+  def value_set?(_), do: false
 end
 
 defmodule Grax.Schema.DataProperty do

@@ -2,7 +2,7 @@ defmodule Grax.RDF.Preloader do
   @moduledoc false
 
   alias RDF.{Description, Graph, Query}
-  alias Grax.Schema.Type
+  alias Grax.Schema
 
   import RDF.Utils
 
@@ -39,7 +39,12 @@ defmodule Grax.RDF.Preloader do
         cond do
           is_nil(objects) ->
             {:cont,
-             {:ok, Map.put(mapping, link, if(Type.set?(link_schema.type), do: [], else: nil))}}
+             {:ok,
+              Map.put(
+                mapping,
+                link,
+                if(Schema.Property.value_set?(link_schema), do: [], else: nil)
+              )}}
 
           # The circle check is not needed when preload opts are given as there finite depth
           # overwrite any additive preload depths by properties which may cause infinite preloads
@@ -122,14 +127,7 @@ defmodule Grax.RDF.Preloader do
      max_depth(parent_max_depth, preload_spec, mapping_mod, depth)}
   end
 
-  def next_preload_opt(
-        {:add_depth, add_depth},
-        preload_spec,
-        mapping_mod,
-        _link,
-        depth,
-        parent_max_depth
-      ) do
+  def next_preload_opt({:add_depth, add_depth}, preload_spec, mapping_mod, _, depth, _) do
     new_depth = depth + add_depth
 
     {new_depth - depth > 0, {:depth, new_depth},
