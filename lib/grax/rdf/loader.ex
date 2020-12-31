@@ -1,4 +1,4 @@
-defmodule Grax.Loader do
+defmodule Grax.RDF.Loader do
   @moduledoc false
 
   alias RDF.{Literal, IRI, BlankNode, Graph, Description}

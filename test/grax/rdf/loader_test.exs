@@ -1,4 +1,4 @@
-defmodule Grax.LoaderTest do
+defmodule Grax.RDF.LoaderTest do
   use Grax.TestCase
 
   alias Grax.{ValidationError, InvalidValueError}

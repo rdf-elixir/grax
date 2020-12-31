@@ -1,6 +1,6 @@
 defmodule Grax do
-  alias Grax.{Schema, Loader, ToRDF, Validation, ValidationError}
-  alias Grax.RDF.{Preloader}
+  alias Grax.{Schema, ToRDF, Validation, ValidationError}
+  alias Grax.RDF.{Loader, Preloader}
 
   alias RDF.{IRI, BlankNode, Graph, Description}
 
