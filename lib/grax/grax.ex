@@ -1,6 +1,6 @@
 defmodule Grax do
-  alias Grax.{Schema, ToRDF, Validation, ValidationError}
-  alias Grax.RDF.{Loader, Preloader}
+  alias Grax.{Schema, Validation, ValidationError}
+  alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph, Description}
 
@@ -251,6 +251,6 @@ defmodule Grax do
 
   @spec to_rdf(struct, opts :: Keyword) :: {:ok, Graph.t()} | {:error, any}
   def to_rdf(%_{} = mapping, opts \\ []) do
-    ToRDF.call(mapping, opts)
+    Mapper.call(mapping, opts)
   end
 end

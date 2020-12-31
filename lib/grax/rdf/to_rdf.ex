@@ -1,4 +1,4 @@
-defmodule Grax.ToRDF do
+defmodule Grax.RDF.Mapper do
   @moduledoc false
 
   alias RDF.{IRI, BlankNode, Literal, XSD, Graph, Description}

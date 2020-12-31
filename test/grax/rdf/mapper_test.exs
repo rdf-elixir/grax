@@ -1,4 +1,4 @@
-defmodule Grax.ToRDFTest do
+defmodule Grax.RDF.MapperTest do
   use Grax.TestCase
 
   alias Grax.ValidationError
