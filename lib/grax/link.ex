@@ -135,21 +135,30 @@ defmodule Grax.Link.Preloader do
   def next_preload_opt(nil, depth, _mapping_mod, _link, _depth, _max_depth),
     do: raise(ArgumentError, "invalid depth: #{inspect(depth)}")
 
-  def next_preload_opt(preload_opt, preload_spec, mapping_mod, link, depth, parent_max_depth) do
-    case preload_opt(link, preload_opt) do
-      nil ->
-        next_preload_opt(nil, preload_spec, mapping_mod, link, depth, parent_max_depth)
+  def next_preload_opt(
+        {:depth, max_depth} = depth_tuple,
+        preload_spec,
+        mapping_mod,
+        _link,
+        depth,
+        parent_max_depth
+      ) do
+    {max_depth - depth > 0, depth_tuple,
+     max_depth(parent_max_depth, preload_spec, mapping_mod, depth)}
+  end
 
-      {:depth, max_depth} = depth_tuple ->
-        {max_depth - depth > 0, depth_tuple,
-         max_depth(parent_max_depth, preload_spec, mapping_mod, depth)}
+  def next_preload_opt(
+        {:add_depth, add_depth},
+        preload_spec,
+        mapping_mod,
+        _link,
+        depth,
+        parent_max_depth
+      ) do
+    new_depth = depth + add_depth
 
-      {:add_depth, add_depth} ->
-        new_depth = depth + add_depth
-
-        {new_depth - depth > 0, {:depth, new_depth},
-         max_depth(new_depth, preload_spec, mapping_mod, depth)}
-    end
+    {new_depth - depth > 0, {:depth, new_depth},
+     max_depth(new_depth, preload_spec, mapping_mod, depth)}
   end
 
   defp max_depth(_, {:depth, max_depth}, _, 0), do: max_depth
@@ -158,30 +167,6 @@ defmodule Grax.Link.Preloader do
 
   defp max_depth(nil, nil, mapping_mod, depth),
     do: max_depth(nil, mapping_mod.__preload_default__() || @default, nil, depth)
-
-  @doc false
-  def preload_opt(link, opts)
-
-  def preload_opt(_link, opts), do: normalize_spec(opts)
-
-  @doc false
-  def normalize_spec(preload_value, spec_semantics \\ false)
-  def normalize_spec(nil, _), do: nil
-  def normalize_spec(true, false), do: {:add_depth, 1}
-  def normalize_spec(false, false), do: {:add_depth, 0}
-  def normalize_spec(integer, false) when is_integer(integer), do: {:add_depth, integer}
-  def normalize_spec(true, true), do: {:depth, 1}
-  def normalize_spec(false, true), do: {:depth, 0}
-  def normalize_spec(integer, true) when is_integer(integer), do: {:depth, integer}
-
-  def normalize_spec({:+, _line, [integer]}, true) when is_integer(integer),
-    do: {:add_depth, integer}
-
-  def normalize_spec({keyword, _} = depth, _) when keyword in [:depth, :add_depth],
-    do: depth
-
-  def normalize_spec(invalid, _),
-    do: raise(ArgumentError, "invalid depth specification: #{inspect(invalid)}")
 
   defp circle?(objects, graph_load_path) do
     Enum.any?(objects, &(&1 in graph_load_path))

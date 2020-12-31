@@ -78,7 +78,7 @@ defmodule Grax.Schema do
     opts =
       opts
       |> Keyword.update!(:type, &expand_alias(&1, __CALLER__))
-      |> Keyword.put(:preload, Link.Preloader.normalize_spec(Keyword.get(opts, :preload), true))
+      |> Keyword.put(:preload, opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec())
 
     quote do
       Grax.Schema.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))

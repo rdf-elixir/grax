@@ -210,7 +210,7 @@ defmodule Example do
 
     schema do
       property name: EX.name(), type: :string
-      link next: EX.next(), type: Example.SelfLinked, preload: true
+      link next: EX.next(), type: Example.SelfLinked, depth: 1
     end
   end
 
@@ -219,8 +219,8 @@ defmodule Example do
 
     schema do
       property name: EX.name(), type: :string
-      link link1: EX.link1(), type: [Example.Circle], preload: +1
-      link link2: EX.link2(), type: [Example.Circle], preload: +1
+      link link1: EX.link1(), type: [Example.Circle], depth: +1
+      link link2: EX.link2(), type: [Example.Circle], depth: +1
     end
   end
 
@@ -228,15 +228,15 @@ defmodule Example do
     use Grax
 
     schema do
-      link next: EX.next(), type: Example.DepthPreloading, preload: 2
+      link next: EX.next(), type: Example.DepthPreloading, depth: 2
     end
   end
 
   defmodule AddDepthPreloading do
-    use Grax, preload: +3
+    use Grax, depth: +3
 
     schema do
-      link next: EX.next(), type: Example.AddDepthPreloading, preload: +2
+      link next: EX.next(), type: Example.AddDepthPreloading, depth: +2
     end
   end
 

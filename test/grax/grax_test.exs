@@ -503,23 +503,19 @@ defmodule GraxTest do
                {:ok, Example.user(EX.User0, depth: 1)}
 
       assert Example.user(EX.User0, depth: 0)
-             |> Grax.preload(example_graph(), true) ==
-               {:ok, Example.user(EX.User0, depth: 1)}
-
-      assert Example.user(EX.User0, depth: 0)
-             |> Grax.preload(example_graph(), 1) ==
+             |> Grax.preload(example_graph(), depth: 1) ==
                {:ok, Example.user(EX.User0, depth: 1)}
 
       assert Example.user(EX.User0, depth: 1)
-             |> Grax.preload(example_graph(), 1) ==
+             |> Grax.preload(example_graph(), depth: 1) ==
                {:ok, Example.user(EX.User0, depth: 1)}
 
       assert Example.user(EX.User0, depth: 0)
-             |> Grax.preload(example_graph(), 2) ==
+             |> Grax.preload(example_graph(), depth: 2) ==
                {:ok, Example.user(EX.User0, depth: 2)}
 
       assert Example.user(EX.User0, depth: 1)
-             |> Grax.preload(example_graph(), 2) ==
+             |> Grax.preload(example_graph(), depth: 2) ==
                {:ok, Example.user(EX.User0, depth: 2)}
     end
 

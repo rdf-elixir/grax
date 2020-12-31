@@ -33,7 +33,7 @@ defmodule Grax.Link.PreloaderTest do
              ~B"b" |> EX.name("b") |> EX.next(~B"c"),
              ~B"c" |> EX.name("c")
            ])
-           |> Example.SelfLinked.load(EX.A, preload: 3) ==
+           |> Example.SelfLinked.load(EX.A, depth: 3) ==
              Example.SelfLinked.build(EX.A,
                name: "a",
                next:
@@ -189,19 +189,13 @@ defmodule Grax.Link.PreloaderTest do
   end
 
   test "manual preload control" do
-    assert Example.User.load(example_graph(), EX.User0, preload: false) ==
-             {:ok, Example.user(EX.User0, depth: 0)}
-
-    assert Example.User.load(example_graph(), EX.User0, preload: true) ==
+    assert Example.User.load(example_graph(), EX.User0, depth: 1) ==
              {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User0, preload: 1) ==
-             {:ok, Example.user(EX.User0, depth: 1)}
-
-    assert Example.User.load(example_graph(), EX.User0, preload: 2) ==
+    assert Example.User.load(example_graph(), EX.User0, depth: 2) ==
              {:ok, Example.user(EX.User0, depth: 2)}
 
-    assert Example.User.load(example_graph(), EX.User0, preload: 3) ==
+    assert Example.User.load(example_graph(), EX.User0, depth: 3) ==
              {:ok, Example.user(EX.User0, depth: 3)}
   end
 
@@ -211,7 +205,7 @@ defmodule Grax.Link.PreloaderTest do
              EX.B |> EX.name("b") |> EX.link1(EX.C),
              EX.C |> EX.name("c") |> EX.link1(EX.A)
            ])
-           |> Example.Circle.load(EX.A, preload: 4) ==
+           |> Example.Circle.load(EX.A, depth: 4) ==
              Example.Circle.build(EX.A,
                name: "a",
                link2: [],
@@ -245,7 +239,7 @@ defmodule Grax.Link.PreloaderTest do
              EX.D |> EX.name("d") |> EX.link1(EX.C),
              EX.E |> EX.name("e") |> EX.link1(EX.B)
            ])
-           |> Example.Circle.load(EX.A, preload: 5) ==
+           |> Example.Circle.load(EX.A, depth: 5) ==
              Example.Circle.build(EX.A,
                name: "a",
                link2: [],
@@ -301,33 +295,6 @@ defmodule Grax.Link.PreloaderTest do
   end
 
   describe "next_preload_opt" do
-    test "from preload opt" do
-      %{
-        {0, false} => {false, {:depth, 0}, 0},
-        {0, true} => {true, {:depth, 1}, 1},
-        {0, 2} => {true, {:depth, 2}, 2},
-        {1, false} => {false, {:depth, 1}, 1},
-        {1, true} => {true, {:depth, 2}, 2},
-        {1, 2} => {true, {:depth, 3}, 3}
-      }
-      |> Enum.each(fn {{depth, preload_opt}, expected_result} ->
-        result =
-          Preloader.next_preload_opt(
-            preload_opt,
-            nil,
-            Example.AddDepthPreloading,
-            :next,
-            depth,
-            nil
-          )
-
-        assert result == expected_result,
-               "expected result for {#{inspect(depth)}, #{inspect(preload_opt)}} is #{
-                 inspect(expected_result)
-               } but gut #{inspect(result)}"
-      end)
-    end
-
     test "from link-specific preload spec" do
       %{
         {0, nil, {:depth, 2}} => {true, nil, 2},
@@ -389,15 +356,6 @@ defmodule Grax.Link.PreloaderTest do
                  inspect(expected_result)
                } but gut #{inspect(result)}"
       end)
-    end
-  end
-
-  describe "preload_opt" do
-    test "general preloading opts" do
-      assert Preloader.preload_opt(:foo, nil) == nil
-      assert Preloader.preload_opt(:foo, false) == {:add_depth, 0}
-      assert Preloader.preload_opt(:foo, true) == {:add_depth, 1}
-      assert Preloader.preload_opt(:foo, 42) == {:add_depth, 42}
     end
   end
 end

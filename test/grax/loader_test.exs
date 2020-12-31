@@ -288,7 +288,7 @@ defmodule Grax.LoaderTest do
                  foo: [Example.user(EX.User0, depth: 0)]
                )
 
-      assert Example.InverseProperties.load(graph, EX.S, preload: 2) ==
+      assert Example.InverseProperties.load(graph, EX.S, depth: 2) ==
                Example.InverseProperties.build(EX.S,
                  name: "subject",
                  foo: [Example.user(EX.User0, depth: 1)]

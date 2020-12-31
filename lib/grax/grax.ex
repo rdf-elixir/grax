@@ -9,7 +9,7 @@ defmodule Grax do
                                )
 
   defmacro __using__(opts) do
-    preload_default = Link.Preloader.normalize_spec(Keyword.get(opts, :preload), true)
+    preload_default = opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec()
 
     quote do
       import Schema, only: [schema: 1, schema: 2]
@@ -117,17 +117,47 @@ defmodule Grax do
     end
   end
 
-  def preload(%mapping_mod{} = mapping, graph, preload_value \\ true) do
-    Link.Preloader.call(mapping_mod, mapping, graph, preload: preload_value)
+  def preload(%mapping_mod{} = mapping, graph, opts \\ []) do
+    Link.Preloader.call(mapping_mod, mapping, graph, setup_depth_preload_opts(opts))
   end
 
-  def preload!(%mapping_mod{} = mapping, graph, preload_value \\ true) do
-    Link.Preloader.call(mapping_mod, mapping, graph, preload: preload_value, validate: false)
+  def preload!(%mapping_mod{} = mapping, graph, opts \\ []) do
+    Link.Preloader.call(mapping_mod, mapping, graph, [
+      {:validate, false} | setup_depth_preload_opts(opts)
+    ])
     |> case do
       {:ok, mapping} -> mapping
       {:error, error} -> raise error
     end
   end
+
+  # TODO: This is a wrapper acting as a preliminary substitute for the preloading strategy selector
+  def setup_depth_preload_opts(opts) do
+    case Keyword.pop(opts, :depth) do
+      {nil, _} -> opts
+      {depth, opts} -> Keyword.put_new(opts, :preload, normalize_preload_opt(depth))
+    end
+  end
+
+  @doc false
+  def normalize_preload_opt(preload_value)
+  def normalize_preload_opt(nil), do: nil
+  def normalize_preload_opt(integer) when is_integer(integer), do: {:add_depth, integer}
+
+  def normalize_preload_opt({keyword, _} = depth, _) when keyword in [:depth, :add_depth],
+    do: depth
+
+  def normalize_preload_opt(invalid, _),
+    do: raise(ArgumentError, "invalid depth specification: #{inspect(invalid)}")
+
+  @doc false
+  def normalize_preload_spec(preload_value)
+  def normalize_preload_spec(integer) when is_integer(integer), do: {:depth, integer}
+
+  def normalize_preload_spec({:+, _line, [integer]}) when is_integer(integer),
+    do: {:add_depth, integer}
+
+  def normalize_preload_spec(preload_value), do: normalize_preload_opt(preload_value)
 
   def put(_, :__id__, _), do: {:error, @__id__property_access_error}
 

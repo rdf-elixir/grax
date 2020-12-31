@@ -11,6 +11,14 @@ defmodule Grax.Loader do
     id = initial.__id__
     description = Graph.description(graph, id) || Description.new(id)
 
+    # TODO: Get rid of this! It's required currently for the case that the call received directly from load/4.
+    opts =
+      if Keyword.has_key?(opts, :depth) do
+        Grax.setup_depth_preload_opts(opts)
+      else
+        opts
+      end
+
     mapping_mod.__properties__(:data)
     |> Enum.reduce_while({:ok, initial}, fn {property, property_schema}, {:ok, mapping} ->
       cond do
