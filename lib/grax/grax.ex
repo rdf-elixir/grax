@@ -1,5 +1,5 @@
 defmodule Grax do
-  alias Grax.{Schema, Validation, ValidationError}
+  alias Grax.{Schema, Validator, ValidationError}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph, Description}
@@ -203,7 +203,7 @@ defmodule Grax do
   defp do_put_property(validation, mapping, property, value, property_schema) do
     value = if Schema.Property.value_set?(property_schema), do: List.wrap(value), else: value
 
-    Validation
+    Validator
     |> apply(validation, [ValidationError.exception(), property, value, property_schema, []])
     |> case do
       %{errors: []} -> {:ok, struct!(mapping, [{property, value}])}
@@ -233,7 +233,7 @@ defmodule Grax do
 
   @spec validate(struct, opts :: Keyword) :: {:ok, struct} | {:error, ValidationError.t()}
   def validate(%_{} = mapping, opts \\ []) do
-    Validation.call(mapping, opts)
+    Validator.call(mapping, opts)
   end
 
   @spec validate!(struct, opts :: Keyword) :: struct

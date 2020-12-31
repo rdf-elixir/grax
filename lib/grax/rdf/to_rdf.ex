@@ -2,11 +2,11 @@ defmodule Grax.RDF.Mapper do
   @moduledoc false
 
   alias RDF.{IRI, BlankNode, Literal, XSD, Graph, Description}
-  alias Grax.{Link, Validation}
+  alias Grax.{Link, Validator}
   alias Grax.Schema.TypeError
 
   def call(%mapping_mod{} = mapping, opts) do
-    with {:ok, mapping} <- Validation.call(mapping, opts) do
+    with {:ok, mapping} <- Validator.call(mapping, opts) do
       mapping_mod.__properties__()
       |> Enum.reduce_while(
         {:ok, Description.new(mapping.__id__), Graph.new()},

@@ -1,4 +1,4 @@
-defmodule Grax.ValidationTest do
+defmodule Grax.ValidatorTest do
   use Grax.TestCase
 
   alias Grax.{ValidationError, InvalidIdError}

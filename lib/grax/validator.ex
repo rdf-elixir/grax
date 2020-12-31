@@ -1,4 +1,4 @@
-defmodule Grax.Validation do
+defmodule Grax.Validator do
   @moduledoc false
 
   alias Grax.{Link, ValidationError, InvalidIdError}
