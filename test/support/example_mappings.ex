@@ -145,11 +145,11 @@ defmodule Example do
     end
   end
 
-  defmodule Types do
+  defmodule Datatypes do
     use Grax
 
     schema do
-      Grax.Schema.Type.builtins()
+      Grax.Datatype.builtins()
       |> Enum.each(fn {type, _} ->
         property type, apply(EX, type, []), type: type
       end)
@@ -165,7 +165,7 @@ defmodule Example do
   end
 
   def types(subject \\ EX.S) do
-    %Types{
+    %Datatypes{
       __id__: IRI.new(subject),
       string: "string",
       any_uri: IRI.parse(EX.foo()),

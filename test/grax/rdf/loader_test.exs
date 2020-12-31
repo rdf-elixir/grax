@@ -87,49 +87,49 @@ defmodule Grax.RDF.LoaderTest do
              |> EX.date_time(XSD.date_time("2020-01-01T00:00:00Z"))
              |> EX.date(XSD.date(~D[2020-01-01]))
              |> EX.time(XSD.time(~T[00:00:00]))
-             |> Example.Types.load(EX.S) ==
+             |> Example.Datatypes.load(EX.S) ==
                {:ok, Example.types()}
     end
 
     test "numeric type" do
       assert EX.S
              |> EX.numeric(XSD.integer(42))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, numeric: 42)
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, numeric: 42)
 
       assert EX.S
              |> EX.numeric(XSD.decimal(0.5))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, numeric: Decimal.from_float(0.5))
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, numeric: Decimal.from_float(0.5))
 
       assert EX.S
              |> EX.numeric(XSD.float(3.14))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, numeric: 3.14)
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, numeric: 3.14)
     end
 
     test "date type" do
       assert EX.S
              |> EX.date(XSD.date(~D[2020-01-01]))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, date: ~D[2020-01-01])
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, date: ~D[2020-01-01])
 
       assert EX.S
              |> EX.date(XSD.date("2020-01-01Z"))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, date: {~D[2020-01-01], "Z"})
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, date: {~D[2020-01-01], "Z"})
     end
 
     test "time type" do
       assert EX.S
              |> EX.time(XSD.time(~T[00:00:00]))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, time: ~T[00:00:00])
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, time: ~T[00:00:00])
 
       assert EX.S
              |> EX.time(XSD.time("00:00:00Z"))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, time: {~T[00:00:00], true})
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, time: {~T[00:00:00], true})
     end
 
     test "untyped scalar properties" do
@@ -151,26 +151,26 @@ defmodule Grax.RDF.LoaderTest do
     test "typed set properties" do
       assert EX.S
              |> EX.integers(XSD.integer(1))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, integers: [1])
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, integers: [1])
 
       assert EX.S
              |> EX.integers(XSD.integer(1), XSD.byte(2), XSD.negativeInteger(-3))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, integers: [2, 1, -3])
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, integers: [2, 1, -3])
 
       assert EX.S
              |> EX.numerics(XSD.integer(42), XSD.decimal(0.5), XSD.float(3.14))
-             |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, numerics: [Decimal.from_float(0.5), 3.14, 42])
+             |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, numerics: [Decimal.from_float(0.5), 3.14, 42])
     end
 
     test "type derivations are taken into account" do
-      assert EX.S |> EX.int(XSD.byte(42)) |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, int: 42)
+      assert EX.S |> EX.int(XSD.byte(42)) |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, int: 42)
 
-      assert EX.S |> EX.double(XSD.float(3.14)) |> Example.Types.load(EX.S) ==
-               Example.Types.build(EX.S, double: 3.14)
+      assert EX.S |> EX.double(XSD.float(3.14)) |> Example.Datatypes.load(EX.S) ==
+               Example.Datatypes.build(EX.S, double: 3.14)
     end
 
     test "load/2 when a type does not match the definition in the schema" do
@@ -182,19 +182,19 @@ defmodule Grax.RDF.LoaderTest do
                     value: "invalid"
                   }
                 ]
-              }} = EX.S |> EX.integer("invalid") |> Example.Types.load(EX.S)
+              }} = EX.S |> EX.integer("invalid") |> Example.Datatypes.load(EX.S)
     end
 
     test "load!/2 when a type does not match the definition in the schema" do
       assert result =
-               %Example.Types{integer: "invalid"} =
-               EX.S |> EX.integer("invalid") |> Example.Types.load!(EX.S)
+               %Example.Datatypes{integer: "invalid"} =
+               EX.S |> EX.integer("invalid") |> Example.Datatypes.load!(EX.S)
 
       refute Grax.valid?(result)
 
       assert result =
-               %Example.Types{unsigned_byte: -42} =
-               EX.S |> EX.unsigned_byte(-42) |> Example.Types.load!(EX.S)
+               %Example.Datatypes{unsigned_byte: -42} =
+               EX.S |> EX.unsigned_byte(-42) |> Example.Datatypes.load!(EX.S)
 
       refute Grax.valid?(result)
     end
@@ -203,12 +203,12 @@ defmodule Grax.RDF.LoaderTest do
       invalid = XSD.integer("invalid")
 
       assert {:error, %InvalidValueError{value: ^invalid}} =
-               EX.S |> EX.integer(invalid) |> Example.Types.load(EX.S)
+               EX.S |> EX.integer(invalid) |> Example.Datatypes.load(EX.S)
     end
 
     test "load!/2 with invalid literals" do
       assert_raise InvalidValueError, fn ->
-        EX.S |> EX.integer(XSD.integer("invalid")) |> Example.Types.load!(EX.S)
+        EX.S |> EX.integer(XSD.integer("invalid")) |> Example.Datatypes.load!(EX.S)
       end
     end
   end

@@ -74,6 +74,6 @@ defmodule Grax.SchemaTest do
 
   test "__class__/0" do
     assert Example.ClassDeclaration.__class__() == IRI.to_string(EX.Class)
-    assert Example.Types.__class__() == nil
+    assert Example.Datatypes.__class__() == nil
   end
 end

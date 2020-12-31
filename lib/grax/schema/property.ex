@@ -26,7 +26,8 @@ end
 defmodule Grax.Schema.DataProperty do
   @moduledoc false
 
-  alias Grax.Schema.{Property, Type}
+  alias Grax.Schema.Property
+  alias Grax.Datatype
   alias RDF.Literal
 
   defstruct Property.shared_attrs() ++ [:required, :default]
@@ -48,7 +49,7 @@ defmodule Grax.Schema.DataProperty do
   defp init_type(name, nil), do: init_type(name, @default_type)
 
   defp init_type(name, type) do
-    case Type.get(type) do
+    case Datatype.get(type) do
       {:ok, type} ->
         type
 

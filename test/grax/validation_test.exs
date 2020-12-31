@@ -31,7 +31,7 @@ defmodule Grax.ValidationTest do
 
   test "default values of optional values are always valid" do
     [
-      %Example.Types{__id__: IRI.new(EX.S)},
+      %Example.Datatypes{__id__: IRI.new(EX.S)},
       %Example.User{__id__: IRI.new(EX.S)}
     ]
     |> Enum.each(fn empty_mapping ->
@@ -58,7 +58,7 @@ defmodule Grax.ValidationTest do
         time: {~T[00:00:00], true},
         time: {~T[00:00:00], "+01:00"}
       ]
-      |> assert_ok_validation(%Example.Types{__id__: IRI.new(EX.S)})
+      |> assert_ok_validation(%Example.Datatypes{__id__: IRI.new(EX.S)})
 
       [
         foo: nil,
@@ -130,7 +130,7 @@ defmodule Grax.ValidationTest do
         TypeError,
         &[
           value: &1,
-          type: Example.Types.__property__(&2).type
+          type: Example.Datatypes.__property__(&2).type
         ]
       )
 

@@ -116,21 +116,21 @@ defmodule Grax.RDF.MapperTest do
   end
 
   test "numeric type" do
-    assert Example.Types.build!(EX.S, numeric: 42)
+    assert Example.Datatypes.build!(EX.S, numeric: 42)
            |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.numeric(XSD.integer(42))
               |> RDF.graph()}
 
-    assert Example.Types.build!(EX.S, numeric: Decimal.from_float(0.5))
+    assert Example.Datatypes.build!(EX.S, numeric: Decimal.from_float(0.5))
            |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.numeric(XSD.decimal(0.5))
               |> RDF.graph()}
 
-    assert Example.Types.build!(EX.S, numeric: 3.14)
+    assert Example.Datatypes.build!(EX.S, numeric: 3.14)
            |> to_rdf() ==
              {:ok,
               EX.S
@@ -139,14 +139,14 @@ defmodule Grax.RDF.MapperTest do
   end
 
   test "date type" do
-    assert Example.Types.build!(EX.S, date: ~D[2020-01-01])
+    assert Example.Datatypes.build!(EX.S, date: ~D[2020-01-01])
            |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.date(XSD.date(~D[2020-01-01]))
               |> RDF.graph()}
 
-    assert Example.Types.build!(EX.S, date: {~D[2020-01-01], "Z"})
+    assert Example.Datatypes.build!(EX.S, date: {~D[2020-01-01], "Z"})
            |> to_rdf() ==
              {:ok,
               EX.S
@@ -155,21 +155,21 @@ defmodule Grax.RDF.MapperTest do
   end
 
   test "time type" do
-    assert Example.Types.build!(EX.S, time: ~T[00:00:00])
+    assert Example.Datatypes.build!(EX.S, time: ~T[00:00:00])
            |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.time(XSD.time(~T[00:00:00]))
               |> RDF.graph()}
 
-    assert Example.Types.build!(EX.S, time: {~T[00:00:00], true})
+    assert Example.Datatypes.build!(EX.S, time: {~T[00:00:00], true})
            |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.time(XSD.time("00:00:00Z"))
               |> RDF.graph()}
 
-    assert Example.Types.build!(EX.S, time: {~T[01:00:00], "+01:00"})
+    assert Example.Datatypes.build!(EX.S, time: {~T[01:00:00], "+01:00"})
            |> to_rdf() ==
              {:ok,
               EX.S
@@ -178,7 +178,7 @@ defmodule Grax.RDF.MapperTest do
   end
 
   test "typed set properties" do
-    assert Example.Types.build!(EX.S, numerics: [42, 3.14, Decimal.from_float(0.5)])
+    assert Example.Datatypes.build!(EX.S, numerics: [42, 3.14, Decimal.from_float(0.5)])
            |> to_rdf() ==
              {:ok,
               EX.S
