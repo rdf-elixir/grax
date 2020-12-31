@@ -2,7 +2,7 @@ defmodule Grax.Loader do
   @moduledoc false
 
   alias RDF.{Literal, IRI, BlankNode, Graph, Description}
-  alias Grax.Link.Preloader
+  alias Grax.RDF.Preloader
   alias Grax.InvalidValueError
 
   import RDF.Utils

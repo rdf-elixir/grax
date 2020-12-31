@@ -1,5 +1,7 @@
 defmodule Grax do
-  alias Grax.{Schema, Link, Loader, ToRDF, Validation, ValidationError}
+  alias Grax.{Schema, Loader, ToRDF, Validation, ValidationError}
+  alias Grax.RDF.{Preloader}
+
   alias RDF.{IRI, BlankNode, Graph, Description}
 
   @__id__property_access_error Schema.InvalidProperty.exception(
@@ -118,11 +120,11 @@ defmodule Grax do
   end
 
   def preload(%mapping_mod{} = mapping, graph, opts \\ []) do
-    Link.Preloader.call(mapping_mod, mapping, graph, setup_depth_preload_opts(opts))
+    Preloader.call(mapping_mod, mapping, graph, setup_depth_preload_opts(opts))
   end
 
   def preload!(%mapping_mod{} = mapping, graph, opts \\ []) do
-    Link.Preloader.call(mapping_mod, mapping, graph, [
+    Preloader.call(mapping_mod, mapping, graph, [
       {:validate, false} | setup_depth_preload_opts(opts)
     ])
     |> case do

@@ -1,7 +1,7 @@
-defmodule Grax.Link.PreloaderTest do
+defmodule Grax.RDF.PreloaderTest do
   use Grax.TestCase
 
-  alias Grax.Link.Preloader
+  alias Grax.RDF.Preloader
 
   test "link to itself without circle" do
     assert RDF.graph([
