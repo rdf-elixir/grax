@@ -496,12 +496,28 @@ defmodule GraxTest do
     end
   end
 
+  test "preload/2" do
+    assert Example.user(EX.User0, depth: 0)
+           |> Grax.preload(example_graph()) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
+
+    graph = RDF.graph([
+      EX.A |> EX.next(EX.B),
+      EX.B |> EX.next(EX.C),
+      EX.C |> EX.next(EX.D),
+      EX.D |> EX.name("d")
+    ])
+    assert Example.DepthPreloading.build!(EX.A)
+           |> Grax.preload(graph) ==
+           Example.DepthPreloading.load(graph, EX.A)
+
+    assert Example.AddDepthPreloading.build!(EX.A)
+           |> Grax.preload(graph) ==
+             Example.AddDepthPreloading.load(graph, EX.A)
+  end
+
   describe "preload/3" do
     test "without errors" do
-      assert Example.user(EX.User0, depth: 0)
-             |> Grax.preload(example_graph()) ==
-               {:ok, Example.user(EX.User0, depth: 1)}
-
       assert Example.user(EX.User0, depth: 0)
              |> Grax.preload(example_graph(), depth: 1) ==
                {:ok, Example.user(EX.User0, depth: 1)}
@@ -524,14 +540,34 @@ defmodule GraxTest do
 
       assert {:error, %ValidationError{}} =
                Example.user(EX.User0, depth: 0)
-               |> Grax.preload(graph_with_error)
+               |> Grax.preload(graph_with_error, depth: 1)
     end
+  end
+
+  test "preload!/2" do
+    assert Example.user(EX.User0, depth: 0)
+           |> Grax.preload!(example_graph()) ==
+             Example.user(EX.User0, depth: 1)
+
+    graph = RDF.graph([
+      EX.A |> EX.next(EX.B),
+      EX.B |> EX.next(EX.C),
+      EX.C |> EX.next(EX.D),
+      EX.D |> EX.name("d")
+    ])
+    assert Example.DepthPreloading.build!(EX.A)
+           |> Grax.preload!(graph) ==
+             Example.DepthPreloading.load!(graph, EX.A)
+
+    assert Example.AddDepthPreloading.build!(EX.A)
+           |> Grax.preload!(graph) ==
+             Example.AddDepthPreloading.load!(graph, EX.A)
   end
 
   describe "preload!/3" do
     test "without errors" do
       assert Example.user(EX.User0, depth: 0)
-             |> Grax.preload!(example_graph()) ==
+             |> Grax.preload!(example_graph(), depth: 1) ==
                Example.user(EX.User0, depth: 1)
     end
 
