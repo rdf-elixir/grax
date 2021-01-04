@@ -30,7 +30,7 @@ defmodule Grax.ValidationError do
   end
 end
 
-defmodule Grax.Entity.TypeError do
+defmodule Grax.Schema.TypeError do
   @moduledoc """
   Raised when a property value doesn't match the specified type during decoding from RDF.
   """
@@ -44,7 +44,7 @@ defmodule Grax.Entity.TypeError do
   end
 end
 
-defmodule Grax.Entity.RequiredPropertyMissing do
+defmodule Grax.Schema.RequiredPropertyMissing do
   @moduledoc """
   Raised when a required property is not present.
   """
@@ -57,9 +57,9 @@ defmodule Grax.Entity.RequiredPropertyMissing do
   end
 end
 
-defmodule Grax.Entity.InvalidProperty do
+defmodule Grax.Schema.InvalidProperty do
   @moduledoc """
-  Raised when accessing a property that is not defined on a entity.
+  Raised when accessing a property that is not defined on a schema.
   """
   defexception [:message, :property]
 

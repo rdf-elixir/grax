@@ -2,7 +2,7 @@ defmodule Grax.Validator do
   @moduledoc false
 
   alias Grax.{Link, ValidationError, InvalidIdError}
-  alias Grax.Entity.{TypeError, RequiredPropertyMissing}
+  alias Grax.Schema.{TypeError, RequiredPropertyMissing}
   alias RDF.{IRI, BlankNode, Literal, XSD}
 
   import ValidationError, only: [add_error: 3]

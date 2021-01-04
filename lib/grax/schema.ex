@@ -1,9 +1,12 @@
-defmodule Grax.Entity do
-  alias Grax.Entity.{DataProperty, LinkProperty}
+defmodule Grax.Schema do
+  @moduledoc false
+
+  alias Grax.Schema.{DataProperty, LinkProperty}
+  alias Grax.Link
   alias RDF.IRI
 
   @doc """
-  Defines a Grax entity.
+  Defines a Grax schema.
   """
   defmacro schema(class \\ nil, do: block) do
     schema(__CALLER__, class, block)
@@ -13,7 +16,7 @@ defmodule Grax.Entity do
     prelude =
       quote do
         if line = Module.get_attribute(__MODULE__, :grax_schema_defined) do
-          raise "entity already defined for #{inspect(__MODULE__)} on line #{line}"
+          raise "schema already defined for #{inspect(__MODULE__)} on line #{line}"
         end
 
         @grax_schema_defined unquote(caller.line)
@@ -56,13 +59,13 @@ defmodule Grax.Entity do
 
   defmacro property([{name, iri} | opts]) do
     quote do
-      Grax.Entity.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+      Grax.Schema.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
     end
   end
 
   defmacro property(name, iri, opts \\ []) do
     quote do
-      Grax.Entity.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+      Grax.Schema.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
     end
   end
 
@@ -78,7 +81,7 @@ defmodule Grax.Entity do
       |> Keyword.put(:preload, opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec())
 
     quote do
-      Grax.Entity.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
+      Grax.Schema.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
     end
   end
 

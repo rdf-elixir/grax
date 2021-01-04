@@ -2,7 +2,7 @@ defmodule Grax.RDF.LoaderTest do
   use Grax.TestCase
 
   alias Grax.{ValidationError, InvalidValueError}
-  alias Grax.Entity.TypeError
+  alias Grax.Schema.TypeError
 
   test "successful mapping from a graph" do
     assert Example.User.load(example_graph(), EX.User0) ==
@@ -173,7 +173,7 @@ defmodule Grax.RDF.LoaderTest do
                Example.Datatypes.build(EX.S, double: 3.14)
     end
 
-    test "load/2 when a type does not match the definition in the entity" do
+    test "load/2 when a type does not match the definition in the schema" do
       assert {:error,
               %ValidationError{
                 errors: [
@@ -185,7 +185,7 @@ defmodule Grax.RDF.LoaderTest do
               }} = EX.S |> EX.integer("invalid") |> Example.Datatypes.load(EX.S)
     end
 
-    test "load!/2 when a type does not match the definition in the entity" do
+    test "load!/2 when a type does not match the definition in the schema" do
       assert result =
                %Example.Datatypes{integer: "invalid"} =
                EX.S |> EX.integer("invalid") |> Example.Datatypes.load!(EX.S)
@@ -240,14 +240,14 @@ defmodule Grax.RDF.LoaderTest do
                 |> Map.put(:posts, [Example.Post.build!(EX.Post0)])}
     end
 
-    test "load/2 when the nested description doesn't match the nested entity" do
+    test "load/2 when the nested description doesn't match the nested schema" do
       assert {:error, %ValidationError{}} =
                example_graph()
                |> Graph.add({EX.Post0, EX.title(), "Other"})
                |> Example.User.load(EX.User0)
     end
 
-    test "load!/2 when the nested description doesn't match the nested entity" do
+    test "load!/2 when the nested description doesn't match the nested schema" do
       assert %Example.User{} =
                user =
                example_graph()

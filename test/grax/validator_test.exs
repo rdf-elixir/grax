@@ -2,7 +2,7 @@ defmodule Grax.ValidatorTest do
   use Grax.TestCase
 
   alias Grax.{ValidationError, InvalidIdError}
-  alias Grax.Entity.{TypeError, RequiredPropertyMissing}
+  alias Grax.Schema.{TypeError, RequiredPropertyMissing}
 
   import Grax,
     only: [

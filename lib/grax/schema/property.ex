@@ -1,4 +1,4 @@
-defmodule Grax.Entity.Property do
+defmodule Grax.Schema.Property do
   @moduledoc false
 
   @shared_attrs [:mapping, :name, :iri, :type, :from_rdf, :to_rdf]
@@ -23,10 +23,10 @@ defmodule Grax.Entity.Property do
   def value_set?(_), do: false
 end
 
-defmodule Grax.Entity.DataProperty do
+defmodule Grax.Schema.DataProperty do
   @moduledoc false
 
-  alias Grax.Entity.Property
+  alias Grax.Schema.Property
   alias Grax.Datatype
   alias RDF.Literal
 
@@ -76,10 +76,10 @@ defmodule Grax.Entity.DataProperty do
   end
 end
 
-defmodule Grax.Entity.LinkProperty do
+defmodule Grax.Schema.LinkProperty do
   @moduledoc false
 
-  alias Grax.Entity.Property
+  alias Grax.Schema.Property
   alias Grax.Link
 
   defstruct Property.shared_attrs() ++ [:preload]

@@ -1,4 +1,4 @@
-defmodule Grax.EntityTest do
+defmodule Grax.SchemaTest do
   use Grax.TestCase
 
   alias Grax.Link

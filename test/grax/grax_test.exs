@@ -4,7 +4,7 @@ defmodule GraxTest do
   doctest Grax
 
   alias Grax.ValidationError
-  alias Grax.Entity.{TypeError, InvalidProperty, RequiredPropertyMissing}
+  alias Grax.Schema.{TypeError, InvalidProperty, RequiredPropertyMissing}
 
   describe "build/1" do
     test "with a string id" do
@@ -53,7 +53,7 @@ defmodule GraxTest do
                 }}
     end
 
-    test "with another Grax.Entity mapping of the same type" do
+    test "with another Grax.Schema mapping of the same type" do
       assert Example.User.build(EX.Other, Example.user(EX.User0)) ==
                {:ok, %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}}
     end
@@ -120,7 +120,7 @@ defmodule GraxTest do
                }
     end
 
-    test "with another Grax.Entity mapping of the same type" do
+    test "with another Grax.Schema mapping of the same type" do
       assert Example.User.build!(EX.Other, Example.user(EX.User0)) ==
                %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
     end
@@ -148,7 +148,7 @@ defmodule GraxTest do
   end
 
   describe "put/3" do
-    test "when the property exists and the value type matches the entity" do
+    test "when the property exists and the value type matches the schema" do
       assert Example.User.build!(EX.User0)
              |> Grax.put(:name, "Foo") ==
                {:ok,
@@ -179,7 +179,7 @@ defmodule GraxTest do
                {:error, InvalidProperty.exception(property: :foo)}
     end
 
-    test "when the value type does not match the entity" do
+    test "when the value type does not match the schema" do
       assert Example.User.build!(EX.User0)
              |> Grax.put(:age, "secret") ==
                {:error, TypeError.exception(value: "secret", type: XSD.Integer)}
@@ -230,11 +230,11 @@ defmodule GraxTest do
                 InvalidProperty.exception(
                   property: :__id__,
                   message:
-                    "__id__ can't be changed. Use build/2 to construct a new Grax.Entity mapping from another with a new id."
+                    "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id."
                 )}
     end
 
-    test "with a link property and a proper Grax.Entity struct" do
+    test "with a link property and a proper Grax.Schema struct" do
       assert Example.SelfLinked.build!(EX.Foo)
              |> Grax.put(:next, Example.SelfLinked.build!(EX.Bar)) ==
                {:ok,
@@ -260,7 +260,7 @@ defmodule GraxTest do
                 }}
     end
 
-    test "with a link property and a wrong Grax.Entity struct" do
+    test "with a link property and a wrong Grax.Schema struct" do
       assert Example.SelfLinked.build!(EX.Foo)
              |> Grax.put(:next, Example.User.build!(EX.Bar)) ==
                {:error,
@@ -290,7 +290,7 @@ defmodule GraxTest do
   end
 
   describe "put!/3" do
-    test "when the property exists and the value type matches the entity" do
+    test "when the property exists and the value type matches the schema" do
       assert Example.User.build!(EX.User0)
              |> Grax.put!(:name, "Foo") ==
                %Example.User{
@@ -313,7 +313,7 @@ defmodule GraxTest do
       end
     end
 
-    test "when the value type does not match the entity" do
+    test "when the value type does not match the schema" do
       assert Example.User.build!(EX.User0)
              |> Grax.put!(:age, "secret") ==
                %Example.User{
@@ -349,14 +349,14 @@ defmodule GraxTest do
 
     test "with the __id__ field" do
       assert_raise InvalidProperty,
-                   "__id__ can't be changed. Use build/2 to construct a new Grax.Entity mapping from another with a new id.",
+                   "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id.",
                    fn ->
                      Example.User.build!(EX.User0)
                      |> Grax.put!(:__id__, "foo")
                    end
     end
 
-    test "with a link property and a proper Grax.Entity struct" do
+    test "with a link property and a proper Grax.Schema struct" do
       assert Example.SelfLinked.build!(EX.Foo)
              |> Grax.put!(:next, Example.SelfLinked.build!(EX.Bar)) ==
                %Example.SelfLinked{
@@ -379,7 +379,7 @@ defmodule GraxTest do
                }
     end
 
-    test "with a link property and a wrong Grax.Entity struct" do
+    test "with a link property and a wrong Grax.Schema struct" do
       assert Example.SelfLinked.build!(EX.Foo)
              |> Grax.put!(:next, Example.User.build!(EX.Bar)) ==
                %Example.SelfLinked{__id__: IRI.new(EX.Foo), next: Example.User.build!(EX.Bar)}

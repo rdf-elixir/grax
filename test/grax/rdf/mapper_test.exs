@@ -232,7 +232,7 @@ defmodule Grax.RDF.MapperTest do
               |> RDF.graph()}
   end
 
-  test "rdf:type for entity class is defined" do
+  test "rdf:type for schema class is defined" do
     assert Example.ClassDeclaration.build!(EX.S, name: "foo")
            |> to_rdf() ==
              {:ok,
