@@ -501,15 +501,17 @@ defmodule GraxTest do
            |> Grax.preload(example_graph()) ==
              {:ok, Example.user(EX.User0, depth: 1)}
 
-    graph = RDF.graph([
-      EX.A |> EX.next(EX.B),
-      EX.B |> EX.next(EX.C),
-      EX.C |> EX.next(EX.D),
-      EX.D |> EX.name("d")
-    ])
+    graph =
+      RDF.graph([
+        EX.A |> EX.next(EX.B),
+        EX.B |> EX.next(EX.C),
+        EX.C |> EX.next(EX.D),
+        EX.D |> EX.name("d")
+      ])
+
     assert Example.DepthPreloading.build!(EX.A)
            |> Grax.preload(graph) ==
-           Example.DepthPreloading.load(graph, EX.A)
+             Example.DepthPreloading.load(graph, EX.A)
 
     assert Example.AddDepthPreloading.build!(EX.A)
            |> Grax.preload(graph) ==
@@ -549,12 +551,14 @@ defmodule GraxTest do
            |> Grax.preload!(example_graph()) ==
              Example.user(EX.User0, depth: 1)
 
-    graph = RDF.graph([
-      EX.A |> EX.next(EX.B),
-      EX.B |> EX.next(EX.C),
-      EX.C |> EX.next(EX.D),
-      EX.D |> EX.name("d")
-    ])
+    graph =
+      RDF.graph([
+        EX.A |> EX.next(EX.B),
+        EX.B |> EX.next(EX.C),
+        EX.C |> EX.next(EX.D),
+        EX.D |> EX.name("d")
+      ])
+
     assert Example.DepthPreloading.build!(EX.A)
            |> Grax.preload!(graph) ==
              Example.DepthPreloading.load!(graph, EX.A)

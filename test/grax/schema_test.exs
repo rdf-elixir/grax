@@ -24,7 +24,7 @@ defmodule Grax.SchemaTest do
     test "links don't support custom defaults" do
       assert_raise ArgumentError, "the :default option is not supported on links", fn ->
         defmodule LinkWithDefault do
-          use Grax
+          use Grax.Schema
 
           schema do
             link a: EX.a(), type: A, default: :foo
@@ -36,7 +36,7 @@ defmodule Grax.SchemaTest do
     test "property sets don't support custom defaults" do
       assert_raise ArgumentError, "the :default option is not supported on sets", fn ->
         defmodule LinkWithDefault do
-          use Grax
+          use Grax.Schema
 
           schema do
             property a: EX.a(), type: [], default: :foo
@@ -51,7 +51,7 @@ defmodule Grax.SchemaTest do
                  ~S(default value "foo" doesn't match type RDF.XSD.Integer),
                  fn ->
                    defmodule DefaultValueTypeMismatch do
-                     use Grax
+                     use Grax.Schema
 
                      schema do
                        property a: EX.a(), type: :integer, default: "foo"
@@ -63,7 +63,7 @@ defmodule Grax.SchemaTest do
   test "links without a type raise a proper error" do
     assert_raise ArgumentError, "type missing for property a", fn ->
       defmodule NilLink do
-        use Grax
+        use Grax.Schema
 
         schema do
           link a: EX.a(), type: nil

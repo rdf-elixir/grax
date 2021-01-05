@@ -2,8 +2,42 @@ defmodule Grax.Schema do
   @moduledoc false
 
   alias Grax.Schema.{DataProperty, LinkProperty}
-  alias Grax.Link
   alias RDF.IRI
+
+  defmacro __using__(opts) do
+    preload_default = opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec()
+
+    quote do
+      import unquote(__MODULE__), only: [schema: 1, schema: 2]
+
+      @before_compile unquote(__MODULE__)
+
+      @grax_preload_default unquote(preload_default)
+      def __preload_default__(), do: @grax_preload_default
+    end
+  end
+
+  defmacro __before_compile__(_env) do
+    quote do
+      def build(id), do: Grax.build(__MODULE__, id)
+      def build(id, initial), do: Grax.build(__MODULE__, id, initial)
+      def build!(id), do: Grax.build!(__MODULE__, id)
+      def build!(id, initial), do: Grax.build!(__MODULE__, id, initial)
+
+      @spec load(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
+              {:ok, struct} | {:error, any}
+      def load(graph, id, opts \\ []), do: Grax.load(__MODULE__, id, graph, opts)
+
+      @spec load!(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
+              struct
+      def load!(graph, id, opts \\ []), do: Grax.load!(__MODULE__, id, graph, opts)
+
+      @doc false
+      def __has_property__?(property), do: Keyword.has_key?(@struct_fields, property)
+
+      Module.delete_attribute(__MODULE__, :rdf_property_acc)
+    end
+  end
 
   @doc """
   Defines a Grax schema.

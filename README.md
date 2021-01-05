@@ -9,7 +9,7 @@ For a guide and more information about Grex and it's related projects, go to <ht
 
 ```elixir
 defmodule User do
-  use Grax.Schema
+  use Grax.Entity
 
   alias NS.{SchemaOrg, FOAF, EX}
 

@@ -7,7 +7,7 @@ defmodule Example do
   @compile {:no_warn_undefined, Example.NS.EX}
 
   defmodule User do
-    use Grax
+    use Grax.Schema
 
     schema EX.User do
       property name: EX.name(), type: :string
@@ -32,7 +32,7 @@ defmodule Example do
   end
 
   defmodule Post do
-    use Grax
+    use Grax.Schema
 
     schema EX.Post do
       property title: EX.title(), type: :string
@@ -43,7 +43,7 @@ defmodule Example do
   end
 
   defmodule Comment do
-    use Grax
+    use Grax.Schema
 
     schema EX.Comment do
       property content: EX.content(), type: :string
@@ -137,7 +137,7 @@ defmodule Example do
   end
 
   defmodule Untyped do
-    use Grax
+    use Grax.Schema
 
     schema do
       property foo: EX.foo()
@@ -146,7 +146,7 @@ defmodule Example do
   end
 
   defmodule Datatypes do
-    use Grax
+    use Grax.Schema
 
     schema do
       Grax.Datatype.builtins()
@@ -194,7 +194,7 @@ defmodule Example do
   end
 
   defmodule DefaultValues do
-    use Grax
+    use Grax.Schema
 
     schema do
       property foo: EX.foo(), default: "foo"
@@ -206,7 +206,7 @@ defmodule Example do
   end
 
   defmodule SelfLinked do
-    use Grax
+    use Grax.Schema
 
     schema do
       property name: EX.name(), type: :string
@@ -215,7 +215,7 @@ defmodule Example do
   end
 
   defmodule Circle do
-    use Grax
+    use Grax.Schema
 
     schema do
       property name: EX.name(), type: :string
@@ -225,7 +225,7 @@ defmodule Example do
   end
 
   defmodule DepthPreloading do
-    use Grax
+    use Grax.Schema
 
     schema do
       link next: EX.next(), type: Example.DepthPreloading, depth: 2
@@ -233,7 +233,7 @@ defmodule Example do
   end
 
   defmodule AddDepthPreloading do
-    use Grax, depth: +3
+    use Grax.Schema, depth: +3
 
     schema do
       link next: EX.next(), type: Example.AddDepthPreloading, depth: +2
@@ -241,7 +241,7 @@ defmodule Example do
   end
 
   defmodule InverseProperties do
-    use Grax
+    use Grax.Schema
 
     schema do
       property name: EX.name()
@@ -250,7 +250,7 @@ defmodule Example do
   end
 
   defmodule ClassDeclaration do
-    use Grax
+    use Grax.Schema
 
     schema EX.Class do
       property name: EX.name()
@@ -258,7 +258,7 @@ defmodule Example do
   end
 
   defmodule Required do
-    use Grax
+    use Grax.Schema
 
     schema do
       property foo: EX.foo(), required: true
@@ -268,7 +268,7 @@ defmodule Example do
   end
 
   defmodule IdsAsPropertyValues do
-    use Grax
+    use Grax.Schema
 
     schema do
       property foo: EX.foo()
@@ -279,7 +279,7 @@ defmodule Example do
   end
 
   defmodule CustomMapping do
-    use Grax
+    use Grax.Schema
 
     @compile {:no_warn_undefined, Example.NS.EX}
 
