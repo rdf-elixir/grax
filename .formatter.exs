@@ -3,7 +3,9 @@ locals_without_parens = [
   property: 2,
   property: 3,
   link: 1,
-  link: 3
+  link: 3,
+  field: 1,
+  field: 2
 ]
 
 [

@@ -13,7 +13,8 @@ defmodule Example do
       property name: EX.name(), type: :string
       property email: EX.email(), type: [:string]
       property age: EX.age(), type: :integer
-      property password: nil
+
+      field :password
 
       property customer_type: RDF.type(),
                from_rdf: :customer_type_from_rdf,

@@ -103,6 +103,12 @@ defmodule Grax.Schema do
     end
   end
 
+  defmacro field(name, opts \\ []) do
+    quote do
+      Grax.Schema.__field__(__MODULE__, unquote(name), unquote(opts))
+    end
+  end
+
   defmacro link(name, iri, opts) do
     iri = property_mapping_destination(iri)
 
@@ -126,16 +132,15 @@ defmodule Grax.Schema do
   end
 
   @doc false
-  def __property__(mod, name, iri, opts)
-  # virtual property
-  def __property__(mod, name, nil, opts) do
-    Module.put_attribute(mod, :struct_fields, {name, opts[:default]})
-  end
-
-  def __property__(mod, name, iri, opts) do
+  def __property__(mod, name, iri, opts) when not is_nil(iri) do
     property_schema = DataProperty.new(mod, name, iri, opts)
     Module.put_attribute(mod, :struct_fields, {name, property_schema.default})
     Module.put_attribute(mod, :rdf_property_acc, {name, property_schema})
+  end
+
+  @doc false
+  def __field__(mod, name, opts) do
+    Module.put_attribute(mod, :struct_fields, {name, opts[:default]})
   end
 
   @doc false

@@ -140,7 +140,7 @@ defmodule Grax do
 
           do_put_property(validation, mapping, property, value, property_schema)
 
-        # it's a virtual property
+        # it's a simple, unmapped field
         true ->
           {:ok, struct!(mapping, [{property, value}])}
       end
