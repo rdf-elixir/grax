@@ -9,7 +9,7 @@ defmodule Grax do
   alias Grax.{Schema, Validator, ValidationError}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
-  alias RDF.{IRI, BlankNode, Graph, Description}
+  alias RDF.{IRI, BlankNode, Graph}
 
   @__id__property_access_error Schema.InvalidProperty.exception(
                                  property: :__id__,

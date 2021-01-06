@@ -163,7 +163,7 @@ defmodule Grax.RDF.Preloader do
     map_while_ok(values, &map_link(&1, type, property_schema, graph, opts))
   end
 
-  defp map_link(resource, {:resource, module}, property_schema, graph, opts) do
+  defp map_link(resource, {:resource, module}, _property_schema, graph, opts) do
     module.load(graph, resource, opts)
   end
 end
