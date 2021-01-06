@@ -1,6 +1,8 @@
 # Grax
 
 [![CI](https://github.com/rdf-elixir/grax/workflows/CI/badge.svg?branch=master)](https://github.com/rdf-elixir/grax/actions?query=branch%3Amaster+workflow%3ACI)
+[![Hex.pm](https://img.shields.io/hexpm/v/grax.svg?style=flat-square)](https://hex.pm/packages/grax)
+[![License](https://img.shields.io/hexpm/l/grax.svg)](https://github.com/rdf-elixir/grax/blob/master/LICENSE.md)
 
 
 A light-weight graph data mapper which maps RDF graph data from [RDF.ex] data structures to schema-conform Elixir structs.
