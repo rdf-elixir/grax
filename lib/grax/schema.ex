@@ -1,5 +1,11 @@
 defmodule Grax.Schema do
-  @moduledoc false
+  @moduledoc """
+  A special type of struct for graph structures whose fields are mapped to RDF properties and
+  the types of values can be specified.
+
+  For now there is no API documentation.
+  Read about schemas in the guide [here](https://rdf-elixir.dev/grax/schemas.html).
+  """
 
   alias Grax.Schema.{DataProperty, LinkProperty}
   alias RDF.IRI
@@ -39,9 +45,6 @@ defmodule Grax.Schema do
     end
   end
 
-  @doc """
-  Defines a Grax schema.
-  """
   defmacro schema(class \\ nil, do: block) do
     schema(__CALLER__, class, block)
   end

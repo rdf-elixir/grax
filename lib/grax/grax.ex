@@ -1,4 +1,11 @@
 defmodule Grax do
+  @moduledoc """
+  The Grax API.
+
+  For now there is no API documentation.
+  Read about the API in the guide [here](https://rdf-elixir.dev/grax/api.html).
+  """
+
   alias Grax.{Schema, Validator, ValidationError}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
