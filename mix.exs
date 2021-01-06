@@ -56,7 +56,7 @@ defmodule Grax.MixProject do
 
   defp deps do
     [
-      {:rdf, github: "rdf-elixir/rdf-ex"},
+      {:rdf, ">= 0.9.2"},
       {:dialyxir, "~> 1.0", only: :dev, runtime: false},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false}
     ]
