@@ -25,6 +25,15 @@ defmodule Grax.MixProject do
         source_url: @repo_url,
         source_ref: "v#{@version}",
         extras: ["CHANGELOG.md"]
+      ],
+
+      # ExCoveralls
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
       ]
     ]
   end
@@ -58,7 +67,8 @@ defmodule Grax.MixProject do
     [
       {:rdf, ">= 0.9.2"},
       {:dialyxir, "~> 1.0", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.23", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.23", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.13", only: :test}
     ]
   end
 
