@@ -105,9 +105,10 @@ user
 
 ## Future Work
 
-- Storage backend adapters (eg. accessing SPARQL endpoints directly and support for non-RDF-based graph databases)
-- RDFS-support (eg. for class-based query builders)
-- More preloading strategies (for pattern- and path-based preloading)
+- I18n support (localization with language-tagged string literals)
+- Storage adapters (eg. accessing SPARQL endpoints directly and support for non-RDF-based graph databases)
+- RDFS support (eg. for class-based query builders)
+- More preloading strategies (eg. pattern- and path-based preloading)
 
 
 ## Contributing
