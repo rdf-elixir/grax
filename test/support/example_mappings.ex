@@ -250,7 +250,7 @@ defmodule Example do
     end
   end
 
-  defmodule MultipleLinkedSchemas do
+  defmodule HeterogeneousLinks do
     use Grax.Schema
 
     schema do
