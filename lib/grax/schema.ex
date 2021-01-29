@@ -119,9 +119,7 @@ defmodule Grax.Schema do
       do: raise(ArgumentError, "type missing for link #{name}")
 
     opts =
-      opts
-      |> Keyword.update!(:type, &expand_alias(&1, __CALLER__))
-      |> Keyword.put(:preload, opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec())
+      Keyword.put(opts, :preload, opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec())
 
     quote do
       Grax.Schema.__link__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
@@ -156,10 +154,4 @@ defmodule Grax.Schema do
 
   defp property_mapping_destination({:-, _line, [iri_expr]}), do: {:inverse, iri_expr}
   defp property_mapping_destination(iri_expr), do: iri_expr
-
-  defp expand_alias({:__aliases__, _, _} = ast, env),
-    do: Macro.expand(ast, %{env | function: {:__schema__, 2}})
-
-  defp expand_alias(ast, _env),
-    do: ast
 end
