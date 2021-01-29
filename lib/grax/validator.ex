@@ -152,6 +152,14 @@ defmodule Grax.Validator do
     end
   end
 
+  defp check_resource_type(validation, link, %type{} = value, {:resource, class_mapping}, opts)
+       when is_map(class_mapping) do
+    case call(value, opts) do
+      {:ok, _} -> validation
+      {:error, nested_validation} -> add_error(validation, link, nested_validation)
+    end
+  end
+
   defp check_resource_type(validation, link, value, type, _opts) do
     add_error(validation, link, TypeError.exception(value: value, type: type))
   end

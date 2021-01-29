@@ -82,7 +82,7 @@ defmodule Grax.Schema.LinkProperty do
   alias Grax.Schema.Property
   alias Grax.Link
 
-  defstruct Property.shared_attrs() ++ [:preload]
+  defstruct Property.shared_attrs() ++ [:preload, :on_type_mismatch]
 
   def new(mapping, name, iri, opts) do
     cond do
@@ -97,9 +97,22 @@ defmodule Grax.Schema.LinkProperty do
         |> Property.init(mapping, name, iri, opts)
         |> struct!(
           type: init_type(name, opts[:type]),
-          preload: opts[:preload]
+          preload: opts[:preload],
+          on_type_mismatch: init_on_type_mismatch(opts[:on_type_mismatch])
         )
     end
+  end
+
+  @valid_on_type_mismatch_values ~w[ignore error]a
+
+  defp init_on_type_mismatch(nil), do: :ignore
+  defp init_on_type_mismatch(value) when value in @valid_on_type_mismatch_values, do: value
+
+  defp init_on_type_mismatch(value) do
+    raise ArgumentError,
+          "invalid on_type_mismatch value: #{inspect(value)} (valid values: #{
+            inspect(@valid_on_type_mismatch_values)
+          })"
   end
 
   defp init_type(name, nil) do
@@ -123,8 +136,17 @@ defmodule Grax.Schema.LinkProperty do
     end
   end
 
-  defp resource_type(type) do
-    {:ok, {:resource, type}}
+  defp resource_type(class_mapping) when is_map(class_mapping) do
+    {:ok,
+     {:resource,
+      Map.new(class_mapping, fn
+        {nil, schema} -> {nil, schema}
+        {class, schema} -> {RDF.iri(class), schema}
+      end)}}
+  end
+
+  defp resource_type(schema) do
+    {:ok, {:resource, schema}}
   end
 
   def default(%__MODULE__{} = link_schema) do

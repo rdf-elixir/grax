@@ -21,7 +21,7 @@ defmodule Example do
                to_rdf: :customer_type_to_rdf
 
       link posts: EX.post(), type: [Example.Post]
-      link comments: EX.comment(), type: [Example.Comment]
+      link comments: -EX.author(), type: [%{EX.Comment => Example.Comment}]
 
       def customer_type_from_rdf(types, _description, _graph) do
         {:ok, if(RDF.iri(EX.PremiumUser) in types, do: :premium_user)}
@@ -247,6 +247,35 @@ defmodule Example do
     schema do
       property name: EX.name()
       link foo: -EX.foo(), type: [Example.User]
+    end
+  end
+
+  defmodule MultipleLinkedSchemas do
+    use Grax.Schema
+
+    schema do
+      property name: EX.name()
+
+      link one: EX.one(),
+           type: %{
+             EX.Post => Example.Post,
+             EX.Comment => Example.Comment
+           }
+
+      link strict_one: EX.strictOne(),
+           type: %{
+             EX.Post => Example.Post,
+             EX.Comment => Example.Comment
+           },
+           on_type_mismatch: :error
+
+      link many: EX.many(),
+           type: [
+             %{
+               nil => Example.Post,
+               EX.Comment => Example.Comment
+             }
+           ]
     end
   end
 

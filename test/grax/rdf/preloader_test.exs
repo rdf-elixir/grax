@@ -2,6 +2,7 @@ defmodule Grax.RDF.PreloaderTest do
   use Grax.TestCase
 
   alias Grax.RDF.Preloader
+  alias Grax.InvalidResourceTypeError
 
   test "link to itself without circle" do
     assert RDF.graph([
@@ -170,6 +171,142 @@ defmodule Grax.RDF.PreloaderTest do
                  )
                ]
              )
+  end
+
+  describe "links with multiple schemas" do
+    test "when a class matches" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.Post1) |> EX.strictOne(EX.Post1),
+               EX.Post1 |> RDF.type(EX.Post) |> EX.title("foo")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               Example.MultipleLinkedSchemas.build(EX.A,
+                 one: Example.Post.build!(EX.Post1, title: "foo"),
+                 strict_one: Example.Post.build!(EX.Post1, title: "foo"),
+                 many: []
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.one(EX.Comment1) |> EX.strictOne(EX.Comment1),
+               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               Example.MultipleLinkedSchemas.build(EX.A,
+                 one: Example.Comment.build!(EX.Comment1, content: "foo"),
+                 strict_one: Example.Comment.build!(EX.Comment1, content: "foo"),
+                 many: []
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.many(EX.Comment1),
+               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               Example.MultipleLinkedSchemas.build(EX.A,
+                 one: nil,
+                 strict_one: nil,
+                 many: [Example.Comment.build!(EX.Comment1, content: "foo")]
+               )
+    end
+
+    test "fallback" do
+      assert RDF.graph([
+               EX.A |> EX.many(EX.Post1),
+               EX.Post1 |> EX.title("foo")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               Example.MultipleLinkedSchemas.build(EX.A,
+                 one: nil,
+                 strict_one: nil,
+                 many: [Example.Post.build!(EX.Post1, title: "foo")]
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.many(EX.Post1) |> EX.many(EX.Comment1),
+               EX.Post1 |> RDF.type(EX.Other) |> EX.title("foo"),
+               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               Example.MultipleLinkedSchemas.build(EX.A,
+                 one: nil,
+                 strict_one: nil,
+                 many: [
+                   Example.Comment.build!(EX.Comment1, content: "foo"),
+                   Example.Post.build!(EX.Post1, title: "foo")
+                 ]
+               )
+    end
+
+    test "when no class matches with non-strict matching" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.Something)
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               Example.MultipleLinkedSchemas.build(EX.A,
+                 one: nil,
+                 strict_one: nil,
+                 many: []
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.one(EX.Something1) |> EX.one(EX.Something21),
+               EX.Something1 |> EX.foo("foo"),
+               EX.Something2 |> RDF.type(EX.Other) |> EX.bar("bar")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               Example.MultipleLinkedSchemas.build(EX.A,
+                 one: nil,
+                 strict_one: nil,
+                 many: []
+               )
+    end
+
+    test "when some classes don't match with non-strict matching" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.Something1) |> EX.one(EX.Comment1),
+               EX.Something1 |> EX.foo("foo"),
+               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("bar")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               Example.MultipleLinkedSchemas.build(EX.A,
+                 one: Example.Comment.build!(EX.Comment1, content: "bar"),
+                 strict_one: nil,
+                 many: []
+               )
+    end
+
+    test "when no class matches with strict matching" do
+      assert RDF.graph([
+               EX.A |> EX.strictOne(EX.Post1),
+               EX.Post1 |> EX.title("foo")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: [])}
+    end
+
+    test "when multiple class are matching" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.Post1),
+               EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               {:error,
+                InvalidResourceTypeError.exception(
+                  type: :multiple_matches,
+                  resource_types: [RDF.iri(EX.Comment), RDF.iri(EX.Post)]
+                )}
+
+      assert RDF.graph([
+               EX.A |> EX.strictOne(EX.Post1),
+               EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
+             ])
+             |> Example.MultipleLinkedSchemas.load(EX.A) ==
+               {:error,
+                InvalidResourceTypeError.exception(
+                  type: :multiple_matches,
+                  resource_types: [RDF.iri(EX.Comment), RDF.iri(EX.Post)]
+                )}
+    end
   end
 
   test "depth preloading" do

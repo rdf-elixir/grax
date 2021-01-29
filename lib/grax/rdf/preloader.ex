@@ -3,8 +3,7 @@ defmodule Grax.RDF.Preloader do
 
   alias RDF.{Description, Graph, Query}
   alias Grax.Schema
-
-  import RDF.Utils
+  alias Grax.InvalidResourceTypeError
 
   @default {:depth, 1}
 
@@ -152,7 +151,9 @@ defmodule Grax.RDF.Preloader do
   end
 
   defp map_links(values, {:set, type}, property_schema, graph, opts) do
-    map_while_ok(values, &map_link(&1, type, property_schema, graph, opts))
+    with {:ok, mapped} <- map_links(values, type, property_schema, graph, opts) do
+      {:ok, List.wrap(mapped)}
+    end
   end
 
   defp map_links([value], type, property_schema, graph, opts) do
@@ -160,10 +161,73 @@ defmodule Grax.RDF.Preloader do
   end
 
   defp map_links(values, type, property_schema, graph, opts) do
-    map_while_ok(values, &map_link(&1, type, property_schema, graph, opts))
+    Enum.reduce_while(values, {:ok, []}, fn value, {:ok, mapped} ->
+      case map_link(value, type, property_schema, graph, opts) do
+        {:ok, nil} -> {:cont, {:ok, mapped}}
+        {:ok, mapping} -> {:cont, {:ok, [mapping | mapped]}}
+        error -> {:halt, error}
+      end
+    end)
+    |> case do
+      {:ok, []} -> {:ok, nil}
+      {:ok, [mapped]} -> {:ok, mapped}
+      {:ok, mapped} -> {:ok, Enum.reverse(mapped)}
+      error -> error
+    end
   end
 
-  defp map_link(resource, {:resource, module}, _property_schema, graph, opts) do
-    module.load(graph, resource, opts)
+  defp map_link(resource, {:resource, class_mapping}, property_schema, graph, opts)
+       when is_map(class_mapping) do
+    description = Graph.description(graph, resource) || Description.new(resource)
+
+    with {:ok, schema} when not is_nil(schema) <-
+           determine_schema(
+             description[RDF.type()],
+             class_mapping,
+             property_schema.on_type_mismatch
+           ) do
+      schema.load(graph, resource, opts)
+    end
+  end
+
+  defp map_link(resource, {:resource, schema}, _property_schema, graph, opts) do
+    schema.load(graph, resource, opts)
+  end
+
+  defp determine_schema(types, class_mapping, on_type_mismatch) do
+    if types do
+      Enum.reduce(types, [], fn class, candidates ->
+        case class_mapping[class] do
+          nil -> candidates
+          schema -> [schema | candidates]
+        end
+      end)
+    else
+      []
+    end
+    |> case do
+      [schema] ->
+        {:ok, schema}
+
+      [] ->
+        case class_mapping[nil] do
+          nil ->
+            case on_type_mismatch do
+              :ignore ->
+                {:ok, nil}
+
+              :error ->
+                {:error,
+                 InvalidResourceTypeError.exception(type: :no_match, resource_types: types)}
+            end
+
+          schema ->
+            {:ok, schema}
+        end
+
+      _candidates ->
+        {:error,
+         InvalidResourceTypeError.exception(type: :multiple_matches, resource_types: types)}
+    end
   end
 end

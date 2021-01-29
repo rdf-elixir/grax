@@ -95,3 +95,25 @@ defmodule Grax.InvalidValueError do
     %__MODULE__{message: msg, value: value}
   end
 end
+
+defmodule Grax.InvalidResourceTypeError do
+  @moduledoc """
+  Raised when a linked resource doesn't match any of the specified classes.
+  """
+  defexception [:message, :type, :resource_types]
+
+  def exception(opts) do
+    type = Keyword.fetch!(opts, :type)
+    resource_types = Keyword.fetch!(opts, :resource_types) |> List.wrap()
+
+    msg =
+      opts[:message] ||
+        "invalid type of linked resource: " <>
+          case type do
+            :no_match -> "none of the types #{inspect(resource_types)} matches"
+            :multiple_matches -> "multiple matches for types #{inspect(resource_types)}"
+          end
+
+    %__MODULE__{message: msg, type: type, resource_types: resource_types}
+  end
+end
