@@ -9,7 +9,9 @@ defmodule Grax.RDF.Loader do
 
   def call(mapping_mod, initial, %Graph{} = graph, opts) do
     id = initial.__id__
-    description = Graph.description(graph, id) || Description.new(id)
+
+    {description, opts} =
+      Keyword.pop(opts, :description, Graph.description(graph, id) || Description.new(id))
 
     # TODO: Get rid of this! It's required currently for the case that the call received directly from load/4.
     opts =

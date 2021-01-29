@@ -186,7 +186,7 @@ defmodule Grax.RDF.Preloader do
              class_mapping,
              property_schema.on_type_mismatch
            ) do
-      schema.load(graph, resource, opts)
+      schema.load(graph, resource, Keyword.put(opts, :description, description))
     end
   end
 
