@@ -7,7 +7,7 @@ defmodule Grax.Schema do
   Read about schemas in the guide [here](https://rdf-elixir.dev/grax/schemas.html).
   """
 
-  alias Grax.Schema.{DataProperty, LinkProperty, Field}
+  alias Grax.Schema.{Property, DataProperty, LinkProperty, Field}
   alias RDF.IRI
 
   defmacro __using__(opts) do
@@ -155,7 +155,7 @@ defmodule Grax.Schema do
   def __link__(mod, name, iri, opts) do
     property_schema = LinkProperty.new(mod, name, iri, opts)
 
-    Module.put_attribute(mod, :struct_fields, {name, LinkProperty.default(property_schema)})
+    Module.put_attribute(mod, :struct_fields, {name, Property.default(property_schema.type)})
     Module.put_attribute(mod, :rdf_property_acc, {name, property_schema})
   end
 

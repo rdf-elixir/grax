@@ -1,8 +1,6 @@
 defmodule Grax.SchemaTest do
   use Grax.TestCase
 
-  alias Grax.Link
-
   describe "default values" do
     test "on properties and links" do
       assert %Example.DefaultValues{} ==
@@ -10,14 +8,8 @@ defmodule Grax.SchemaTest do
                  foo: "foo",
                  bar: "bar",
                  baz: 42,
-                 user: %Link.NotLoaded{
-                   __owner__: Example.DefaultValues,
-                   __field__: :user
-                 },
-                 posts: %Link.NotLoaded{
-                   __owner__: Example.DefaultValues,
-                   __field__: :posts
-                 }
+                 user: nil,
+                 posts: []
                }
     end
 

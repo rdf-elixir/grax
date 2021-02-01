@@ -1,6 +1,7 @@
 defmodule Example do
   alias Example.NS.EX
   alias RDF.{IRI, Description, Graph}
+  alias Grax.RDF.Loader
 
   import ExUnit.Assertions
 
@@ -63,6 +64,7 @@ defmodule Example do
       email: ~w[jd@example.com john@doe.com],
       customer_type: :premium_user
     }
+    |> Loader.init_link_properties()
   end
 
   def user(EX.User1, depth: 0) do
@@ -71,6 +73,7 @@ defmodule Example do
       name: "Erika Mustermann",
       email: ["erika@mustermann.de"]
     }
+    |> Loader.init_link_properties()
   end
 
   def user(EX.User2, depth: 0) do
@@ -79,6 +82,7 @@ defmodule Example do
       name: "Max Mustermann",
       email: ["max@mustermann.de"]
     }
+    |> Loader.init_link_properties()
   end
 
   def user(EX.User0, depth: depth) do
@@ -93,6 +97,7 @@ defmodule Example do
       title: "Lorem ipsum",
       content: "Lorem ipsum dolor sit amet, …"
     }
+    |> Loader.init_link_properties()
   end
 
   def post(depth: depth) do
@@ -112,6 +117,7 @@ defmodule Example do
       __id__: IRI.new(EX.Comment1),
       content: "First"
     }
+    |> Loader.init_link_properties()
   end
 
   def comment(EX.Comment2, depth: 0) do
@@ -119,6 +125,7 @@ defmodule Example do
       __id__: IRI.new(EX.Comment2),
       content: "Second"
     }
+    |> Loader.init_link_properties()
   end
 
   def comment(EX.Comment1, depth: depth) do

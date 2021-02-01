@@ -2,6 +2,7 @@ defmodule Grax.RDF.LoaderTest do
   use Grax.TestCase
 
   alias Grax.{ValidationError, InvalidValueError}
+  alias Grax.RDF.Loader
   alias Grax.Schema.TypeError
 
   test "successful mapping from a graph" do
@@ -237,7 +238,9 @@ defmodule Grax.RDF.LoaderTest do
              |> Example.User.load(EX.User0) ==
                {:ok,
                 Example.user(EX.User0)
-                |> Map.put(:posts, [Example.Post.build!(EX.Post0)])}
+                |> Map.put(:posts, [
+                  Example.Post.build!(EX.Post0) |> Loader.init_link_properties()
+                ])}
     end
 
     test "load/2 when the nested description doesn't match the nested schema" do

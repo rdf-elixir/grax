@@ -6,7 +6,7 @@ defmodule Grax do
   Read about the API in the guide [here](https://rdf-elixir.dev/grax/api.html).
   """
 
-  alias Grax.{Schema, Validator, ValidationError}
+  alias Grax.{Schema, Link, Validator, ValidationError}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph}
@@ -173,7 +173,7 @@ defmodule Grax do
   end
 
   defp do_put_property(validation, mapping, property, value, property_schema) do
-    value = if Schema.Property.value_set?(property_schema), do: List.wrap(value), else: value
+    value = normalize_value(value, property_schema)
 
     Validator
     |> apply(validation, [ValidationError.exception(), property, value, property_schema, []])
@@ -186,14 +186,7 @@ defmodule Grax do
   def put!(_, :__id__, _), do: raise(@__id__property_access_error)
 
   def put!(%mapping_mod{} = mapping, property, value) do
-    property_schema = mapping_mod.__property__(property)
-
-    value =
-      if property_schema && Schema.Property.value_set?(property_schema),
-        do: List.wrap(value),
-        else: value
-
-    struct!(mapping, [{property, value}])
+    struct!(mapping, [{property, normalize_value(value, mapping_mod.__property__(property))}])
   end
 
   def put!(%_{} = mapping, values) do
@@ -201,6 +194,16 @@ defmodule Grax do
       {property, value}, mapping ->
         put!(mapping, property, value)
     end)
+  end
+
+  defp normalize_value(%Link.NotLoaded{} = value, _), do: value
+  defp normalize_value(Link.NotLoaded, property_schema), do: Link.NotLoaded.new(property_schema)
+
+  defp normalize_value(value, property_schema) do
+    cond do
+      property_schema && Schema.Property.value_set?(property_schema) -> List.wrap(value)
+      true -> value
+    end
   end
 
   @spec validate(struct, opts :: Keyword) :: {:ok, struct} | {:error, ValidationError.t()}

@@ -3,7 +3,7 @@ defmodule Grax.RDF.Loader do
 
   alias RDF.{Literal, IRI, BlankNode, Graph, Description}
   alias Grax.RDF.Preloader
-  alias Grax.InvalidValueError
+  alias Grax.{Link, InvalidValueError}
 
   import RDF.Utils
 
@@ -23,6 +23,8 @@ defmodule Grax.RDF.Loader do
 
     with {:ok, mapping} <-
            load_data_properties(mapping_mod, initial, graph, description),
+         {:ok, mapping} <-
+           init_link_properties(mapping_mod, mapping),
          {:ok, mapping} <-
            init_fields(mapping_mod, mapping, graph, description) do
       Preloader.call(
@@ -61,6 +63,21 @@ defmodule Grax.RDF.Loader do
           {:cont, {:ok, mapping}}
       end
     end)
+  end
+
+  @doc false
+  def init_link_properties(%mapping_mod{} = mapping) do
+    with {:ok, mapping} <- init_link_properties(mapping_mod, mapping) do
+      mapping
+    end
+  end
+
+  defp init_link_properties(mapping_mod, mapping) do
+    {:ok,
+     mapping_mod.__properties__(:link)
+     |> Enum.reduce(mapping, fn {link, link_schema}, mapping ->
+       Map.put(mapping, link, Link.NotLoaded.new(link_schema))
+     end)}
   end
 
   defp init_fields(mapping_mod, mapping, graph, description) do

@@ -21,6 +21,9 @@ defmodule Grax.Schema.Property do
   def value_set?(%{type: type}), do: value_set?(type)
   def value_set?({:set, _}), do: true
   def value_set?(_), do: false
+
+  def default({:set, _}), do: []
+  def default(_), do: nil
 end
 
 defmodule Grax.Schema.DataProperty do
@@ -59,13 +62,12 @@ defmodule Grax.Schema.DataProperty do
     end
   end
 
-  defp init_default({:set, _}, nil), do: []
+  defp init_default(type, nil), do: Property.default(type)
 
   defp init_default({:set, _}, _),
     do: raise(ArgumentError, "the :default option is not supported on sets")
 
   defp init_default(nil, default), do: default
-  defp init_default(_, nil), do: nil
 
   defp init_default(type, default) do
     if Literal.new(default) |> Literal.is_a?(type) do

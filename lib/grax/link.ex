@@ -15,6 +15,13 @@ defmodule Grax.Link.NotLoaded do
 
   defstruct [:__field__, :__owner__]
 
+  def new(link_schema) do
+    %__MODULE__{
+      __owner__: link_schema.mapping,
+      __field__: link_schema.name
+    }
+  end
+
   defimpl Inspect do
     def inspect(not_loaded, _opts) do
       msg = "link #{inspect(not_loaded.__field__)} is not loaded"

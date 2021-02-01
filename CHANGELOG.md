@@ -13,6 +13,12 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   to different schemas
 - support for custom `:from_rdf` mappings on custom fields  
 
+### Changed
+
+- the default value of link properties has been changed to `nil` respective the empty list
+  (previously it was a `Grax.Link.NotLoaded` struct, which is now set explicitly 
+  during loading)
+
 
 [Compare v0.1.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.1.0...HEAD)
 
