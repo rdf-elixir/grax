@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 - support for heterogeneous link properties which can link different types of resources
   to different schemas
+- support for custom `:from_rdf` mappings on custom fields  
 
 
 [Compare v0.1.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.1.0...HEAD)

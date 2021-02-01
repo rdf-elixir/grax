@@ -309,7 +309,7 @@ defmodule Grax.RDF.LoaderTest do
     end
   end
 
-  describe "custom mapping" do
+  describe "custom mapping on data properties" do
     test "untyped data properties" do
       assert EX.S
              |> EX.foo(~L"foo")
@@ -337,6 +337,25 @@ defmodule Grax.RDF.LoaderTest do
              |> EX.foo(~L"foo1", ~L"foo2")
              |> Example.CustomMapping.load(EX.S) ==
                {:error, "multiple :foo values found"}
+    end
+  end
+
+  describe "custom mapping on custom fields" do
+    test "when the mapping function returns an ok tuple" do
+      uuid = "9fb44168-90f9-4d9c-a057-5dacb3adc104"
+      uuid_urn = "urn:uuid:#{uuid}"
+
+      assert uuid_urn
+             |> EX.foo("foo")
+             |> Example.CustomMappingOnCustomFields.load(uuid_urn) ==
+               Example.CustomMappingOnCustomFields.build(uuid_urn, uuid: uuid)
+    end
+
+    test "when the mapping function returns an error tuple" do
+      assert EX.S
+             |> EX.foo("foo")
+             |> Example.CustomMappingOnCustomFields.load(EX.S) ==
+               {:error, "invalid id"}
     end
   end
 end

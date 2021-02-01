@@ -378,4 +378,20 @@ defmodule Example do
 
     defp do_to_bar(iri), do: IRI.parse(iri).path |> Path.basename()
   end
+
+  defmodule CustomMappingOnCustomFields do
+    use Grax.Schema
+
+    schema do
+      field :uuid, from_rdf: :to_uuid
+    end
+
+    def to_uuid(%Description{subject: %{value: "urn:uuid:" <> uuid}}, graph) do
+      assert %Graph{} = graph
+
+      {:ok, uuid}
+    end
+
+    def to_uuid(_, _), do: {:error, "invalid id"}
+  end
 end

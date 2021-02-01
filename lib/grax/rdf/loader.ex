@@ -21,6 +21,29 @@ defmodule Grax.RDF.Loader do
         opts
       end
 
+    with {:ok, mapping} <-
+           load_data_properties(mapping_mod, initial, graph, description),
+         {:ok, mapping} <-
+           init_fields(mapping_mod, mapping, graph, description) do
+      Preloader.call(
+        mapping_mod,
+        mapping,
+        graph,
+        description,
+        opts
+      )
+    end
+  end
+
+  def call(mapping, initial, %Description{} = description, opts) do
+    call(mapping, initial, Graph.new(description), opts)
+  end
+
+  def call(_, _, invalid, _) do
+    raise ArgumentError, "invalid input data: #{inspect(invalid)}"
+  end
+
+  defp load_data_properties(mapping_mod, initial, graph, description) do
     mapping_mod.__properties__(:data)
     |> Enum.reduce_while({:ok, initial}, fn {property, property_schema}, {:ok, mapping} ->
       cond do
@@ -38,27 +61,23 @@ defmodule Grax.RDF.Loader do
           {:cont, {:ok, mapping}}
       end
     end)
-    |> case do
-      {:ok, mapping} ->
-        Preloader.call(
-          mapping_mod,
-          mapping,
-          graph,
-          description,
-          opts
-        )
-
-      error ->
-        error
-    end
   end
 
-  def call(mapping, initial, %Description{} = description, opts) do
-    call(mapping, initial, Graph.new(description), opts)
-  end
+  defp init_fields(mapping_mod, mapping, graph, description) do
+    mapping_mod.__fields__()
+    |> Enum.reduce_while({:ok, mapping}, fn
+      {_, %{from_rdf: nil}}, mapping ->
+        {:cont, mapping}
 
-  def call(_, _, invalid, _) do
-    raise ArgumentError, "invalid input data: #{inspect(invalid)}"
+      {field, %{from_rdf: from_rdf}}, {:ok, mapping} ->
+        case apply(mapping_mod, from_rdf, [description, graph]) do
+          {:ok, result} ->
+            {:cont, {:ok, Map.put(mapping, field, result)}}
+
+          error ->
+            {:halt, error}
+        end
+    end)
   end
 
   defp handle(objects, description, graph, property_schema)

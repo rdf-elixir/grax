@@ -7,7 +7,7 @@ defmodule Grax.Schema do
   Read about schemas in the guide [here](https://rdf-elixir.dev/grax/schemas.html).
   """
 
-  alias Grax.Schema.{DataProperty, LinkProperty}
+  alias Grax.Schema.{DataProperty, LinkProperty, Field}
   alias RDF.IRI
 
   defmacro __using__(opts) do
@@ -42,6 +42,7 @@ defmodule Grax.Schema do
       def __has_property__?(property), do: Keyword.has_key?(@struct_fields, property)
 
       Module.delete_attribute(__MODULE__, :rdf_property_acc)
+      Module.delete_attribute(__MODULE__, :field_acc)
     end
   end
 
@@ -63,6 +64,7 @@ defmodule Grax.Schema do
 
         Module.register_attribute(__MODULE__, :struct_fields, accumulate: true)
         Module.register_attribute(__MODULE__, :rdf_property_acc, accumulate: true)
+        Module.register_attribute(__MODULE__, :field_acc, accumulate: true)
 
         try do
           import unquote(__MODULE__)
@@ -86,11 +88,20 @@ defmodule Grax.Schema do
           do: @__properties__ |> Enum.filter(&match?({_, %LinkProperty{}}, &1))
 
         def __property__(property), do: @__properties__[property]
+
+        @__fields__ Map.new(@field_acc)
+        def __fields__, do: @__fields__
       end
 
     quote do
       unquote(prelude)
       unquote(postlude)
+    end
+  end
+
+  defmacro field(name, opts \\ []) do
+    quote do
+      Grax.Schema.__field__(__MODULE__, unquote(name), unquote(opts))
     end
   end
 
@@ -103,12 +114,6 @@ defmodule Grax.Schema do
   defmacro property(name, iri, opts \\ []) do
     quote do
       Grax.Schema.__property__(__MODULE__, unquote(name), unquote(iri), unquote(opts))
-    end
-  end
-
-  defmacro field(name, opts \\ []) do
-    quote do
-      Grax.Schema.__field__(__MODULE__, unquote(name), unquote(opts))
     end
   end
 
@@ -133,15 +138,17 @@ defmodule Grax.Schema do
   end
 
   @doc false
+  def __field__(mod, name, opts) do
+    field_schema = Field.new(name, opts)
+    Module.put_attribute(mod, :struct_fields, {name, opts[:default]})
+    Module.put_attribute(mod, :field_acc, {name, field_schema})
+  end
+
+  @doc false
   def __property__(mod, name, iri, opts) when not is_nil(iri) do
     property_schema = DataProperty.new(mod, name, iri, opts)
     Module.put_attribute(mod, :struct_fields, {name, property_schema.default})
     Module.put_attribute(mod, :rdf_property_acc, {name, property_schema})
-  end
-
-  @doc false
-  def __field__(mod, name, opts) do
-    Module.put_attribute(mod, :struct_fields, {name, opts[:default]})
   end
 
   @doc false
