@@ -480,7 +480,7 @@ defmodule Grax.RDF.PreloaderTest do
       end)
     end
 
-    test "from general mapping preload spec" do
+    test "from general schema preload spec" do
       %{
         {0, nil, Example.AddDepthPreloading} => {true, nil, 3},
         {0, 0, Example.AddDepthPreloading} => {true, nil, 3},
@@ -490,13 +490,13 @@ defmodule Grax.RDF.PreloaderTest do
         {1, 1, Example.AddDepthPreloading} => {true, nil, 4},
         {1, 5, Example.AddDepthPreloading} => {true, nil, 4}
       }
-      |> Enum.each(fn {{depth, max_depth, mapping_mod}, expected_result} ->
-        result = Preloader.next_preload_opt(nil, nil, mapping_mod, :next, depth, max_depth)
+      |> Enum.each(fn {{depth, max_depth, schema}, expected_result} ->
+        result = Preloader.next_preload_opt(nil, nil, schema, :next, depth, max_depth)
 
         assert result == expected_result,
-               "expected result for {#{inspect(depth)}, #{inspect(max_depth)}, #{
-                 inspect(mapping_mod)
-               }} is #{inspect(expected_result)} but gut #{inspect(result)}"
+               "expected result for {#{inspect(depth)}, #{inspect(max_depth)}, #{inspect(schema)}} is #{
+                 inspect(expected_result)
+               } but gut #{inspect(result)}"
       end)
     end
 

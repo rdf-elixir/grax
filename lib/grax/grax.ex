@@ -91,12 +91,12 @@ defmodule Grax do
     end
   end
 
-  def preload(%mapping_mod{} = mapping, graph, opts \\ []) do
-    Preloader.call(mapping_mod, mapping, graph, setup_depth_preload_opts(opts))
+  def preload(%schema{} = mapping, graph, opts \\ []) do
+    Preloader.call(schema, mapping, graph, setup_depth_preload_opts(opts))
   end
 
-  def preload!(%mapping_mod{} = mapping, graph, opts \\ []) do
-    Preloader.call(mapping_mod, mapping, graph, [
+  def preload!(%schema{} = mapping, graph, opts \\ []) do
+    Preloader.call(schema, mapping, graph, [
       {:validate, false} | setup_depth_preload_opts(opts)
     ])
     |> case do
@@ -135,10 +135,10 @@ defmodule Grax do
 
   def put(_, :__id__, _), do: {:error, @__id__property_access_error}
 
-  def put(%mapping_mod{} = mapping, property, value) do
-    if mapping_mod.__has_property__?(property) do
+  def put(%schema{} = mapping, property, value) do
+    if schema.__has_property__?(property) do
       cond do
-        property_schema = mapping_mod.__property__(property) ->
+        property_schema = schema.__property__(property) ->
           validation =
             case property_schema.__struct__ do
               Schema.DataProperty -> :check_property
@@ -185,8 +185,8 @@ defmodule Grax do
 
   def put!(_, :__id__, _), do: raise(@__id__property_access_error)
 
-  def put!(%mapping_mod{} = mapping, property, value) do
-    struct!(mapping, [{property, normalize_value(value, mapping_mod.__property__(property))}])
+  def put!(%schema{} = mapping, property, value) do
+    struct!(mapping, [{property, normalize_value(value, schema.__property__(property))}])
   end
 
   def put!(%_{} = mapping, values) do

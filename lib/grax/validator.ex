@@ -25,16 +25,16 @@ defmodule Grax.Validator do
     add_error(validation, :__id__, InvalidIdError.exception(id: id))
   end
 
-  defp check_properties(validation, %mapping_mod{} = mapping, opts) do
-    mapping_mod.__properties__(:data)
+  defp check_properties(validation, %schema{} = mapping, opts) do
+    schema.__properties__(:data)
     |> Enum.reduce(validation, fn {property, property_schema}, validation ->
       value = Map.get(mapping, property)
       check_property(validation, property, value, property_schema, opts)
     end)
   end
 
-  defp check_links(validation, %mapping_mod{} = mapping, opts) do
-    mapping_mod.__properties__(:link)
+  defp check_links(validation, %schema{} = mapping, opts) do
+    schema.__properties__(:link)
     |> Enum.reduce(validation, fn {link, link_schema}, validation ->
       value = Map.get(mapping, link)
       check_link(validation, link, value, link_schema, opts)

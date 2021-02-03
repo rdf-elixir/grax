@@ -9,24 +9,24 @@ defmodule Grax.RDF.Preloader do
 
   def default, do: @default
 
-  def call(mapping_mod, mapping, graph, opts) do
+  def call(schema, mapping, graph, opts) do
     description = Graph.description(graph, mapping.__id__) || Description.new(mapping.__id__)
-    call(mapping_mod, mapping, graph, description, opts)
+    call(schema, mapping, graph, description, opts)
   end
 
-  def call(mapping_mod, mapping, graph, description, opts) do
+  def call(schema, mapping, graph, description, opts) do
     graph_load_path = Keyword.get(opts, :__graph_load_path__, [])
     depth = length(graph_load_path)
     graph_load_path = [mapping.__id__ | graph_load_path]
     opts = Keyword.put(opts, :__graph_load_path__, graph_load_path)
-    link_schemas = mapping_mod.__properties__(:link)
+    link_schemas = schema.__properties__(:link)
 
     Enum.reduce_while(link_schemas, {:ok, mapping}, fn {link, link_schema}, {:ok, mapping} ->
       {preload?, next_preload_opt, max_preload_depth} =
         next_preload_opt(
           Keyword.get(opts, :preload),
           link_schema.preload,
-          mapping_mod,
+          schema,
           link,
           depth,
           Keyword.get(opts, :__max_preload_depth__)
@@ -87,11 +87,11 @@ defmodule Grax.RDF.Preloader do
     Description.get(description, property_iri)
   end
 
-  def next_preload_opt(nil, nil, mapping_mod, link, depth, max_depth) do
+  def next_preload_opt(nil, nil, schema, link, depth, max_depth) do
     next_preload_opt(
       nil,
-      mapping_mod.__preload_default__() || @default,
-      mapping_mod,
+      schema.__preload_default__() || @default,
+      schema,
       link,
       depth,
       max_depth
@@ -117,28 +117,27 @@ defmodule Grax.RDF.Preloader do
   def next_preload_opt(
         {:depth, max_depth} = depth_tuple,
         preload_spec,
-        mapping_mod,
+        schema,
         _link,
         depth,
         parent_max_depth
       ) do
-    {max_depth - depth > 0, depth_tuple,
-     max_depth(parent_max_depth, preload_spec, mapping_mod, depth)}
+    {max_depth - depth > 0, depth_tuple, max_depth(parent_max_depth, preload_spec, schema, depth)}
   end
 
-  def next_preload_opt({:add_depth, add_depth}, preload_spec, mapping_mod, _, depth, _) do
+  def next_preload_opt({:add_depth, add_depth}, preload_spec, schema, _, depth, _) do
     new_depth = depth + add_depth
 
     {new_depth - depth > 0, {:depth, new_depth},
-     max_depth(new_depth, preload_spec, mapping_mod, depth)}
+     max_depth(new_depth, preload_spec, schema, depth)}
   end
 
   defp max_depth(_, {:depth, max_depth}, _, 0), do: max_depth
   defp max_depth(_, {:add_depth, add_depth}, _, depth), do: depth + add_depth
   defp max_depth(max_depth, _, _, _) when is_integer(max_depth), do: max_depth
 
-  defp max_depth(nil, nil, mapping_mod, depth),
-    do: max_depth(nil, mapping_mod.__preload_default__() || @default, nil, depth)
+  defp max_depth(nil, nil, schema, depth),
+    do: max_depth(nil, schema.__preload_default__() || @default, nil, depth)
 
   defp circle?(objects, graph_load_path) do
     Enum.any?(objects, &(&1 in graph_load_path))

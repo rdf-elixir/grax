@@ -1,13 +1,13 @@
 defmodule Grax.Schema.Property do
   @moduledoc false
 
-  @shared_attrs [:mapping, :name, :iri, :type, :from_rdf, :to_rdf]
+  @shared_attrs [:schema, :name, :iri, :type, :from_rdf, :to_rdf]
 
   def shared_attrs, do: @shared_attrs
 
-  def init(property_schema, mapping, name, iri, opts) when is_atom(name) do
+  def init(property_schema, schema, name, iri, opts) when is_atom(name) do
     struct!(property_schema,
-      mapping: mapping,
+      schema: schema,
       name: name,
       iri: normalize_iri(iri),
       from_rdf: opts[:from_rdf],
@@ -37,11 +37,11 @@ defmodule Grax.Schema.DataProperty do
 
   @default_type :any
 
-  def new(mapping, name, iri, opts) do
+  def new(schema, name, iri, opts) do
     type = init_type(name, opts[:type])
 
     __MODULE__
-    |> Property.init(mapping, name, iri, opts)
+    |> Property.init(schema, name, iri, opts)
     |> struct!(
       type: type,
       default: init_default(type, opts[:default]),
@@ -86,7 +86,7 @@ defmodule Grax.Schema.LinkProperty do
 
   defstruct Property.shared_attrs() ++ [:preload, :on_type_mismatch]
 
-  def new(mapping, name, iri, opts) do
+  def new(schema, name, iri, opts) do
     cond do
       Keyword.has_key?(opts, :default) ->
         raise ArgumentError, "the :default option is not supported on links"
@@ -96,7 +96,7 @@ defmodule Grax.Schema.LinkProperty do
 
       true ->
         __MODULE__
-        |> Property.init(mapping, name, iri, opts)
+        |> Property.init(schema, name, iri, opts)
         |> struct!(
           type: init_type(name, opts[:type]),
           preload: opts[:preload],
@@ -153,7 +153,7 @@ defmodule Grax.Schema.LinkProperty do
 
   def default(%__MODULE__{} = link_schema) do
     %Link.NotLoaded{
-      __owner__: link_schema.mapping,
+      __owner__: link_schema.schema,
       __field__: link_schema.name
     }
   end

@@ -17,7 +17,7 @@ defmodule Grax.Link.NotLoaded do
 
   def new(link_schema) do
     %__MODULE__{
-      __owner__: link_schema.mapping,
+      __owner__: link_schema.schema,
       __field__: link_schema.name
     }
   end

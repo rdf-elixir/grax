@@ -5,9 +5,9 @@ defmodule Grax.RDF.Mapper do
   alias Grax.{Link, Validator}
   alias Grax.Schema.TypeError
 
-  def call(%mapping_mod{} = mapping, opts) do
+  def call(%schema{} = mapping, opts) do
     with {:ok, mapping} <- Validator.call(mapping, opts) do
-      mapping_mod.__properties__()
+      schema.__properties__()
       |> Enum.reduce_while(
         {:ok, Description.new(mapping.__id__), Graph.new()},
         fn {property_name, property_schema}, {:ok, description, graph} ->
@@ -36,7 +36,7 @@ defmodule Grax.RDF.Mapper do
       |> case do
         {:ok, description, graph} ->
           description =
-            if class = mapping_mod.__class__() do
+            if class = schema.__class__() do
               description |> RDF.type(RDF.iri(class))
             else
               description
@@ -73,7 +73,7 @@ defmodule Grax.RDF.Mapper do
 
   defp handle(values, mapping, %{to_rdf: to_rdf} = property_schema, _opts)
        when not is_nil(to_rdf) do
-    case apply(property_schema.mapping, to_rdf, [values, mapping]) do
+    case apply(property_schema.schema, to_rdf, [values, mapping]) do
       {:ok, values} -> {:ok, values, nil}
       pass_through -> pass_through
     end

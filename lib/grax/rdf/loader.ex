@@ -7,7 +7,7 @@ defmodule Grax.RDF.Loader do
 
   import RDF.Utils
 
-  def call(mapping_mod, initial, %Graph{} = graph, opts) do
+  def call(schema, initial, %Graph{} = graph, opts) do
     id = initial.__id__
 
     {description, opts} =
@@ -22,13 +22,13 @@ defmodule Grax.RDF.Loader do
       end
 
     with {:ok, mapping} <-
-           load_data_properties(mapping_mod, initial, graph, description),
+           load_data_properties(schema, initial, graph, description),
          {:ok, mapping} <-
-           init_link_properties(mapping_mod, mapping),
+           init_link_properties(schema, mapping),
          {:ok, mapping} <-
-           init_fields(mapping_mod, mapping, graph, description) do
+           init_fields(schema, mapping, graph, description) do
       Preloader.call(
-        mapping_mod,
+        schema,
         mapping,
         graph,
         description,
@@ -45,8 +45,8 @@ defmodule Grax.RDF.Loader do
     raise ArgumentError, "invalid input data: #{inspect(invalid)}"
   end
 
-  defp load_data_properties(mapping_mod, initial, graph, description) do
-    mapping_mod.__properties__(:data)
+  defp load_data_properties(schema, initial, graph, description) do
+    schema.__properties__(:data)
     |> Enum.reduce_while({:ok, initial}, fn {property, property_schema}, {:ok, mapping} ->
       cond do
         objects = Description.get(description, property_schema.iri) ->
@@ -66,28 +66,28 @@ defmodule Grax.RDF.Loader do
   end
 
   @doc false
-  def init_link_properties(%mapping_mod{} = mapping) do
-    with {:ok, mapping} <- init_link_properties(mapping_mod, mapping) do
+  def init_link_properties(%schema{} = mapping) do
+    with {:ok, mapping} <- init_link_properties(schema, mapping) do
       mapping
     end
   end
 
-  defp init_link_properties(mapping_mod, mapping) do
+  defp init_link_properties(schema, mapping) do
     {:ok,
-     mapping_mod.__properties__(:link)
+     schema.__properties__(:link)
      |> Enum.reduce(mapping, fn {link, link_schema}, mapping ->
        Map.put(mapping, link, Link.NotLoaded.new(link_schema))
      end)}
   end
 
-  defp init_fields(mapping_mod, mapping, graph, description) do
-    mapping_mod.__fields__()
+  defp init_fields(schema, mapping, graph, description) do
+    schema.__fields__()
     |> Enum.reduce_while({:ok, mapping}, fn
       {_, %{from_rdf: nil}}, mapping ->
         {:cont, mapping}
 
       {field, %{from_rdf: from_rdf}}, {:ok, mapping} ->
-        case apply(mapping_mod, from_rdf, [description, graph]) do
+        case apply(schema, from_rdf, [description, graph]) do
           {:ok, result} ->
             {:cont, {:ok, Map.put(mapping, field, result)}}
 
@@ -101,7 +101,7 @@ defmodule Grax.RDF.Loader do
 
   defp handle(objects, description, graph, %{from_rdf: from_rdf} = property_schema)
        when not is_nil(from_rdf) do
-    apply(property_schema.mapping, from_rdf, [objects, description, graph])
+    apply(property_schema.schema, from_rdf, [objects, description, graph])
   end
 
   defp handle(objects, _description, _graph, property_schema) do
