@@ -319,7 +319,7 @@ defmodule Example do
     use Grax.Schema
 
     schema do
-      property dp1: EX.dp1()
+      property dp1: EX.dp1(), from_rdf: :upcase
       property dp2: EX.dp2()
 
       field :f1, default: :foo
@@ -328,6 +328,8 @@ defmodule Example do
       link lp1: EX.lp1(), type: Example.User
       link lp2: EX.lp2(), type: Example.User
     end
+
+    def upcase([foo], _, _), do: {:ok, foo |> to_string |> String.upcase()}
   end
 
   defmodule ChildSchema do
@@ -439,5 +441,24 @@ defmodule Example do
     end
 
     def to_uuid(_, _), do: {:error, "invalid id"}
+  end
+
+  defmodule CustomMappingInSeparateModule do
+    use Grax.Schema
+
+    schema do
+      property foo: EX.foo(),
+               from_rdf: {Example.SeparateCustomMappingModule, :to_foo},
+               to_rdf: {Example.SeparateCustomMappingModule, :from_foo}
+
+      field :bar, from_rdf: {Example.SeparateCustomMappingModule, :to_bar}
+    end
+  end
+
+  defmodule SeparateCustomMappingModule do
+    def to_foo([foo], _, _), do: {:ok, foo |> to_string |> String.upcase()}
+    def from_foo(foo, _), do: {:ok, foo |> String.downcase()}
+
+    def to_bar(_, _), do: {:ok, "bar"}
   end
 end

@@ -86,8 +86,8 @@ defmodule Grax.RDF.Loader do
       {_, %{from_rdf: nil}}, mapping ->
         {:cont, mapping}
 
-      {field, %{from_rdf: from_rdf}}, {:ok, mapping} ->
-        case apply(schema, from_rdf, [description, graph]) do
+      {field, %{from_rdf: {mod, fun}}}, {:ok, mapping} ->
+        case apply(mod, fun, [description, graph]) do
           {:ok, result} ->
             {:cont, {:ok, Map.put(mapping, field, result)}}
 
@@ -99,9 +99,8 @@ defmodule Grax.RDF.Loader do
 
   defp handle(objects, description, graph, property_schema)
 
-  defp handle(objects, description, graph, %{from_rdf: from_rdf} = property_schema)
-       when not is_nil(from_rdf) do
-    apply(property_schema.schema, from_rdf, [objects, description, graph])
+  defp handle(objects, description, graph, %{from_rdf: {mod, fun}}) do
+    apply(mod, fun, [objects, description, graph])
   end
 
   defp handle(objects, _description, _graph, property_schema) do

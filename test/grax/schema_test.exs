@@ -88,7 +88,8 @@ defmodule Grax.SchemaTest do
                  name: :dp1,
                  iri: ~I<http://example.com/dp1>,
                  schema: Example.ChildSchema,
-                 required: false
+                 required: false,
+                 from_rdf: {Example.ParentSchema, :upcase}
                },
                dp2: %Grax.Schema.DataProperty{
                  name: :dp2,
@@ -134,7 +135,7 @@ defmodule Grax.SchemaTest do
                },
                f2: %Grax.Schema.CustomField{
                  name: :f2,
-                 from_rdf: :foo
+                 from_rdf: {Example.ChildSchema, :foo}
                },
                f3: %Grax.Schema.CustomField{
                  name: :f3

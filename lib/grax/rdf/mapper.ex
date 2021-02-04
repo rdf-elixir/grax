@@ -71,9 +71,8 @@ defmodule Grax.RDF.Mapper do
     }
   end
 
-  defp handle(values, mapping, %{to_rdf: to_rdf} = property_schema, _opts)
-       when not is_nil(to_rdf) do
-    case apply(property_schema.schema, to_rdf, [values, mapping]) do
+  defp handle(values, mapping, %{to_rdf: {mod, fun}}, _opts) do
+    case apply(mod, fun, [values, mapping]) do
       {:ok, values} -> {:ok, values, nil}
       pass_through -> pass_through
     end

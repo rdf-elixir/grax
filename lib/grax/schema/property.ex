@@ -1,17 +1,15 @@
 defmodule Grax.Schema.Property do
   @moduledoc false
 
-  @shared_attrs [:schema, :name, :iri, :type, :from_rdf, :to_rdf]
+  @shared_attrs [:schema, :name, :iri, :type]
 
   def shared_attrs, do: @shared_attrs
 
-  def init(property_schema, schema, name, iri, opts) when is_atom(name) do
+  def init(property_schema, schema, name, iri, _opts) when is_atom(name) do
     struct!(property_schema,
       schema: schema,
       name: name,
-      iri: normalize_iri(iri),
-      from_rdf: opts[:from_rdf],
-      to_rdf: opts[:to_rdf]
+      iri: normalize_iri(iri)
     )
   end
 
@@ -33,7 +31,7 @@ defmodule Grax.Schema.DataProperty do
   alias Grax.Datatype
   alias RDF.Literal
 
-  defstruct Property.shared_attrs() ++ [:required, :default]
+  defstruct Property.shared_attrs() ++ [:required, :default, :from_rdf, :to_rdf]
 
   @default_type :any
 
@@ -45,7 +43,9 @@ defmodule Grax.Schema.DataProperty do
     |> struct!(
       type: type,
       default: init_default(type, opts[:default]),
-      required: Keyword.get(opts, :required, false)
+      required: Keyword.get(opts, :required, false),
+      from_rdf: normalize_custom_mapping_fun(opts[:from_rdf], schema),
+      to_rdf: normalize_custom_mapping_fun(opts[:to_rdf], schema)
     )
   end
 
@@ -76,6 +76,11 @@ defmodule Grax.Schema.DataProperty do
       raise ArgumentError, "default value #{inspect(default)} doesn't match type #{inspect(type)}"
     end
   end
+
+  @doc false
+  def normalize_custom_mapping_fun(nil, _), do: nil
+  def normalize_custom_mapping_fun({_, _} = mod_fun, _), do: mod_fun
+  def normalize_custom_mapping_fun(fun, schema), do: {schema, fun}
 end
 
 defmodule Grax.Schema.LinkProperty do

@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   to different schemas
 - schema inheritance
 - support for custom `:from_rdf` mappings on custom fields  
+- support for custom mappings on separate modules
 
 ### Changed
 

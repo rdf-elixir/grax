@@ -280,5 +280,14 @@ defmodule Grax.RDF.MapperTest do
              |> to_rdf() ==
                {:error, "not enough bars"}
     end
+
+    test "when the mapping function is on a separate module" do
+      assert Example.CustomMappingInSeparateModule.build!(EX.S, foo: "FOO")
+             |> to_rdf() ==
+               {:ok,
+                EX.S
+                |> EX.foo("foo")
+                |> RDF.graph()}
+    end
   end
 end

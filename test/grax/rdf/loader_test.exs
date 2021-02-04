@@ -341,6 +341,13 @@ defmodule Grax.RDF.LoaderTest do
              |> Example.CustomMapping.load(EX.S) ==
                {:error, "multiple :foo values found"}
     end
+
+    test "when the mapping function is on a separate module" do
+      assert EX.S
+             |> EX.foo(~L"foo")
+             |> Example.CustomMappingInSeparateModule.load(EX.S) ==
+               Example.CustomMappingInSeparateModule.build(EX.S, foo: "FOO", bar: "bar")
+    end
   end
 
   describe "custom mapping on custom fields" do

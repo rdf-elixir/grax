@@ -158,7 +158,7 @@ defmodule Grax.Schema do
 
   @doc false
   def __custom_field__(mod, name, opts) do
-    custom_field_schema = CustomField.new(name, opts)
+    custom_field_schema = CustomField.new(mod, name, opts)
     Module.put_attribute(mod, :custom_field_acc, {name, custom_field_schema})
   end
 
