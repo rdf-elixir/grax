@@ -356,6 +356,39 @@ defmodule Example do
     end
   end
 
+  defmodule AnotherParentSchema do
+    use Grax.Schema
+
+    schema do
+      property dp1: EX.dp1(), from_rdf: {Example.ParentSchema, :upcase}
+      property dp2: EX.dp22()
+      property dp3: EX.dp3()
+
+      field :f1
+      field :f2
+      field :f3
+
+      link lp1: EX.lp1(), type: Example.User
+      link lp3: EX.lp3(), type: Example.User
+    end
+  end
+
+  defmodule ChildOfMany do
+    use Grax.Schema
+
+    schema EX.Class < [Example.ParentSchema, Example.AnotherParentSchema] do
+      property dp2: EX.dp23()
+      property dp4: EX.dp4()
+
+      field :f1
+      field :f4
+
+      link lp4: EX.lp4(), type: Example.User
+    end
+
+    def foo(_, _), do: {:ok, :foo}
+  end
+
   defmodule CustomMapping do
     use Grax.Schema
 
