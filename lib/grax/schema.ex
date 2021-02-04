@@ -7,7 +7,7 @@ defmodule Grax.Schema do
   Read about schemas in the guide [here](https://rdf-elixir.dev/grax/schemas.html).
   """
 
-  alias Grax.Schema.{Property, DataProperty, LinkProperty, Field}
+  alias Grax.Schema.{Struct, Inheritance, DataProperty, LinkProperty, CustomField}
   alias RDF.IRI
 
   defmacro __using__(opts) do
@@ -38,19 +38,26 @@ defmodule Grax.Schema do
               struct
       def load!(graph, id, opts \\ []), do: Grax.load!(__MODULE__, id, graph, opts)
 
-      @doc false
-      def __has_property__?(property), do: Keyword.has_key?(@struct_fields, property)
-
       Module.delete_attribute(__MODULE__, :rdf_property_acc)
-      Module.delete_attribute(__MODULE__, :field_acc)
+      Module.delete_attribute(__MODULE__, :custom_field_acc)
     end
   end
 
-  defmacro schema(class \\ nil, do: block) do
-    schema(__CALLER__, class, block)
+  defmacro schema(class \\ nil, do_block)
+
+  defmacro schema([inherit: parent_schema], do: block) do
+    schema(__CALLER__, nil, parent_schema, block)
   end
 
-  defp schema(caller, class, block) do
+  defmacro schema({:<, _, [class, parent_schema]}, do: block) do
+    schema(__CALLER__, class, parent_schema, block)
+  end
+
+  defmacro schema(class, do: block) do
+    schema(__CALLER__, class, nil, block)
+  end
+
+  defp schema(caller, class, parent_schema, block) do
     prelude =
       quote do
         if line = Module.get_attribute(__MODULE__, :grax_schema_defined) do
@@ -59,12 +66,14 @@ defmodule Grax.Schema do
 
         @grax_schema_defined unquote(caller.line)
 
+        @grax_parent_schema unquote(parent_schema)
+        def __super__(), do: @grax_parent_schema
+
         @grax_schema_class if unquote(class), do: IRI.to_string(unquote(class))
         def __class__(), do: @grax_schema_class
 
-        Module.register_attribute(__MODULE__, :struct_fields, accumulate: true)
         Module.register_attribute(__MODULE__, :rdf_property_acc, accumulate: true)
-        Module.register_attribute(__MODULE__, :field_acc, accumulate: true)
+        Module.register_attribute(__MODULE__, :custom_field_acc, accumulate: true)
 
         try do
           import unquote(__MODULE__)
@@ -76,9 +85,20 @@ defmodule Grax.Schema do
 
     postlude =
       quote unquote: false do
-        defstruct [:__id__ | @struct_fields]
+        @__properties__ Inheritance.inherit_properties(
+                          __MODULE__,
+                          @grax_parent_schema,
+                          Map.new(@rdf_property_acc)
+                        )
 
-        @__properties__ Map.new(@rdf_property_acc)
+        @__custom_fields__ Inheritance.inherit_custom_fields(
+                             __MODULE__,
+                             @grax_parent_schema,
+                             Map.new(@custom_field_acc)
+                           )
+
+        defstruct Struct.fields(@__properties__, @__custom_fields__)
+
         def __properties__, do: @__properties__
 
         def __properties__(:data),
@@ -89,8 +109,7 @@ defmodule Grax.Schema do
 
         def __property__(property), do: @__properties__[property]
 
-        @__fields__ Map.new(@field_acc)
-        def __fields__, do: @__fields__
+        def __custom_fields__, do: @__custom_fields__
       end
 
     quote do
@@ -101,7 +120,7 @@ defmodule Grax.Schema do
 
   defmacro field(name, opts \\ []) do
     quote do
-      Grax.Schema.__field__(__MODULE__, unquote(name), unquote(opts))
+      Grax.Schema.__custom_field__(__MODULE__, unquote(name), unquote(opts))
     end
   end
 
@@ -138,16 +157,14 @@ defmodule Grax.Schema do
   end
 
   @doc false
-  def __field__(mod, name, opts) do
-    field_schema = Field.new(name, opts)
-    Module.put_attribute(mod, :struct_fields, {name, opts[:default]})
-    Module.put_attribute(mod, :field_acc, {name, field_schema})
+  def __custom_field__(mod, name, opts) do
+    custom_field_schema = CustomField.new(name, opts)
+    Module.put_attribute(mod, :custom_field_acc, {name, custom_field_schema})
   end
 
   @doc false
   def __property__(mod, name, iri, opts) when not is_nil(iri) do
     property_schema = DataProperty.new(mod, name, iri, opts)
-    Module.put_attribute(mod, :struct_fields, {name, property_schema.default})
     Module.put_attribute(mod, :rdf_property_acc, {name, property_schema})
   end
 
@@ -155,8 +172,13 @@ defmodule Grax.Schema do
   def __link__(mod, name, iri, opts) do
     property_schema = LinkProperty.new(mod, name, iri, opts)
 
-    Module.put_attribute(mod, :struct_fields, {name, Property.default(property_schema.type)})
     Module.put_attribute(mod, :rdf_property_acc, {name, property_schema})
+  end
+
+  @doc false
+  def has_field?(schema, field_name) do
+    Map.has_key?(schema.__properties__(), field_name) or
+      Map.has_key?(schema.__custom_fields__(), field_name)
   end
 
   defp property_mapping_destination({:-, _line, [iri_expr]}), do: {:inverse, iri_expr}

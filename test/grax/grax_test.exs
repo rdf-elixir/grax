@@ -586,12 +586,4 @@ defmodule GraxTest do
                |> Grax.put!(:posts, [Grax.put!(post, :title, [post.title, "Other"])])
     end
   end
-
-  test "__has_property__?/2" do
-    assert Example.User.__has_property__?(:name) == true
-    assert Example.User.__has_property__?(:posts) == true
-    assert Example.User.__has_property__?(:password) == true
-    assert Example.User.__has_property__?(:foo) == false
-    assert Example.User.__has_property__?(:__id__) == false
-  end
 end

@@ -26,7 +26,7 @@ defmodule Grax.RDF.Loader do
          {:ok, mapping} <-
            init_link_properties(schema, mapping),
          {:ok, mapping} <-
-           init_fields(schema, mapping, graph, description) do
+           init_custom_fields(schema, mapping, graph, description) do
       Preloader.call(
         schema,
         mapping,
@@ -80,8 +80,8 @@ defmodule Grax.RDF.Loader do
      end)}
   end
 
-  defp init_fields(schema, mapping, graph, description) do
-    schema.__fields__()
+  defp init_custom_fields(schema, mapping, graph, description) do
+    schema.__custom_fields__()
     |> Enum.reduce_while({:ok, mapping}, fn
       {_, %{from_rdf: nil}}, mapping ->
         {:cont, mapping}

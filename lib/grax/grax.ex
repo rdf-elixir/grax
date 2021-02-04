@@ -136,7 +136,7 @@ defmodule Grax do
   def put(_, :__id__, _), do: {:error, @__id__property_access_error}
 
   def put(%schema{} = mapping, property, value) do
-    if schema.__has_property__?(property) do
+    if Schema.has_field?(schema, property) do
       cond do
         property_schema = schema.__property__(property) ->
           validation =

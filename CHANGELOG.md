@@ -9,8 +9,9 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Added
 
-- support for heterogeneous link properties which can link different types of resources
+- heterogeneous link properties which can link different types of resources
   to different schemas
+- schema inheritance
 - support for custom `:from_rdf` mappings on custom fields  
 
 ### Changed
