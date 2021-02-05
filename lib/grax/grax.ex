@@ -20,6 +20,8 @@ defmodule Grax do
   def build(mod, %IRI{} = id), do: {:ok, do_build(mod, id)}
   def build(mod, %BlankNode{} = id), do: {:ok, do_build(mod, id)}
 
+  def build(mod, %{__id__: id} = initial), do: build(mod, id, Map.delete(initial, :__id__))
+
   def build(mod, id) do
     if iri = IRI.new(id) do
       {:ok, do_build(mod, iri)}

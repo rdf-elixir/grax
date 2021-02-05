@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - schema inheritance
 - support for custom `:from_rdf` mappings on custom fields  
 - support for custom mappings on separate modules
+- the `build` functions can now be called with a single map when it contains an id
+  in an `:__id__` field
 
 ### Changed
 

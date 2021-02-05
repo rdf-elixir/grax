@@ -12,6 +12,20 @@ defmodule GraxTest do
                {:ok, %Example.User{__id__: IRI.new("http://example.com/user/1")}}
     end
 
+    test "with a map containing an __id__ field" do
+      assert Example.User.build(%{
+               __id__: EX.User0,
+               name: "Foo",
+               email: ["foo@example.com"],
+               password: "secret"
+             }) ==
+               Example.User.build(EX.User0, %{
+                 name: "Foo",
+                 email: ["foo@example.com"],
+                 password: "secret"
+               })
+    end
+
     test "with a vocabulary namespace term" do
       assert Example.User.build(EX.User0) ==
                {:ok, %Example.User{__id__: IRI.new(EX.User0)}}
@@ -84,6 +98,22 @@ defmodule GraxTest do
                     age: TypeError.exception(value: "secret", type: XSD.Integer)
                   ]
                 }}
+    end
+  end
+
+  describe "build!/1" do
+    test "with a map containing an __id__ field" do
+      assert Example.User.build!(%{
+               __id__: EX.User0,
+               name: "Foo",
+               email: ["foo@example.com"],
+               password: "secret"
+             }) ==
+               Example.User.build!(EX.User0, %{
+                 name: "Foo",
+                 email: ["foo@example.com"],
+                 password: "secret"
+               })
     end
   end
 
