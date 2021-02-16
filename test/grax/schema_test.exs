@@ -215,14 +215,14 @@ defmodule Grax.SchemaTest do
           end
         end
       end
-    end
 
-    assert_raise RuntimeError, fn ->
-      defmodule ChildOfConflictingSchemas2 do
-        use Grax.Schema
+      assert_raise RuntimeError, fn ->
+        defmodule ChildOfConflictingSchemas2 do
+          use Grax.Schema
 
-        schema inherit: [Example.ParentSchema, Example.AnotherParentSchema] do
-          property dp2: EX.dp23()
+          schema inherit: [Example.ParentSchema, Example.AnotherParentSchema] do
+            property dp2: EX.dp23()
+          end
         end
       end
     end
