@@ -49,6 +49,10 @@ defmodule Grax.Schema do
     schema(__CALLER__, nil, List.wrap(parent_schema), block)
   end
 
+  defmacro schema({:<, _, [class, nil]}, do: block) do
+    schema(__CALLER__, class, nil, block)
+  end
+
   defmacro schema({:<, _, [class, parent_schema]}, do: block) do
     schema(__CALLER__, class, List.wrap(parent_schema), block)
   end

@@ -206,6 +206,18 @@ defmodule Grax.SchemaTest do
              }
     end
 
+    test "inherit from nil" do
+      defmodule InheritingFromNil do
+        use Grax.Schema
+
+        schema EX.Foo < nil do
+          property foo: EX.foo()
+        end
+      end
+
+      assert InheritingFromNil.__super__() == nil
+    end
+
     test "multiple inheritance with conflicting property definitions" do
       assert_raise RuntimeError, fn ->
         defmodule ChildOfConflictingSchemas do
