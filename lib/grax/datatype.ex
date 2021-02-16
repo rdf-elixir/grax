@@ -18,7 +18,7 @@ defmodule Grax.Datatype do
 
   def get([type]) do
     with {:ok, inner_type} <- get(type) do
-      {:ok, {:set, inner_type}}
+      {:ok, {:list_set, inner_type}}
     end
   end
 

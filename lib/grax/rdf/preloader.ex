@@ -149,7 +149,7 @@ defmodule Grax.RDF.Preloader do
     map_links(objects, property_schema.type, property_schema, graph, opts)
   end
 
-  defp map_links(values, {:set, type}, property_schema, graph, opts) do
+  defp map_links(values, {:list_set, type}, property_schema, graph, opts) do
     with {:ok, mapped} <- map_links(values, type, property_schema, graph, opts) do
       {:ok, List.wrap(mapped)}
     end

@@ -59,21 +59,21 @@ defmodule Grax.Validator do
     |> check_resource_type(link, value, type, opts)
   end
 
-  defp check_cardinality(validation, _, value, {:set, _}, false) when is_list(value),
+  defp check_cardinality(validation, _, value, {:list_set, _}, false) when is_list(value),
     do: validation
 
-  defp check_cardinality(validation, property, values, {:set, _}, true)
+  defp check_cardinality(validation, property, values, {:list_set, _}, true)
        when is_list(values) and length(values) == 0 do
     add_error(validation, property, RequiredPropertyMissing.exception(property: property))
   end
 
-  defp check_cardinality(validation, _, values, {:set, _}, true) when is_list(values),
+  defp check_cardinality(validation, _, values, {:list_set, _}, true) when is_list(values),
     do: validation
 
   defp check_cardinality(validation, _, %Link.NotLoaded{}, _, _),
     do: validation
 
-  defp check_cardinality(validation, property, value, {:set, _} = type, _) do
+  defp check_cardinality(validation, property, value, {:list_set, _} = type, _) do
     add_error(validation, property, TypeError.exception(value: value, type: type))
   end
 
@@ -91,7 +91,7 @@ defmodule Grax.Validator do
   defp check_datatype(validation, _, nil, _, _), do: validation
   defp check_datatype(validation, _, [], _, _), do: validation
 
-  defp check_datatype(validation, property, values, {:set, type}, opts) do
+  defp check_datatype(validation, property, values, {:list_set, type}, opts) do
     check_datatype(validation, property, values, type, opts)
   end
 
@@ -137,7 +137,7 @@ defmodule Grax.Validator do
   defp check_resource_type(validation, _, nil, _, _), do: validation
   defp check_resource_type(validation, _, [], _, _), do: validation
 
-  defp check_resource_type(validation, link, values, {:set, type}, opts) do
+  defp check_resource_type(validation, link, values, {:list_set, type}, opts) do
     check_resource_type(validation, link, values, type, opts)
   end
 
@@ -152,7 +152,7 @@ defmodule Grax.Validator do
     end
   end
 
-  defp check_resource_type(validation, link, %type{} = value, {:resource, class_mapping}, opts)
+  defp check_resource_type(validation, link, %_type{} = value, {:resource, class_mapping}, opts)
        when is_map(class_mapping) do
     case call(value, opts) do
       {:ok, _} -> validation

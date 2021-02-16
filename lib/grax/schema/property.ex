@@ -17,10 +17,10 @@ defmodule Grax.Schema.Property do
   defp normalize_iri(iri), do: RDF.iri!(iri)
 
   def value_set?(%{type: type}), do: value_set?(type)
-  def value_set?({:set, _}), do: true
+  def value_set?({:list_set, _}), do: true
   def value_set?(_), do: false
 
-  def default({:set, _}), do: []
+  def default({:list_set, _}), do: []
   def default(_), do: nil
 end
 
@@ -64,7 +64,7 @@ defmodule Grax.Schema.DataProperty do
 
   defp init_default(type, nil), do: Property.default(type)
 
-  defp init_default({:set, _}, _),
+  defp init_default({:list_set, _}, _),
     do: raise(ArgumentError, "the :default option is not supported on sets")
 
   defp init_default(nil, default), do: default
@@ -139,7 +139,7 @@ defmodule Grax.Schema.LinkProperty do
 
   defp resource_type([type]) do
     with {:ok, inner_type} <- resource_type(type) do
-      {:ok, {:set, inner_type}}
+      {:ok, {:list_set, inner_type}}
     end
   end
 

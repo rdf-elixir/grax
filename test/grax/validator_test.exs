@@ -234,7 +234,7 @@ defmodule Grax.ValidatorTest do
       assert validate(%Example.User{__id__: IRI.new(EX.S), email: 42}) ==
                {:error,
                 validation_error(
-                  email: TypeError.exception(type: {:set, XSD.String}, value: 42),
+                  email: TypeError.exception(type: {:list_set, XSD.String}, value: 42),
                   email: TypeError.exception(type: XSD.String, value: 42)
                 )}
     end

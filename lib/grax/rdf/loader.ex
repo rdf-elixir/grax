@@ -107,7 +107,7 @@ defmodule Grax.RDF.Loader do
     map_values(objects, property_schema.type)
   end
 
-  defp map_values(values, {:set, _type}), do: map_while_ok(values, &map_value(&1))
+  defp map_values(values, {:list_set, _type}), do: map_while_ok(values, &map_value(&1))
   defp map_values([value], _type), do: map_value(value)
   defp map_values(values, _type), do: map_while_ok(values, &map_value(&1))
 

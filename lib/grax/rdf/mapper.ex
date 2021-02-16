@@ -82,7 +82,7 @@ defmodule Grax.RDF.Mapper do
     map_values(values, property_schema.type, property_schema, opts)
   end
 
-  defp map_values(values, {:set, type}, property_schema, opts) when is_list(values) do
+  defp map_values(values, {:list_set, type}, property_schema, opts) when is_list(values) do
     Enum.reduce_while(
       values,
       {:ok, [], Graph.new()},
