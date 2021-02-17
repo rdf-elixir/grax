@@ -22,6 +22,31 @@ defmodule Grax.Schema.Property do
 
   def default({:list_set, _}), do: []
   def default(_), do: nil
+
+  def init_type(name, type, property_type) do
+    case internal_type(type, property_type) do
+      {:ok, type} ->
+        type
+
+      {:error, nil} ->
+        raise ArgumentError, "invalid type definition #{inspect(type)} for property #{name}"
+
+      {:error, error} ->
+        raise ArgumentError, "invalid type definition for property #{name}: #{error}"
+    end
+  end
+
+  def internal_type([], property_type), do: internal_type([nil], property_type)
+
+  def internal_type([type], property_type) do
+    with {:ok, inner_type} <- property_type.internal_type(type) do
+      {:ok, {:list_set, inner_type}}
+    end
+  end
+
+  def internal_type(type, property_type) do
+    property_type.internal_type(type)
+  end
 end
 
 defmodule Grax.Schema.DataProperty do
@@ -36,7 +61,7 @@ defmodule Grax.Schema.DataProperty do
   @default_type :any
 
   def new(schema, name, iri, opts) do
-    type = init_type(name, opts[:type])
+    type = Property.init_type(name, opts[:type], __MODULE__)
 
     __MODULE__
     |> Property.init(schema, name, iri, opts)
@@ -49,18 +74,8 @@ defmodule Grax.Schema.DataProperty do
     )
   end
 
-  defp init_type(name, nil), do: init_type(name, @default_type)
-
-  defp init_type(name, type) do
-    case Datatype.get(type) do
-      {:ok, type} ->
-        type
-
-      {:error, error} ->
-        raise ArgumentError,
-              "invalid type definition #{inspect(type)} for property #{name}: #{error}"
-    end
-  end
+  def internal_type(nil), do: internal_type(@default_type)
+  def internal_type(type), do: Datatype.get(type)
 
   defp init_default(type, nil), do: Property.default(type)
 
@@ -103,7 +118,7 @@ defmodule Grax.Schema.LinkProperty do
         __MODULE__
         |> Property.init(schema, name, iri, opts)
         |> struct!(
-          type: init_type(name, opts[:type]),
+          type: Property.init_type(name, opts[:type], __MODULE__),
           preload: opts[:preload],
           on_type_mismatch: init_on_type_mismatch(opts[:on_type_mismatch])
         )
@@ -122,28 +137,9 @@ defmodule Grax.Schema.LinkProperty do
           })"
   end
 
-  defp init_type(name, nil) do
-    raise ArgumentError, "type missing for property #{name}"
-  end
+  def internal_type(nil), do: {:error, "type missing"}
 
-  defp init_type(name, type) do
-    case resource_type(type) do
-      {:ok, type} ->
-        type
-
-      {:error, error} ->
-        raise ArgumentError,
-              "invalid type definition #{inspect(type)} for link #{name}: #{error}"
-    end
-  end
-
-  defp resource_type([type]) do
-    with {:ok, inner_type} <- resource_type(type) do
-      {:ok, {:list_set, inner_type}}
-    end
-  end
-
-  defp resource_type(class_mapping) when is_map(class_mapping) do
+  def internal_type(class_mapping) when is_map(class_mapping) do
     {:ok,
      {:resource,
       Map.new(class_mapping, fn
@@ -152,9 +148,7 @@ defmodule Grax.Schema.LinkProperty do
       end)}}
   end
 
-  defp resource_type(schema) do
-    {:ok, {:resource, schema}}
-  end
+  def internal_type(schema), do: {:ok, {:resource, schema}}
 
   def default(%__MODULE__{} = link_schema) do
     %Link.NotLoaded{

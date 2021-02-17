@@ -53,7 +53,7 @@ defmodule Grax.SchemaTest do
   end
 
   test "links without a type raise a proper error" do
-    assert_raise ArgumentError, "type missing for property a", fn ->
+    assert_raise ArgumentError, "invalid type definition for property a: type missing", fn ->
       defmodule NilLink do
         use Grax.Schema
 

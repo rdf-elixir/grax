@@ -12,19 +12,11 @@ defmodule Grax.Datatype do
 
   def builtins, do: @builtin_type_mapping
 
-  def get(type)
-
   def get(:iri), do: {:ok, IRI}
-
-  def get([type]) do
-    with {:ok, inner_type} <- get(type) do
-      {:ok, {:list_set, inner_type}}
-    end
-  end
-
-  def get([]), do: get([:any])
 
   Enum.each(@builtin_type_mapping, fn {name, type} ->
     def get(unquote(name)), do: {:ok, unquote(type)}
   end)
+
+  def get(type), do: {:error, "unknown type: #{inspect(type)}"}
 end
