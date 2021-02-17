@@ -12,7 +12,7 @@ defmodule Example do
 
     schema EX.User do
       property name: EX.name(), type: :string
-      property email: EX.email(), type: [:string]
+      property email: EX.email(), type: list_of(:string)
       property age: EX.age(), type: :integer
 
       field :password
@@ -21,8 +21,8 @@ defmodule Example do
                from_rdf: :customer_type_from_rdf,
                to_rdf: :customer_type_to_rdf
 
-      link posts: EX.post(), type: [Example.Post]
-      link comments: -EX.author(), type: [%{EX.Comment => Example.Comment}]
+      link posts: EX.post(), type: list_of(Example.Post)
+      link comments: -EX.author(), type: list_of(%{EX.Comment => Example.Comment})
 
       def customer_type_from_rdf(types, _description, _graph) do
         {:ok, if(RDF.iri(EX.PremiumUser) in types, do: :premium_user)}
@@ -40,7 +40,7 @@ defmodule Example do
       property title: EX.title(), type: :string
       property content: EX.content(), type: :string
       link author: EX.author(), type: Example.User
-      link comments: EX.comment(), type: [Example.Comment]
+      link comments: EX.comment(), type: list_of(Example.Comment)
     end
   end
 
@@ -149,7 +149,7 @@ defmodule Example do
 
     schema do
       property foo: EX.foo()
-      property bar: EX.bar(), type: []
+      property bar: EX.bar(), type: list()
     end
   end
 
@@ -163,11 +163,11 @@ defmodule Example do
       end)
 
       %{
-        integers: [:integer],
-        numerics: [:numeric]
+        integers: :integer,
+        numerics: :numeric
       }
       |> Enum.each(fn {name, type} ->
-        property name, apply(EX, name, []), type: type
+        property name, apply(EX, name, []), type: list_of(type)
       end)
     end
   end
@@ -209,7 +209,7 @@ defmodule Example do
       property bar: EX.bar(), type: :string, default: "bar"
       property baz: EX.baz(), type: :integer, default: 42
       link user: EX.user(), type: Example.User
-      link posts: EX.post(), type: [Example.Post]
+      link posts: EX.post(), type: list_of(Example.Post)
     end
   end
 
@@ -227,8 +227,8 @@ defmodule Example do
 
     schema do
       property name: EX.name(), type: :string
-      link link1: EX.link1(), type: [Example.Circle], depth: +1
-      link link2: EX.link2(), type: [Example.Circle], depth: +1
+      link link1: EX.link1(), type: list_of(Example.Circle), depth: +1
+      link link2: EX.link2(), type: list_of(Example.Circle), depth: +1
     end
   end
 
@@ -253,7 +253,7 @@ defmodule Example do
 
     schema do
       property name: EX.name()
-      link foo: -EX.foo(), type: [Example.User]
+      link foo: -EX.foo(), type: list_of(Example.User)
     end
   end
 
@@ -277,12 +277,11 @@ defmodule Example do
            on_type_mismatch: :error
 
       link many: EX.many(),
-           type: [
-             %{
+           type:
+             list_of(%{
                nil => Example.Post,
                EX.Comment => Example.Comment
-             }
-           ]
+             })
     end
   end
 
@@ -300,7 +299,7 @@ defmodule Example do
     schema do
       property foo: EX.foo(), required: true
       property bar: EX.bar(), type: :integer, required: true
-      property baz: EX.baz(), type: [], required: true
+      property baz: EX.baz(), type: list(), required: true
     end
   end
 
@@ -309,9 +308,9 @@ defmodule Example do
 
     schema do
       property foo: EX.foo()
-      property foos: EX.foos(), type: []
+      property foos: EX.foos(), type: list()
       property iri: EX.iri(), type: :iri
-      property iris: EX.iris(), type: [:iri]
+      property iris: EX.iris(), type: list_of(:iri)
     end
   end
 
@@ -396,9 +395,9 @@ defmodule Example do
 
     schema do
       property foo: EX.foo(), from_rdf: :to_foo, to_rdf: :from_foo
-      property foos: EX.foos(), type: [], from_rdf: :to_foos, to_rdf: :from_foos
+      property foos: EX.foos(), type: list(), from_rdf: :to_foos, to_rdf: :from_foos
       property bar: EX.bar(), type: :string, from_rdf: :to_bar, to_rdf: :from_bar
-      property bars: EX.bars(), type: [:string], from_rdf: :to_bars, to_rdf: :from_bars
+      property bars: EX.bars(), type: list_of(:string), from_rdf: :to_bars, to_rdf: :from_bars
     end
 
     def to_foo([object], description, graph) do

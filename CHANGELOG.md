@@ -19,6 +19,9 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Changed
 
+- the way in which list types are defined in a schema has been change from putting the
+  base type in square bracket to using one of the new `list_of/1` or `list/0` type builder
+  functions
 - the default value of link properties has been changed to `nil` respective the empty list
   (previously it was a `Grax.Link.NotLoaded` struct, which is now set explicitly 
   during loading)

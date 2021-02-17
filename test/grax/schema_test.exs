@@ -31,7 +31,7 @@ defmodule Grax.SchemaTest do
           use Grax.Schema
 
           schema do
-            property a: EX.a(), type: [], default: :foo
+            property a: EX.a(), type: list(), default: :foo
           end
         end
       end

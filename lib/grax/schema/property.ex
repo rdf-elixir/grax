@@ -36,9 +36,7 @@ defmodule Grax.Schema.Property do
     end
   end
 
-  def internal_type([], property_type), do: internal_type([nil], property_type)
-
-  def internal_type([type], property_type) do
+  def internal_type({:list_set, type}, property_type) do
     with {:ok, inner_type} <- property_type.internal_type(type) do
       {:ok, {:list_set, inner_type}}
     end
