@@ -2,7 +2,7 @@ defmodule Grax.Validator do
   @moduledoc false
 
   alias Grax.{Link, ValidationError, InvalidIdError}
-  alias Grax.Schema.{TypeError, RequiredPropertyMissing}
+  alias Grax.Schema.{TypeError, CardinalityError}
   alias RDF.{IRI, BlankNode, Literal, XSD}
 
   import ValidationError, only: [add_error: 3]
@@ -46,7 +46,7 @@ defmodule Grax.Validator do
     type = property_schema.type
 
     validation
-    |> check_cardinality(property, value, type, property_schema.required)
+    |> check_cardinality(property, value, type, property_schema.cardinality)
     |> check_datatype(property, value, type, opts)
   end
 
@@ -55,23 +55,37 @@ defmodule Grax.Validator do
     type = link_schema.type
 
     validation
-    |> check_cardinality(link, value, type, false)
+    |> check_cardinality(link, value, type, link_schema.cardinality)
     |> check_resource_type(link, value, type, opts)
   end
 
-  defp check_cardinality(validation, _, value, {:list_set, _}, false) when is_list(value),
-    do: validation
+  defp check_cardinality(validation, _, %Link.NotLoaded{}, _, _), do: validation
 
-  defp check_cardinality(validation, property, values, {:list_set, _}, true)
-       when is_list(values) and length(values) == 0 do
-    add_error(validation, property, RequiredPropertyMissing.exception(property: property))
+  defp check_cardinality(validation, property, values, {:list_set, _}, cardinality)
+       when is_list(values) do
+    count = length(values)
+
+    case cardinality do
+      nil ->
+        validation
+
+      {:min, cardinality} when count >= cardinality ->
+        validation
+
+      cardinality when is_integer(cardinality) and count == cardinality ->
+        validation
+
+      %Range{first: min, last: max} when count >= min and count <= max ->
+        validation
+
+      _ ->
+        add_error(
+          validation,
+          property,
+          CardinalityError.exception(cardinality: cardinality, value: values)
+        )
+    end
   end
-
-  defp check_cardinality(validation, _, values, {:list_set, _}, true) when is_list(values),
-    do: validation
-
-  defp check_cardinality(validation, _, %Link.NotLoaded{}, _, _),
-    do: validation
 
   defp check_cardinality(validation, property, value, {:list_set, _} = type, _) do
     add_error(validation, property, TypeError.exception(value: value, type: type))
@@ -81,8 +95,8 @@ defmodule Grax.Validator do
     add_error(validation, property, TypeError.exception(value: value, type: type))
   end
 
-  defp check_cardinality(validation, property, nil, _, true) do
-    add_error(validation, property, RequiredPropertyMissing.exception(property: property))
+  defp check_cardinality(validation, property, nil, _, 1) do
+    add_error(validation, property, CardinalityError.exception(cardinality: 1, value: nil))
   end
 
   defp check_cardinality(validation, _, _, _, _), do: validation

@@ -54,7 +54,7 @@ defmodule Example do
     end
   end
 
-  def user(id, opts \\ [depth: 1])
+  def user(id, opts \\ [depth: 0])
 
   def user(EX.User0, depth: 0) do
     %Example.User{
@@ -300,6 +300,22 @@ defmodule Example do
       property foo: EX.foo(), required: true
       property bar: EX.bar(), type: :integer, required: true
       property baz: EX.baz(), type: list(), required: true
+
+      link l1: EX.lp1(), type: Example.User, required: true
+      link l2: EX.lp2(), type: list_of(Example.User), required: true
+    end
+  end
+
+  defmodule Cardinalities do
+    use Grax.Schema
+
+    schema do
+      property p1: EX.p1(), type: list(card: 2)
+      property p2: EX.p2(), type: list_of(:integer, card: 2..4)
+      property p3: EX.p3(), type: list(min: 3)
+
+      link l1: EX.lp1(), type: list_of(Example.User, card: 2..3)
+      link l2: EX.lp2(), type: list_of(Example.User, min: 2)
     end
   end
 

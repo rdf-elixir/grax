@@ -81,7 +81,7 @@ defmodule Grax.Schema do
 
         try do
           import unquote(__MODULE__)
-          import Grax.Schema.Type
+          import Grax.Schema.Type.Constructors
           unquote(block)
         after
           :ok

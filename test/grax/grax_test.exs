@@ -4,7 +4,7 @@ defmodule GraxTest do
   doctest Grax
 
   alias Grax.ValidationError
-  alias Grax.Schema.{TypeError, InvalidProperty, RequiredPropertyMissing}
+  alias Grax.Schema.{TypeError, InvalidProperty, CardinalityError}
 
   describe "build/1" do
     test "with a string id" do
@@ -220,7 +220,7 @@ defmodule GraxTest do
 
       assert Example.Required.build!(EX.Foo)
              |> Grax.put(:foo, nil) ==
-               {:error, RequiredPropertyMissing.exception(property: :foo)}
+               {:error, CardinalityError.exception(cardinality: 1, value: nil)}
     end
 
     test "scalar values on a set property" do

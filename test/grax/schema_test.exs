@@ -64,6 +64,79 @@ defmodule Grax.SchemaTest do
     end
   end
 
+  describe "cardinality" do
+    test "property schema" do
+      assert Example.Cardinalities.__property__(:p1).cardinality == 2
+      assert Example.Cardinalities.__property__(:p2).cardinality == 2..4
+      assert Example.Cardinalities.__property__(:p3).cardinality == {:min, 3}
+      assert Example.Cardinalities.__property__(:l1).cardinality == 2..3
+      assert Example.Cardinalities.__property__(:l2).cardinality == {:min, 2}
+    end
+
+    test "normalization of equivalent cardinalities" do
+      defmodule EquivalentCardinalities do
+        use Grax.Schema
+
+        schema do
+          property p1: EX.p1(), type: list(card: 1..1)
+          property p2: EX.p2(), type: list(card: 3..2)
+          property p3: EX.p3(), type: list(min: 0)
+        end
+      end
+
+      assert EquivalentCardinalities.__property__(:p1).cardinality == 1
+      assert EquivalentCardinalities.__property__(:p2).cardinality == 2..3
+      assert EquivalentCardinalities.__property__(:p3).cardinality == nil
+    end
+
+    test "mapping of required flag to cardinalities" do
+      defmodule RequiredAsCardinalities do
+        use Grax.Schema
+
+        schema do
+          property p1: EX.p1(), type: :string, required: true
+          property p2: EX.p1(), type: :string, required: false
+          property p3: EX.p3(), type: list(), required: true
+          property p4: EX.p4(), type: list(), required: false
+          link l1: EX.l1(), type: Example.User, required: true
+          link l2: EX.l2(), type: list_of(Example.User), required: true
+        end
+      end
+
+      assert RequiredAsCardinalities.__property__(:p1).cardinality == 1
+      assert RequiredAsCardinalities.__property__(:p2).cardinality == nil
+      assert RequiredAsCardinalities.__property__(:p3).cardinality == {:min, 1}
+      assert RequiredAsCardinalities.__property__(:p4).cardinality == nil
+      assert RequiredAsCardinalities.__property__(:l1).cardinality == 1
+      assert RequiredAsCardinalities.__property__(:l2).cardinality == {:min, 1}
+    end
+
+    test "required flag with cardinalities causes an error" do
+      error_message =
+        "property foo: required option is not allowed when cardinality constraints are given"
+
+      assert_raise ArgumentError, error_message, fn ->
+        defmodule RequiredWithCardinalities1 do
+          use Grax.Schema
+
+          schema do
+            property foo: EX.foo(), type: list(card: 2), required: true
+          end
+        end
+      end
+
+      assert_raise ArgumentError, error_message, fn ->
+        defmodule RequiredWithCardinalities2 do
+          use Grax.Schema
+
+          schema do
+            link foo: EX.foo(), type: list_of(Example.User, card: 2..3), required: true
+          end
+        end
+      end
+    end
+  end
+
   describe "inheritance" do
     test "struct fields are inherited" do
       assert Example.ChildSchema.build!(EX.S)
@@ -88,20 +161,17 @@ defmodule Grax.SchemaTest do
                  name: :dp1,
                  iri: ~I<http://example.com/dp1>,
                  schema: Example.ChildSchema,
-                 required: false,
                  from_rdf: {Example.ParentSchema, :upcase}
                },
                dp2: %Grax.Schema.DataProperty{
                  name: :dp2,
                  iri: ~I<http://example.com/dp22>,
-                 schema: Example.ChildSchema,
-                 required: false
+                 schema: Example.ChildSchema
                },
                dp3: %Grax.Schema.DataProperty{
                  name: :dp3,
                  iri: ~I<http://example.com/dp3>,
-                 schema: Example.ChildSchema,
-                 required: false
+                 schema: Example.ChildSchema
                },
                lp1: %Grax.Schema.LinkProperty{
                  name: :lp1,
@@ -147,26 +217,22 @@ defmodule Grax.SchemaTest do
                  name: :dp1,
                  iri: ~I<http://example.com/dp1>,
                  schema: Example.ChildOfMany,
-                 required: false,
                  from_rdf: {Example.ParentSchema, :upcase}
                },
                dp2: %Grax.Schema.DataProperty{
                  name: :dp2,
                  iri: ~I<http://example.com/dp23>,
-                 schema: Example.ChildOfMany,
-                 required: false
+                 schema: Example.ChildOfMany
                },
                dp3: %Grax.Schema.DataProperty{
                  name: :dp3,
                  iri: ~I<http://example.com/dp3>,
-                 schema: Example.ChildOfMany,
-                 required: false
+                 schema: Example.ChildOfMany
                },
                dp4: %Grax.Schema.DataProperty{
                  name: :dp4,
                  iri: ~I<http://example.com/dp4>,
-                 schema: Example.ChildOfMany,
-                 required: false
+                 schema: Example.ChildOfMany
                },
                lp1: %Grax.Schema.LinkProperty{
                  name: :lp1,
@@ -252,4 +318,9 @@ defmodule Grax.SchemaTest do
     assert Example.ChildSchemaWithClass.__class__() == IRI.to_string(EX.Class)
     assert Example.Datatypes.__class__() == nil
   end
+
+  #  test "__class_schema__/0" do
+  #    assert Example.ClassDeclaration.__class_schema__() == %Grax.RDFS.Class{}
+  #    assert Example.Datatypes.__class_schema__() == nil
+  #  end
 end

@@ -7,14 +7,14 @@ defmodule Grax.RDF.LoaderTest do
 
   test "successful mapping from a graph" do
     assert Example.User.load(example_graph(), EX.User0) ==
-             {:ok, Example.user(EX.User0)}
+             {:ok, Example.user(EX.User0, depth: 1)}
   end
 
   test "successful mapping from a description" do
     assert example_description(:user)
            |> Description.delete_predicates(EX.post())
            |> Example.User.load(EX.User0) ==
-             {:ok, %Example.User{Example.user(EX.User0) | posts: []}}
+             {:ok, %Example.User{Example.user(EX.User0, depth: 1) | posts: []}}
   end
 
   test "with a description of blank node" do
@@ -22,7 +22,7 @@ defmodule Grax.RDF.LoaderTest do
            |> Description.delete_predicates(EX.post())
            |> Description.change_subject(~B"user0")
            |> Example.User.load(~B"user0") ==
-             {:ok, %{Example.user(EX.User0) | __id__: ~B"user0", posts: []}}
+             {:ok, %{Example.user(EX.User0, depth: 1) | __id__: ~B"user0", posts: []}}
   end
 
   test "with non-RDF.Data" do
@@ -237,7 +237,7 @@ defmodule Grax.RDF.LoaderTest do
       assert example_description(:user)
              |> Example.User.load(EX.User0) ==
                {:ok,
-                Example.user(EX.User0)
+                Example.user(EX.User0, depth: 1)
                 |> Map.put(:posts, [
                   Example.Post.build!(EX.Post0) |> Loader.init_link_properties()
                 ])}

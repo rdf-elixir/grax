@@ -44,16 +44,17 @@ defmodule Grax.Schema.TypeError do
   end
 end
 
-defmodule Grax.Schema.RequiredPropertyMissing do
+defmodule Grax.Schema.CardinalityError do
   @moduledoc """
-  Raised when a required property is not present.
+  Raised when a the number of property values doesn't match the specified cardinality during decoding from RDF.
   """
-  defexception [:message, :property]
+  defexception [:message, :cardinality, :value]
 
   def exception(opts) do
-    property = Keyword.fetch!(opts, :property)
-    msg = opts[:message] || "no value for required property #{inspect(property)} present"
-    %__MODULE__{message: msg, property: property}
+    cardinality = Keyword.fetch!(opts, :cardinality)
+    value = Keyword.fetch!(opts, :value)
+    msg = opts[:message] || "#{inspect(value)} does not match cardinality #{inspect(cardinality)}"
+    %__MODULE__{message: msg, cardinality: cardinality, value: value}
   end
 end
 

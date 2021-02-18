@@ -2,7 +2,7 @@ defmodule Grax.ValidatorTest do
   use Grax.TestCase
 
   alias Grax.{ValidationError, InvalidIdError}
-  alias Grax.Schema.{TypeError, RequiredPropertyMissing}
+  alias Grax.Schema.{TypeError, CardinalityError}
 
   import Grax,
     only: [
@@ -213,16 +213,6 @@ defmodule Grax.ValidatorTest do
       )
     end
 
-    test "missing required properties" do
-      assert validate(%Example.Required{__id__: IRI.new(EX.S)}) ==
-               {:error,
-                validation_error(
-                  bar: RequiredPropertyMissing.exception(property: :bar),
-                  baz: RequiredPropertyMissing.exception(property: :baz),
-                  foo: RequiredPropertyMissing.exception(property: :foo)
-                )}
-    end
-
     test "multiple errors per property" do
       assert validate(%Example.User{__id__: IRI.new(EX.S), name: [42]}) ==
                {:error,
@@ -240,8 +230,48 @@ defmodule Grax.ValidatorTest do
     end
   end
 
+  test "missing required properties" do
+    assert validate(%Example.Required{__id__: IRI.new(EX.S)}) ==
+             {:error,
+              validation_error(
+                bar: CardinalityError.exception(cardinality: 1, value: nil),
+                baz: CardinalityError.exception(cardinality: {:min, 1}, value: []),
+                foo: CardinalityError.exception(cardinality: 1, value: nil),
+                l1: CardinalityError.exception(cardinality: 1, value: nil),
+                l2: CardinalityError.exception(cardinality: {:min, 1}, value: [])
+              )}
+  end
+
+  test "cardinality constraints" do
+    assert {:ok, valid} =
+             Example.Cardinalities.build(EX.S,
+               p1: [1, 2],
+               p2: [1, 2, 3, 4],
+               p3: [1, 2, 3],
+               l1: [Example.user(EX.User0), Example.user(EX.User1), Example.user(EX.User2)],
+               l2: [Example.user(EX.User0), Example.user(EX.User1)]
+             )
+
+    [
+      {:p1, 2, [1]},
+      {:p1, 2, [1, 2, 3]},
+      {:p2, 2..4, [1]},
+      {:p2, 2..4, [1, 2, 3, 4, 5]},
+      {:p3, {:min, 3}, [1, 2]},
+      {:l1, 2..3, [Example.user(EX.User0)]},
+      {:l2, {:min, 2}, [Example.user(EX.User0)]}
+    ]
+    |> Enum.each(fn {property, cardinality, value} ->
+      assert Grax.put(valid, [{property, value}]) ==
+               {:error,
+                validation_error([
+                  {property, CardinalityError.exception(cardinality: cardinality, value: value)}
+                ])}
+    end)
+  end
+
   describe "link validation" do
-    test "proper type and cardinality" do
+    test "proper type" do
       [
         posts: [Example.post()]
       ]
