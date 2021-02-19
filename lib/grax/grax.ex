@@ -202,11 +202,15 @@ defmodule Grax do
   defp normalize_value(Link.NotLoaded, property_schema), do: Link.NotLoaded.new(property_schema)
 
   defp normalize_value(value, property_schema) do
-    cond do
-      property_schema && Schema.Property.value_set?(property_schema) -> List.wrap(value)
-      true -> value
-    end
+    do_normalize_value(
+      if(is_list(value), do: Enum.uniq(value), else: value),
+      Schema.Property.value_set?(property_schema)
+    )
   end
+
+  defp do_normalize_value(value, true), do: List.wrap(value)
+  defp do_normalize_value([value], false), do: value
+  defp do_normalize_value(value, false), do: value
 
   @spec validate(struct, opts :: Keyword) :: {:ok, struct} | {:error, ValidationError.t()}
   def validate(%_{} = mapping, opts \\ []) do

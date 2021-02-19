@@ -21,12 +21,15 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Changed
 
-- the way in which list types are defined in a schema has been change from putting the
+- the way in which list types are defined in a schema has been changed from putting the
   base type in square bracket to using one of the new `list_of/1` or `list/0` type builder
   functions
 - the default value of link properties has been changed to `nil` respective the empty list
   (previously it was a `Grax.Link.NotLoaded` struct, which is now set explicitly 
   during loading)
+- in the `Grax.build` and `Grax.put` functions duplicates in the given values are ignored 
+- in the `Grax.build` and `Grax.put` functions a single value in a list for a non-list 
+  property will now be extracted, instead of leading to a validation error
 - failing `:required` requirements result in a `Grax.Schema.CardinalityError` instead
   of a `Grax.Schema.RequiredPropertyMissing` exception
 

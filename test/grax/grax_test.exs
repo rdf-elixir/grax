@@ -150,6 +150,18 @@ defmodule GraxTest do
                }
     end
 
+    test "duplicate values are removed" do
+      assert Example.User.build!(EX.User0,
+               name: ["Foo", "Foo"],
+               email: ["foo@example.com", "foo@example.com"]
+             ) ==
+               %Example.User{
+                 __id__: IRI.new(EX.User0),
+                 name: "Foo",
+                 email: ["foo@example.com"]
+               }
+    end
+
     test "with another Grax.Schema mapping of the same type" do
       assert Example.User.build!(EX.Other, Example.user(EX.User0)) ==
                %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
@@ -233,6 +245,16 @@ defmodule GraxTest do
                 }}
     end
 
+    test "a single value in a list on a scalar property" do
+      assert Example.User.build!(EX.User0)
+             |> Grax.put(:name, ["foo"]) ==
+               {:ok,
+                %Example.User{
+                  __id__: IRI.new(EX.User0),
+                  name: "foo"
+                }}
+    end
+
     test "previous values are overwritten" do
       assert Example.user(EX.User0)
              |> Grax.put(:name, "Foo") ==
@@ -241,6 +263,16 @@ defmodule GraxTest do
       assert Example.user(EX.User0)
              |> Grax.put(:email, ["foo@example.com"]) ==
                {:ok, %Example.User{Example.user(EX.User0) | email: ["foo@example.com"]}}
+    end
+
+    test "duplicate values are removed" do
+      assert Example.user(EX.User0)
+             |> Grax.put(:email, ["foo@example.com", "foo@example.com"]) ==
+               {:ok, %Example.User{Example.user(EX.User0) | email: ["foo@example.com"]}}
+
+      assert Example.user(EX.User0)
+             |> Grax.put(:name, ["Foo", "Foo"]) ==
+               {:ok, %Example.User{Example.user(EX.User0) | name: "Foo"}}
     end
 
     test "with virtual properties" do
