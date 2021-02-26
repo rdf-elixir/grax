@@ -2,14 +2,17 @@ defmodule Grax.ValidationError do
   @moduledoc """
   Raised when the validation of a Grax fails.
   """
-  defexception [:errors]
+  defexception [:errors, :context]
 
   def exception(opts \\ []) do
-    %__MODULE__{errors: Keyword.get(opts, :errors, [])}
+    errors = Keyword.get(opts, :errors, []) |> List.wrap()
+    context = Keyword.get(opts, :context)
+    %__MODULE__{errors: errors, context: context}
   end
 
   def message(validation_error) do
     "validation failed" <>
+      if(validation_error.context, do: " in #{inspect(validation_error.context)}", else: "") <>
       if Enum.empty?(validation_error.errors) do
         ""
       else
