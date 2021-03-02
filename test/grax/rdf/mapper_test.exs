@@ -3,7 +3,7 @@ defmodule Grax.RDF.MapperTest do
 
   alias Grax.ValidationError
 
-  import Grax, only: [to_rdf: 1]
+  import Grax, only: [to_rdf: 1, to_rdf: 2]
 
   test "successful mapping" do
     assert Example.User.build!(EX.User0,
@@ -41,6 +41,22 @@ defmodule Grax.RDF.MapperTest do
              ]
            )
            |> to_rdf() == {:ok, example_graph()}
+  end
+
+  test "pass-through of graph opts" do
+    assert {:ok, graph} =
+             Example.user(EX.User0)
+             |> to_rdf(
+               name: EX.graph_name(),
+               base_iri: EX.base(),
+               prefixes: [ex: EX],
+               init: {EX.S, EX.p(), EX.O}
+             )
+
+    assert Graph.include?(graph, {EX.S, EX.p(), EX.O})
+    assert graph.name == EX.graph_name()
+    assert graph.base_iri == EX.base()
+    assert graph.prefixes == RDF.PrefixMap.new(ex: EX)
   end
 
   test "with invalid struct" do

@@ -33,6 +33,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   property will now be extracted, instead of leading to a validation error
 - failing `:required` requirements result in a `Grax.Schema.CardinalityError` instead
   of a `Grax.Schema.RequiredPropertyMissing` exception
+- the opts on `Grax.to_rdf/2` are now passed-through to the `RDF.Graph.new/2` constructor
+  allowing to set the name of the graph, prefixes etc.
 
 
 [Compare v0.1.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.1.0...HEAD)

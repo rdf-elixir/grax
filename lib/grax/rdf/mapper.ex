@@ -9,7 +9,7 @@ defmodule Grax.RDF.Mapper do
     with {:ok, mapping} <- Validator.call(mapping, opts) do
       schema.__properties__()
       |> Enum.reduce_while(
-        {:ok, Description.new(mapping.__id__), Graph.new()},
+        {:ok, Description.new(mapping.__id__), Graph.new(opts)},
         fn {property_name, property_schema}, {:ok, description, graph} ->
           case Map.get(mapping, property_name) do
             nil ->
