@@ -66,9 +66,9 @@ defmodule Grax.MixProject do
   defp deps do
     [
       {:rdf, ">= 0.9.2"},
-      {:dialyxir, "~> 1.0", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.23", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.13", only: :test}
+      {:dialyxir, "~> 1.1", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.14", only: :test}
     ]
   end
 
