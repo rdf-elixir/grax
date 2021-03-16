@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.2.0 - 2021-03-16
 
 ### Added
 
@@ -37,7 +37,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   allowing to set the name of the graph, prefixes etc.
 
 
-[Compare v0.1.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.1.0...HEAD)
+[Compare v0.1.0...v0.2.0](https://github.com/rdf-elixir/grax/compare/v0.1.0...v0.2.0)
 
 
 
