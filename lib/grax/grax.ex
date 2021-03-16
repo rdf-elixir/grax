@@ -159,7 +159,7 @@ defmodule Grax do
   end
 
   def put(%_{} = mapping, values) do
-    Enum.reduce(values, {mapping, ValidationError.exception()}, fn
+    Enum.reduce(values, {mapping, ValidationError.exception(context: mapping.__id__)}, fn
       {property, value}, {mapping, validation} ->
         mapping
         |> put(property, value)
@@ -178,7 +178,13 @@ defmodule Grax do
     value = normalize_value(value, property_schema)
 
     Validator
-    |> apply(validation, [ValidationError.exception(), property, value, property_schema, []])
+    |> apply(validation, [
+      ValidationError.exception(context: mapping.__id__),
+      property,
+      value,
+      property_schema,
+      []
+    ])
     |> case do
       %{errors: []} -> {:ok, struct!(mapping, [{property, value}])}
       %{errors: errors} -> {:error, errors[property]}

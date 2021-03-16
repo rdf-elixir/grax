@@ -80,6 +80,7 @@ defmodule GraxTest do
              ) ==
                {:error,
                 %ValidationError{
+                  context: RDF.iri(EX.User0),
                   errors: [
                     posts:
                       TypeError.exception(
@@ -94,6 +95,7 @@ defmodule GraxTest do
       assert Example.User.build(EX.Other, Example.user(EX.User0) |> Map.put(:age, "secret")) ==
                {:error,
                 %ValidationError{
+                  context: RDF.iri(EX.Other),
                   errors: [
                     age: TypeError.exception(value: "secret", type: XSD.Integer)
                   ]
@@ -494,6 +496,7 @@ defmodule GraxTest do
              ) ==
                {:error,
                 %ValidationError{
+                  context: RDF.iri(EX.User0),
                   errors: [
                     posts:
                       TypeError.exception(

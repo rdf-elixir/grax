@@ -20,12 +20,12 @@ defmodule Grax.ValidatorTest do
     test "with an invalid value" do
       assert validate(%Example.User{__id__: "http://example.com"}) ==
                {:error,
-                validation_error(__id__: InvalidIdError.exception(id: "http://example.com"))}
+                validation_error("http://example.com", __id__: InvalidIdError.exception(id: "http://example.com"))}
     end
 
     test "when missing" do
       assert validate(%Example.User{}) ==
-               {:error, validation_error(__id__: InvalidIdError.exception(id: nil))}
+               {:error, validation_error(nil, __id__: InvalidIdError.exception(id: nil))}
     end
   end
 
@@ -216,14 +216,14 @@ defmodule Grax.ValidatorTest do
     test "multiple errors per property" do
       assert validate(%Example.User{__id__: IRI.new(EX.S), name: [42]}) ==
                {:error,
-                validation_error(
+                validation_error(IRI.new(EX.S),
                   name: TypeError.exception(type: XSD.String, value: [42]),
                   name: TypeError.exception(type: XSD.String, value: 42)
                 )}
 
       assert validate(%Example.User{__id__: IRI.new(EX.S), email: 42}) ==
                {:error,
-                validation_error(
+                validation_error(IRI.new(EX.S),
                   email: TypeError.exception(type: {:list_set, XSD.String}, value: 42),
                   email: TypeError.exception(type: XSD.String, value: 42)
                 )}
@@ -233,7 +233,7 @@ defmodule Grax.ValidatorTest do
   test "missing required properties" do
     assert validate(%Example.Required{__id__: IRI.new(EX.S)}) ==
              {:error,
-              validation_error(
+              validation_error(IRI.new(EX.S),
                 bar: CardinalityError.exception(cardinality: 1, value: nil),
                 baz: CardinalityError.exception(cardinality: {:min, 1}, value: []),
                 foo: CardinalityError.exception(cardinality: 1, value: nil),
@@ -264,7 +264,7 @@ defmodule Grax.ValidatorTest do
     |> Enum.each(fn {property, cardinality, value} ->
       assert Grax.put(valid, [{property, value}]) ==
                {:error,
-                validation_error([
+                validation_error(IRI.new(EX.S), [
                   {property, CardinalityError.exception(cardinality: cardinality, value: value)}
                 ])}
     end)
@@ -464,7 +464,7 @@ defmodule Grax.ValidatorTest do
 
       assert validate(mapping) ==
                {:error,
-                validation_error([
+                validation_error(mapping.__id__, [
                   {property, error.exception(error_args.(value, property))}
                 ])}
 
@@ -476,8 +476,8 @@ defmodule Grax.ValidatorTest do
     end)
   end
 
-  defp validation_error(errors) do
-    Enum.reduce(errors, ValidationError.exception(), fn
+  defp validation_error(context, errors) do
+    Enum.reduce(errors, ValidationError.exception(context: context), fn
       {property, error}, validation ->
         ValidationError.add_error(validation, property, error)
     end)

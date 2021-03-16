@@ -18,7 +18,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - support for custom mappings in separate modules
 - the `build` functions can now be called with a single map when the map contains
   an id an `:__id__` field
-- `:context` field on `Grax.ValidationError` exception for  more context specific information
+- `:context` field on `Grax.ValidationError` exception with more context specific information
 
 ### Changed
 

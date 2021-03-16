@@ -8,7 +8,7 @@ defmodule Grax.Validator do
   import ValidationError, only: [add_error: 3]
 
   def call(mapping, opts) do
-    ValidationError.exception()
+    ValidationError.exception(context: Map.get(mapping, :__id__))
     |> check_subject_iri(mapping, opts)
     |> check_properties(mapping, opts)
     |> check_links(mapping, opts)
