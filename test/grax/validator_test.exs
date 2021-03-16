@@ -20,7 +20,9 @@ defmodule Grax.ValidatorTest do
     test "with an invalid value" do
       assert validate(%Example.User{__id__: "http://example.com"}) ==
                {:error,
-                validation_error("http://example.com", __id__: InvalidIdError.exception(id: "http://example.com"))}
+                validation_error("http://example.com",
+                  __id__: InvalidIdError.exception(id: "http://example.com")
+                )}
     end
 
     test "when missing" do
