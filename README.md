@@ -49,8 +49,8 @@ defmodule User do
     property email: SchemaOrg.email, type: :string
     property age: FOAF.age, type: :integer
     
-    link friends: FOAF.friend, type: [User]
-    link posts: -SchemaOrg.author, type: [Post]
+    link friends: FOAF.friend, type: list_of(User)
+    link posts: -SchemaOrg.author, type: list_of(Post)
 
     field :password
   end
