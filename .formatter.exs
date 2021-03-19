@@ -1,11 +1,16 @@
 locals_without_parens = [
+  # Grax.Schema
   property: 1,
   property: 2,
   property: 3,
   link: 1,
   link: 3,
   field: 1,
-  field: 2
+  field: 2,
+
+  # Grax.Id.Spec
+  namespace: 2,
+  base: 2
 ]
 
 [
