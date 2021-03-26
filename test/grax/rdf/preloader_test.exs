@@ -184,9 +184,11 @@ defmodule Grax.RDF.PreloaderTest do
              |> Example.HeterogeneousLinks.load(EX.A) ==
                Example.HeterogeneousLinks.build(EX.A,
                  one:
-                   Example.Post.build!(EX.Post1, title: "foo") |> Loader.init_link_properties(),
+                   Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
+                   |> Loader.init_link_properties(),
                  strict_one:
-                   Example.Post.build!(EX.Post1, title: "foo") |> Loader.init_link_properties(),
+                   Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
+                   |> Loader.init_link_properties(),
                  many: []
                )
 
@@ -230,7 +232,8 @@ defmodule Grax.RDF.PreloaderTest do
                  one: nil,
                  strict_one: nil,
                  many: [
-                   Example.Post.build!(EX.Post1, title: "foo") |> Loader.init_link_properties()
+                   Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
+                   |> Loader.init_link_properties()
                  ]
                )
 
@@ -246,7 +249,7 @@ defmodule Grax.RDF.PreloaderTest do
                  many: [
                    Example.Comment.build!(EX.Comment1, content: "foo")
                    |> Loader.init_link_properties(),
-                   Example.Post.build!(EX.Post1, title: "foo")
+                   Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
                    |> Loader.init_link_properties()
                  ]
                )

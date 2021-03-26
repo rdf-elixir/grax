@@ -1,4 +1,11 @@
 defmodule Grax.Id.Namespace do
+  @type t :: %__MODULE__{
+          parent: t | nil,
+          segment: String.t(),
+          prefix: atom | nil,
+          base: boolean
+        }
+
   @enforce_keys [:segment]
   defstruct [:parent, :segment, :prefix, :base]
 

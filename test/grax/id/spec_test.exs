@@ -1,25 +1,25 @@
 defmodule Grax.Id.SpecTest do
   use Grax.TestCase
 
-  alias Grax.Id.Namespace
+  alias Grax.Id
   alias RDF.PrefixMap
-  alias Example.IdSpec
+  alias Example.{IdSpecs, User, Post}
 
-  describe "namespaces/1" do
+  describe "namespaces/0" do
     test "returns all namespaces" do
-      namespace = %Namespace{
+      namespace = %Id.Namespace{
         segment: "http://example.com/",
         prefix: :ex,
         base: false
       }
 
-      assert IdSpec.FlatNs.namespaces() == [namespace]
-      assert IdSpec.FlatNsWithVocabTerms.namespaces() == [namespace]
+      assert IdSpecs.FlatNs.namespaces() == [namespace]
+      assert IdSpecs.FlatNsWithVocabTerms.namespaces() == [namespace]
     end
 
     test "includes base namespaces" do
-      assert IdSpec.FlatBase.namespaces() == [
-               %Namespace{
+      assert IdSpecs.FlatBase.namespaces() == [
+               %Id.Namespace{
                  segment: "http://example.com/",
                  base: true
                }
@@ -27,33 +27,33 @@ defmodule Grax.Id.SpecTest do
     end
 
     test "includes nested namespaces" do
-      root_namespace = %Namespace{
+      root_namespace = %Id.Namespace{
         segment: "http://example.com/",
         prefix: :ex,
         base: false
       }
 
-      foo_namespace = %Namespace{
+      foo_namespace = %Id.Namespace{
         parent: root_namespace,
         segment: "foo/",
         prefix: :foo,
         base: false
       }
 
-      assert IdSpec.NestedNs.namespaces() == [
-               %Namespace{
+      assert IdSpecs.NestedNs.namespaces() == [
+               %Id.Namespace{
                  parent: root_namespace,
                  segment: "qux/",
                  prefix: :qux,
                  base: false
                },
-               %Namespace{
+               %Id.Namespace{
                  parent: foo_namespace,
                  segment: "baz/",
                  prefix: :baz,
                  base: false
                },
-               %Namespace{
+               %Id.Namespace{
                  parent: foo_namespace,
                  segment: "bar/",
                  prefix: :bar,
@@ -65,13 +65,33 @@ defmodule Grax.Id.SpecTest do
     end
   end
 
-  describe "prefix_map/1" do
-    test "returns a RDF.PrefixMap of all namespaces with prefixes defined" do
-      assert IdSpec.FlatNs.prefix_map() == PrefixMap.new(ex: EX)
-      assert IdSpec.FlatNsWithVocabTerms.prefix_map() == PrefixMap.new(ex: EX)
-      assert IdSpec.FlatBase.prefix_map() == PrefixMap.new()
+  describe "id_schemas/0" do
+    test "returns all namespaces" do
+      assert IdSpecs.GenericIds.id_schemas() ==
+               [
+                 IdSpecs.GenericIds.expected_id_schema(Post),
+                 IdSpecs.GenericIds.expected_id_schema(User)
+               ]
+    end
+  end
 
-      assert IdSpec.NestedNs.prefix_map() ==
+  describe "determine_id_schema/2" do
+    test "when an Id.Schema can be found for a given Grax schema module" do
+      assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, User) ==
+               IdSpecs.GenericIds.expected_id_schema(User)
+
+      assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, Post) ==
+               IdSpecs.GenericIds.expected_id_schema(Post)
+    end
+  end
+
+  describe "prefix_map/0" do
+    test "returns a RDF.PrefixMap of all namespaces with prefixes defined" do
+      assert IdSpecs.FlatNs.prefix_map() == PrefixMap.new(ex: EX)
+      assert IdSpecs.FlatNsWithVocabTerms.prefix_map() == PrefixMap.new(ex: EX)
+      assert IdSpecs.FlatBase.prefix_map() == PrefixMap.new()
+
+      assert IdSpecs.NestedNs.prefix_map() ==
                PrefixMap.new(
                  ex: EX,
                  foo: "#{EX.foo()}/",

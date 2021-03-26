@@ -12,6 +12,7 @@ defmodule Grax.Id.Spec do
       @before_compile unquote(__MODULE__)
 
       Module.register_attribute(__MODULE__, :namespaces, accumulate: true)
+      Module.register_attribute(__MODULE__, :id_schemas, accumulate: true)
       @parent_namespace nil
     end
   end
@@ -19,6 +20,7 @@ defmodule Grax.Id.Spec do
   defmacro __before_compile__(_env) do
     quote do
       def namespaces, do: @namespaces
+      def id_schemas, do: @id_schemas
 
       @prefix_map @namespaces
                   |> Enum.reject(&is_nil(&1.prefix))
@@ -95,5 +97,19 @@ defmodule Grax.Id.Spec do
     quote do
       base(unquote(segment), unquote(opts), do: nil)
     end
+  end
+
+  defmacro id_schema(template, opts)
+
+  defmacro id_schema(template, opts) do
+    IO.inspect(template)
+
+    quote do
+      @id_schemas Grax.Id.Schema.new(@parent_namespace, unquote(template), unquote(opts))
+    end
+  end
+
+  def determine_id_schema(spec, schema) do
+    Enum.find(spec.id_schemas, &(&1.schema == schema))
   end
 end

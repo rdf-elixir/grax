@@ -10,7 +10,8 @@ locals_without_parens = [
 
   # Grax.Id.Spec
   namespace: 2,
-  base: 2
+  base: 2,
+  id_schema: 2,
 ]
 
 [

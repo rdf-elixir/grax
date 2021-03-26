@@ -41,6 +41,23 @@ defmodule Example do
       property content: EX.content(), type: :string
       link author: EX.author(), type: Example.User
       link comments: EX.comment(), type: list_of(Example.Comment)
+
+      field :slug, from_rdf: :slug
+    end
+
+    @compile {:no_warn_undefined, Example.NS.EX}
+    def slug(description, _) do
+      {:ok,
+       case description[EX.title()] do
+         [title | _] ->
+           title
+           |> to_string()
+           |> String.downcase()
+           |> String.replace(" ", "-")
+
+         _ ->
+           nil
+       end}
     end
   end
 
@@ -95,7 +112,8 @@ defmodule Example do
     %Example.Post{
       __id__: IRI.new(EX.Post0),
       title: "Lorem ipsum",
-      content: "Lorem ipsum dolor sit amet, …"
+      content: "Lorem ipsum dolor sit amet, …",
+      slug: "lorem-ipsum"
     }
     |> Loader.init_link_properties()
   end

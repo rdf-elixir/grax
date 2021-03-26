@@ -20,4 +20,5 @@
   "rdf": {:hex, :rdf, "0.9.3", "5a6f98a1ef4380adabad438f019d155bf65171c0ed5d0b8699e8b077a2abfc30", [:mix], [{:decimal, "~> 1.5", [hex: :decimal, repo: "hexpm", optional: false]}, {:protocol_ex, "~> 0.4", [hex: :protocol_ex, repo: "hexpm", optional: false]}], "hexpm", "e93e1ba86d3d347ab1236fea4ed7d5f0d44647a384eb4c58de635cf2259c3303"},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.6", "cf344f5692c82d2cd7554f5ec8fd961548d4fd09e7d22f5b62482e5aeaebd4b0", [:make, :mix, :rebar3], [], "hexpm", "bdb0d2471f453c88ff3908e7686f86f9be327d065cc1ec16fa4540197ea04680"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.7.0", "bc84380c9ab48177092f43ac89e4dfa2c6d62b40b8bd132b1059ecc7232f9a78", [:rebar3], [], "hexpm", "25eee6d67df61960cf6a794239566599b09e17e668d3700247bc498638152521"},
+  "yuri_template": {:hex, :yuri_template, "1.0.0", "1c49055640f8a3752b64737ac0a99bc32fa58077dd6df3bbb656d0c695582a89", [:mix], [{:nimble_parsec, "~> 1.0", [hex: :nimble_parsec, repo: "hexpm", optional: false]}], "hexpm", "0cf3785a07d632be06b2e2fe3ff0195ef0806d66dca9f904e2d74f738330cd4e"},
 }
