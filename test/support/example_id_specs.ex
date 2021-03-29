@@ -45,7 +45,7 @@ defmodule Example.IdSpecs do
 
     namespace "http://example.com/", prefix: :ex do
       id_schema "users/{name}", schema: User
-      id_schema "posts/{slug}", schema: Post
+      id Post, "posts/{slug}"
     end
 
     def expected_namespace(:ex) do

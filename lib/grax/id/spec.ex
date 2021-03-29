@@ -99,13 +99,17 @@ defmodule Grax.Id.Spec do
     end
   end
 
-  defmacro id_schema(template, opts)
-
   defmacro id_schema(template, opts) do
-    IO.inspect(template)
-
     quote do
       @id_schemas Grax.Id.Schema.new(@parent_namespace, unquote(template), unquote(opts))
+    end
+  end
+
+  defmacro id(schema, template, opts \\ []) do
+    opts = Keyword.put(opts, :schema, schema)
+
+    quote do
+      id_schema unquote(template), unquote(opts)
     end
   end
 
