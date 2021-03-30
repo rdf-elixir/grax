@@ -16,6 +16,7 @@ defmodule Example do
       property age: EX.age(), type: :integer
 
       field :password
+      field :canonical_email, from_rdf: :canonical_email
 
       property customer_type: RDF.type(),
                from_rdf: :customer_type_from_rdf,
@@ -30,6 +31,14 @@ defmodule Example do
 
       def customer_type_to_rdf(:premium_user, _user), do: {:ok, EX.PremiumUser}
       def customer_type_to_rdf(_, _), do: {:ok, nil}
+    end
+
+    def canonical_email(description, _) do
+      {:ok,
+       case description[EX.email()] do
+         [email | _] -> "mailto:#{to_string(email)}"
+         _ -> nil
+       end}
     end
   end
 
@@ -79,7 +88,8 @@ defmodule Example do
       name: "John Doe",
       age: 42,
       email: ~w[jd@example.com john@doe.com],
-      customer_type: :premium_user
+      customer_type: :premium_user,
+      canonical_email: "mailto:jd@example.com"
     }
     |> Loader.init_link_properties()
   end
@@ -88,7 +98,8 @@ defmodule Example do
     %Example.User{
       __id__: IRI.new(EX.User1),
       name: "Erika Mustermann",
-      email: ["erika@mustermann.de"]
+      email: ["erika@mustermann.de"],
+      canonical_email: "mailto:erika@mustermann.de"
     }
     |> Loader.init_link_properties()
   end
@@ -97,7 +108,8 @@ defmodule Example do
     %Example.User{
       __id__: IRI.new(EX.User2),
       name: "Max Mustermann",
-      email: ["max@mustermann.de"]
+      email: ["max@mustermann.de"],
+      canonical_email: "mailto:max@mustermann.de"
     }
     |> Loader.init_link_properties()
   end

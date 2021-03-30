@@ -3,7 +3,7 @@ defmodule Grax.Id.SpecTest do
 
   alias Grax.Id
   alias RDF.PrefixMap
-  alias Example.{IdSpecs, User, Post}
+  alias Example.{IdSpecs, User, Post, Comment}
 
   describe "namespaces/0" do
     test "returns all namespaces" do
@@ -71,6 +71,19 @@ defmodule Grax.Id.SpecTest do
                [
                  IdSpecs.GenericIds.expected_id_schema(Post),
                  IdSpecs.GenericIds.expected_id_schema(User)
+               ]
+
+      assert IdSpecs.GenericUuids.id_schemas() ==
+               [
+                 IdSpecs.GenericUuids.expected_id_schema(Comment),
+                 IdSpecs.GenericUuids.expected_id_schema(Post),
+                 IdSpecs.GenericUuids.expected_id_schema(User)
+               ]
+
+      assert IdSpecs.HashUuids.id_schemas() ==
+               [
+                 IdSpecs.HashUuids.expected_id_schema(Post),
+                 IdSpecs.HashUuids.expected_id_schema(User)
                ]
     end
   end
