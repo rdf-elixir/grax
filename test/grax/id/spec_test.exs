@@ -85,6 +85,13 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.HashUuids.expected_id_schema(Post),
                  IdSpecs.HashUuids.expected_id_schema(User)
                ]
+
+      assert IdSpecs.ShortUuids.id_schemas() ==
+               [
+                 IdSpecs.ShortUuids.expected_id_schema(Comment),
+                 IdSpecs.ShortUuids.expected_id_schema(Post),
+                 IdSpecs.ShortUuids.expected_id_schema(User)
+               ]
     end
   end
 

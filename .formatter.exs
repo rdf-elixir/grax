@@ -16,6 +16,14 @@ locals_without_parens = [
   id: 3,
   uuid: 1,
   uuid: 2,
+  uuid1: 1,
+  uuid1: 2,
+  uuid3: 1,
+  uuid3: 2,
+  uuid4: 1,
+  uuid4: 2,
+  uuid5: 1,
+  uuid5: 2
 ]
 
 [

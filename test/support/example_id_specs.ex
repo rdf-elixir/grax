@@ -48,13 +48,7 @@ defmodule Example.IdSpecs do
       id Post, "posts/{slug}"
     end
 
-    def expected_namespace(:ex) do
-      %Id.Namespace{
-        segment: "http://example.com/",
-        prefix: :ex,
-        base: false
-      }
-    end
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
 
     def expected_id_schema(User) do
       %Id.Schema{
@@ -83,13 +77,7 @@ defmodule Example.IdSpecs do
       uuid Comment, uuid_version: 1
     end
 
-    def expected_namespace(:ex) do
-      %Id.Namespace{
-        segment: "http://example.com/",
-        prefix: :ex,
-        base: false
-      }
-    end
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
 
     def expected_id_schema(User) do
       %Id.Schema{
@@ -130,13 +118,7 @@ defmodule Example.IdSpecs do
       uuid Post, uuid_version: 3, uuid_namespace: @custom_namespace, uuid_name: :slug
     end
 
-    def expected_namespace(:ex) do
-      %Id.Namespace{
-        segment: "http://example.com/",
-        prefix: :ex,
-        base: false
-      }
-    end
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
 
     def expected_id_schema(User) do
       %Id.Schema{
@@ -159,6 +141,61 @@ defmodule Example.IdSpecs do
         ]
       }
     end
+  end
+
+  defmodule ShortUuids do
+    use Grax.Id.Spec
+    import Grax.Id.UUID
+
+    namespace "http://example.com/", prefix: :ex do
+      uuid5 User, namespace: :url, name: :canonical_email, format: :hex
+      uuid4 Post
+      uuid1 schema: Comment, format: :hex, template: "comments/{uuid}"
+    end
+
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
+
+    def expected_id_schema(User) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: User,
+        extensions: [
+          %Grax.Id.UUID{
+            format: :hex,
+            version: 5,
+            namespace: :url,
+            name: :canonical_email
+          }
+        ]
+      }
+    end
+
+    def expected_id_schema(Post) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: Post,
+        extensions: [%Grax.Id.UUID{format: :default, version: 4}]
+      }
+    end
+
+    def expected_id_schema(Comment) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("comments/{uuid}"),
+        schema: Comment,
+        extensions: [%Grax.Id.UUID{format: :hex, version: 1}]
+      }
+    end
+  end
+
+  def expected_namespace(:ex) do
+    %Id.Namespace{
+      segment: "http://example.com/",
+      prefix: :ex,
+      base: false
+    }
   end
 
   def compiled_template(template) do

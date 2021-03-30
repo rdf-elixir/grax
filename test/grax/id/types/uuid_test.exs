@@ -2,7 +2,7 @@ defmodule Grax.Id.Types.UuidTest do
   use Grax.TestCase
 
   alias Grax.Id
-  alias Example.{IdSpecs, User, Post}
+  alias Example.{IdSpecs, User, Post, Comment}
 
   describe "generic uuid macro" do
     test "random UUIDs" do
@@ -22,6 +22,23 @@ defmodule Grax.Id.Types.UuidTest do
 
       assert "posts/" <> uuid = id_segment
       assert_valid_uuid(uuid, version: 4, type: :default)
+
+      assert {:ok, %RDF.IRI{value: "http://example.com/" <> uuid}} =
+               Id.Schema.generate_id(
+                 IdSpecs.ShortUuids.expected_id_schema(Post),
+                 Example.post()
+               )
+
+      assert_valid_uuid(uuid, version: 4, type: :default)
+
+      assert {:ok, %RDF.IRI{value: "http://example.com/" <> id_segment}} =
+               Id.Schema.generate_id(
+                 IdSpecs.ShortUuids.expected_id_schema(Comment),
+                 Example.comment(EX.Comment1, depth: 0)
+               )
+
+      assert "comments/" <> uuid = id_segment
+      assert_valid_uuid(uuid, version: 1, type: :hex)
     end
 
     test "hash-based UUIDs" do
@@ -54,6 +71,21 @@ defmodule Grax.Id.Types.UuidTest do
                )
 
       assert_valid_uuid(uuid, version: 3, type: :default)
+
+      assert {:ok, %RDF.IRI{value: "http://example.com/" <> uuid}} =
+               Id.Schema.generate_id(
+                 IdSpecs.ShortUuids.expected_id_schema(User),
+                 Example.user(EX.User0)
+               )
+
+      # test that the generated UUIDs are reproducible
+      assert {:ok, %RDF.IRI{value: "http://example.com/" <> ^uuid}} =
+               Id.Schema.generate_id(
+                 IdSpecs.ShortUuids.expected_id_schema(User),
+                 Example.user(EX.User0)
+               )
+
+      assert_valid_uuid(uuid, version: 5, type: :hex)
     end
   end
 

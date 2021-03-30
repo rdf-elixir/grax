@@ -21,6 +21,60 @@ if Code.ensure_loaded?(UUID) do
       end
     end
 
+    Enum.each([1, 3, 4, 5], fn version ->
+      name = String.to_atom("uuid#{version}")
+
+      defmacro unquote(name)(opts) when is_list(opts) do
+        opts = normalize_opts(opts, unquote(name), unquote(version))
+
+        quote do
+          uuid unquote(opts)
+        end
+      end
+
+      defmacro unquote(name)(schema) do
+        opts = [uuid_version: unquote(version)]
+
+        quote do
+          uuid unquote(schema), unquote(opts)
+        end
+      end
+
+      defmacro unquote(name)(schema, opts) do
+        opts = normalize_opts(opts, unquote(name), unquote(version))
+
+        quote do
+          uuid unquote(schema), unquote(opts)
+        end
+      end
+    end)
+
+    defp normalize_opts(opts, name, version) do
+      if Keyword.has_key?(opts, :uuid_version) do
+        raise ArgumentError, "trying to set :uuid_version on #{name}"
+      end
+
+      if version in [3, 5] do
+        opts
+        |> rename_keyword(:namespace, :uuid_namespace)
+        |> rename_keyword(:name, :uuid_name)
+      else
+        opts
+      end
+      |> rename_keyword(:format, :uuid_format)
+      |> Keyword.put(:uuid_version, version)
+    end
+
+    defp rename_keyword(opts, old_name, new_name) do
+      if Keyword.has_key?(opts, old_name) do
+        opts
+        |> Keyword.put(new_name, Keyword.get(opts, old_name))
+        |> Keyword.delete_first(old_name)
+      else
+        opts
+      end
+    end
+
     defp default_template(_opts), do: "{uuid}"
 
     @impl true
