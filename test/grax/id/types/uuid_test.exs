@@ -67,7 +67,7 @@ defmodule Grax.Id.Types.UuidTest do
       assert {:ok, ^id} =
                Id.Schema.generate_id(
                  IdSpecs.HashUuids.expected_id_schema(Post),
-                 Example.post()
+                 Example.post() |> Map.from_struct()
                )
 
       assert_valid_uuid(id, "http://example.com/", version: 3, type: :default)
@@ -82,7 +82,7 @@ defmodule Grax.Id.Types.UuidTest do
       assert {:ok, ^id} =
                Id.Schema.generate_id(
                  IdSpecs.ShortUuids.expected_id_schema(User),
-                 Example.user(EX.User0)
+                 Example.user(EX.User0) |> Map.from_struct() |> Keyword.new()
                )
 
       assert_valid_uuid(id, "http://example.com/", version: 5, type: :hex)

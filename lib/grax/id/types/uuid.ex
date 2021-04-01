@@ -132,8 +132,14 @@ if Code.ensure_loaded?(UUID) do
     def call(%{version: 5, format: format, namespace: namespace, name: name}, _, variables, _),
       do: set_uuid(variables, UUID.uuid5(namespace, get_name(variables, name), format))
 
-    defp get_name(variables, name), do: Map.fetch!(variables, name)
+    defp get_name(variables, name) do
+      variables[name] || raise "name #{name} for UUID generation not present"
+    end
 
-    defp set_uuid(variables, uuid), do: {:ok, Map.put(variables, :uuid, uuid)}
+    defp set_uuid(variables, uuid) when is_map(variables),
+      do: {:ok, Map.put(variables, :uuid, uuid)}
+
+    defp set_uuid(variables, uuid),
+      do: {:ok, Keyword.put(variables, :uuid, uuid)}
   end
 end
