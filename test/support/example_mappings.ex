@@ -10,6 +10,8 @@ defmodule Example do
   defmodule User do
     use Grax.Schema
 
+    @compile {:no_warn_undefined, Example.NS.EX}
+
     schema EX.User do
       property name: EX.name(), type: :string
       property email: EX.email(), type: list_of(:string)
@@ -45,6 +47,8 @@ defmodule Example do
   defmodule Post do
     use Grax.Schema
 
+    @compile {:no_warn_undefined, Example.NS.EX}
+
     schema EX.Post do
       property title: EX.title(), type: :string
       property content: EX.content(), type: :string
@@ -54,7 +58,6 @@ defmodule Example do
       field :slug, from_rdf: :slug
     end
 
-    @compile {:no_warn_undefined, Example.NS.EX}
     def slug(description, _) do
       {:ok,
        case description[EX.title()] do
@@ -172,6 +175,14 @@ defmodule Example do
       | author: user(EX.User2, depth: depth - 1),
         about: post(depth: depth - 1)
     }
+  end
+
+  defmodule WithIdSchema do
+    use Grax.Schema, id_spec: Example.IdSpecs.Foo
+
+    schema do
+      property foo: EX.foo()
+    end
   end
 
   defmodule Untyped do

@@ -126,14 +126,23 @@ if Code.ensure_loaded?(UUID) do
     def call(%{version: 4, format: format}, _, variables, _),
       do: set_uuid(variables, UUID.uuid4(format))
 
-    def call(%{version: 3, format: format, namespace: namespace, name: name}, _, variables, _),
-      do: set_uuid(variables, UUID.uuid3(namespace, get_name(variables, name), format))
+    def call(%{version: 3, format: format, namespace: namespace, name: variable}, _, variables, _) do
+      with {:ok, name} <- get_name(variables, variable) do
+        set_uuid(variables, UUID.uuid3(namespace, name, format))
+      end
+    end
 
-    def call(%{version: 5, format: format, namespace: namespace, name: name}, _, variables, _),
-      do: set_uuid(variables, UUID.uuid5(namespace, get_name(variables, name), format))
+    def call(%{version: 5, format: format, namespace: namespace, name: variable}, _, variables, _) do
+      with {:ok, name} <- get_name(variables, variable) do
+        set_uuid(variables, UUID.uuid5(namespace, name, format))
+      end
+    end
 
-    defp get_name(variables, name) do
-      variables[name] || raise "name #{name} for UUID generation not present"
+    defp get_name(variables, variable) do
+      case variables[variable] do
+        nil -> {:error, "name #{variable} for UUID generation not present"}
+        name -> {:ok, to_string(name)}
+      end
     end
 
     defp set_uuid(variables, uuid) when is_map(variables),

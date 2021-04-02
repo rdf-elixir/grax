@@ -31,9 +31,13 @@ defmodule Grax.Id.Schema do
     YuriTemplate.parse(template)
   end
 
-  def generate_id(%__MODULE__{} = id_schema, mapping, opts \\ []) do
-    variables = Map.from_struct(mapping)
+  def generate_id(id_schema, variables, opts \\ [])
 
+  def generate_id(%__MODULE__{} = id_schema, %_{} = mapping, opts) do
+    generate_id(%__MODULE__{} = id_schema, Map.from_struct(mapping), opts)
+  end
+
+  def generate_id(%__MODULE__{} = id_schema, variables, opts) do
     with {:ok, variables} <- Extension.call(id_schema, variables, opts),
          {:ok, segment} <- YuriTemplate.expand(id_schema.template, variables) do
       {:ok, expand(id_schema, segment, opts)}

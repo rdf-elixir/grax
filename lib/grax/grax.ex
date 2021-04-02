@@ -6,7 +6,7 @@ defmodule Grax do
   Read about the API in the guide [here](https://rdf-elixir.dev/grax/api.html).
   """
 
-  alias Grax.{Schema, Link, Validator, ValidationError}
+  alias Grax.{Schema, Id, Link, Validator, ValidationError}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph}
@@ -19,14 +19,29 @@ defmodule Grax do
 
   def build(mod, %IRI{} = id), do: {:ok, do_build(mod, id)}
   def build(mod, %BlankNode{} = id), do: {:ok, do_build(mod, id)}
+  def build(mod, %Id.Schema{} = id_schema), do: build(mod, id_schema, %{})
 
   def build(mod, %{__id__: id} = initial), do: build(mod, id, Map.delete(initial, :__id__))
+
+  def build(mod, initial) when is_map(initial) or is_list(initial) do
+    if id_schema = mod.__id_schema__() do
+      build(mod, id_schema, initial)
+    else
+      raise ArgumentError, "id missing and no id schema found"
+    end
+  end
 
   def build(mod, id) do
     if iri = IRI.new(id) do
       {:ok, do_build(mod, iri)}
     else
       raise ArgumentError, "invalid id: #{inspect(id)}"
+    end
+  end
+
+  def build(mod, %Id.Schema{} = id_schema, initial) do
+    with {:ok, id} <- Id.Schema.generate_id(id_schema, initial) do
+      build(mod, id, initial)
     end
   end
 

@@ -319,8 +319,13 @@ defmodule Grax.SchemaTest do
     assert Example.Datatypes.__class__() == nil
   end
 
-  #  test "__class_schema__/0" do
-  #    assert Example.ClassDeclaration.__class_schema__() == %Grax.RDFS.Class{}
-  #    assert Example.Datatypes.__class_schema__() == nil
-  #  end
+  describe "__id_schema__/0" do
+    test "when no id spec set or application configured" do
+      assert Example.User.__id_schema__() == nil
+    end
+
+    test "when an id spec is set explicitly" do
+      assert Example.WithIdSchema.__id_schema__() == Example.IdSpecs.Foo.expected_id_schema()
+    end
+  end
 end

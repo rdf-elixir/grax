@@ -3,27 +3,16 @@ defmodule GraxTest do
 
   doctest Grax
 
+  import Grax.UuidTestHelper
+
   alias Grax.ValidationError
   alias Grax.Schema.{TypeError, InvalidProperty, CardinalityError}
+  alias Example.IdSpecs
 
   describe "build/1" do
     test "with a string id" do
       assert Example.User.build("http://example.com/user/1") ==
                {:ok, %Example.User{__id__: IRI.new("http://example.com/user/1")}}
-    end
-
-    test "with a map containing an __id__ field" do
-      assert Example.User.build(%{
-               __id__: EX.User0,
-               name: "Foo",
-               email: ["foo@example.com"],
-               password: "secret"
-             }) ==
-               Example.User.build(EX.User0, %{
-                 name: "Foo",
-                 email: ["foo@example.com"],
-                 password: "secret"
-               })
     end
 
     test "with a vocabulary namespace term" do
@@ -32,7 +21,7 @@ defmodule GraxTest do
     end
   end
 
-  describe "build/2" do
+  describe "build with an explicitly given id" do
     test "with a map of valid property values" do
       assert Example.User.build(EX.User0, %{
                name: "Foo",
@@ -100,6 +89,66 @@ defmodule GraxTest do
                     age: TypeError.exception(value: "secret", type: XSD.Integer)
                   ]
                 }}
+    end
+  end
+
+  describe "build with an explicitly given id as part of the initial data" do
+    test "with a map containing an __id__ field" do
+      assert Example.User.build(%{
+               __id__: EX.User0,
+               name: "Foo",
+               email: ["foo@example.com"],
+               password: "secret"
+             }) ==
+               Example.User.build(EX.User0, %{
+                 name: "Foo",
+                 email: ["foo@example.com"],
+                 password: "secret"
+               })
+    end
+  end
+
+  describe "build from an id schema" do
+    test "when an explicitly given Id.Schema doesn't require anything" do
+      assert {:ok, %Example.User{__id__: id}} =
+               IdSpecs.GenericUuids.expected_id_schema(Example.User)
+               |> Example.User.build()
+
+      assert_valid_uuid(id, "http://example.com/", version: 4, type: :hex)
+    end
+
+    test "when an explicitly given Id.Schema depends on a given property value" do
+      id = RDF.iri("http://example.com/#{UUID.uuid5(:url, "foo@example.com")}")
+
+      assert {:ok,
+              %Example.User{
+                __id__: ^id,
+                name: "Foo",
+                canonical_email: "foo@example.com"
+              }} =
+               IdSpecs.HashUuids.expected_id_schema(Example.User)
+               |> Example.User.build(%{
+                 name: "Foo",
+                 canonical_email: "foo@example.com"
+               })
+    end
+
+    test "when an explicitly given Id.Schema depends on a missing property value" do
+      assert {:error, "name canonical_email for UUID generation not present"} =
+               IdSpecs.HashUuids.expected_id_schema(Example.User)
+               |> Example.User.build(%{name: "Foo"})
+    end
+
+    test "when schema is associated with an id schema it is used implicitly" do
+      assert {:ok, %Example.WithIdSchema{__id__: id, foo: "Foo"}} =
+               Example.WithIdSchema.build(%{foo: "Foo"})
+
+      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+
+      assert {:ok, %Example.WithIdSchema{__id__: id, foo: "Foo"}} =
+               Example.WithIdSchema.build(foo: "Foo")
+
+      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
     end
   end
 

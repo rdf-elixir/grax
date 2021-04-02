@@ -12,6 +12,7 @@ defmodule Grax.Schema do
 
   defmacro __using__(opts) do
     preload_default = opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec()
+    id_spec = Keyword.get(opts, :id_spec)
 
     quote do
       import unquote(__MODULE__), only: [schema: 1, schema: 2]
@@ -20,6 +21,11 @@ defmodule Grax.Schema do
 
       @grax_preload_default unquote(preload_default)
       def __preload_default__(), do: @grax_preload_default
+
+      @grax_id_schema (if unquote(id_spec) do
+                         Grax.Id.Spec.determine_id_schema(unquote(id_spec), __MODULE__)
+                       end)
+      def __id_schema__(), do: @grax_id_schema
     end
   end
 
