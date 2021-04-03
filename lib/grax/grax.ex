@@ -11,6 +11,8 @@ defmodule Grax do
 
   alias RDF.{IRI, BlankNode, Graph}
 
+  import RDF.Utils
+
   @__id__property_access_error Schema.InvalidProperty.exception(
                                  property: :__id__,
                                  message:
@@ -190,19 +192,22 @@ defmodule Grax do
   end
 
   defp do_put_property(validation, mapping, property, value, property_schema) do
-    value = normalize_value(value, property_schema)
-
-    Validator
-    |> apply(validation, [
-      ValidationError.exception(context: mapping.__id__),
-      property,
-      value,
-      property_schema,
-      []
-    ])
-    |> case do
-      %{errors: []} -> {:ok, struct!(mapping, [{property, value}])}
-      %{errors: errors} -> {:error, errors[property]}
+    with {:ok, value} <-
+           value
+           |> normalize_value(property_schema)
+           |> build_linked(property_schema) do
+      Validator
+      |> apply(validation, [
+        ValidationError.exception(context: mapping.__id__),
+        property,
+        value,
+        property_schema,
+        []
+      ])
+      |> case do
+        %{errors: []} -> {:ok, struct!(mapping, [{property, value}])}
+        %{errors: errors} -> {:error, errors[property]}
+      end
     end
   end
 
@@ -232,6 +237,25 @@ defmodule Grax do
   defp do_normalize_value(value, true), do: List.wrap(value)
   defp do_normalize_value([value], false), do: value
   defp do_normalize_value(value, false), do: value
+
+  defp build_linked(values, %Schema.LinkProperty{} = property_schema) when is_list(values) do
+    map_while_ok(values, &build_linked(&1, property_schema))
+  end
+
+  defp build_linked(%{} = value, %Schema.LinkProperty{} = property_schema) do
+    if Map.has_key?(value, :__struct__) do
+      {:ok, value}
+    else
+      if resource_type = Schema.LinkProperty.value_type(property_schema) do
+        resource_type.build(value)
+      else
+        raise ArgumentError,
+              "unable to determine value type of property #{inspect(property_schema)}"
+      end
+    end
+  end
+
+  defp build_linked(value, _), do: {:ok, value}
 
   @spec validate(struct, opts :: Keyword) :: {:ok, struct} | {:error, ValidationError.t()}
   def validate(%_{} = mapping, opts \\ []) do

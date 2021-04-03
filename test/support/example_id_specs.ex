@@ -196,6 +196,7 @@ defmodule Example.IdSpecs do
 
     namespace "http://example.com/", prefix: :ex do
       uuid4 Example.WithIdSchema
+      id Example.WithIdSchemaNested, "bar/{bar}"
     end
 
     def expected_id_schema() do

@@ -185,6 +185,16 @@ defmodule Example do
     end
   end
 
+  defmodule WithIdSchemaNested do
+    use Grax.Schema, id_spec: Example.IdSpecs.Foo
+
+    schema do
+      property bar: EX.bar()
+      link foo: EX.foo(), type: Example.WithIdSchema
+      link more: EX.more(), type: list_of(__MODULE__)
+    end
+  end
+
   defmodule Untyped do
     use Grax.Schema
 

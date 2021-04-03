@@ -150,6 +150,29 @@ defmodule GraxTest do
 
       assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
     end
+
+    test "with nested ids to generate" do
+      assert {:ok,
+              %Example.WithIdSchemaNested{
+                __id__: ~I<http://example.com/bar/bar1>,
+                foo: %Example.WithIdSchema{__id__: nested_id},
+                more: [
+                  %Example.WithIdSchemaNested{
+                    __id__: ~I<http://example.com/bar/bar2>,
+                    foo: %Example.WithIdSchema{__id__: nested_id2}
+                  }
+                ]
+              }} =
+               Example.WithIdSchemaNested.build(
+                 bar: "bar1",
+                 foo: %{foo: "foo1"},
+                 more: %{bar: "bar2", foo: %{foo: "foo2"}}
+               )
+
+      assert_valid_uuid(nested_id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(nested_id2, "http://example.com/", version: 4, type: :default)
+      refute nested_id == nested_id2
+    end
   end
 
   describe "build!/1" do
@@ -371,6 +394,61 @@ defmodule GraxTest do
                   __id__: IRI.new(EX.User0),
                   posts: [Example.post(depth: 0)]
                 }}
+    end
+
+    test "with a simple map with the __id__ field" do
+      assert Example.SelfLinked.build!(EX.Foo)
+             |> Grax.put(:next, %{__id__: RDF.iri(EX.Bar)}) ==
+               {:ok,
+                %Example.SelfLinked{
+                  __id__: IRI.new(EX.Foo),
+                  next: Example.SelfLinked.build!(EX.Bar)
+                }}
+    end
+
+    test "with a map and an id schema defined for the linked schema" do
+      assert {:ok,
+              %Example.WithIdSchemaNested{
+                __id__: ~I<http://example.com/bar/bar1>,
+                foo: %Example.WithIdSchema{__id__: nested_id}
+              }} =
+               Example.WithIdSchemaNested.build!(bar: "bar1")
+               |> Grax.put(foo: %{foo: "foo1"})
+
+      assert_valid_uuid(nested_id, "http://example.com/", version: 4, type: :default)
+    end
+
+    test "with a list of maps" do
+      assert {:ok,
+              %Example.WithIdSchemaNested{
+                __id__: ~I<http://example.com/bar/bar1>,
+                more: [
+                  %Example.WithIdSchemaNested{
+                    __id__: ~I<http://example.com/bar/bar1>,
+                    bar: "bar1"
+                  },
+                  %Example.WithIdSchemaNested{
+                    __id__: ~I<http://example.com/bar/bar2>,
+                    bar: "bar2"
+                  }
+                ]
+              }} =
+               Example.WithIdSchemaNested.build!(bar: "bar1")
+               |> Grax.put(more: [%{bar: "bar1"}, %{bar: "bar2"}])
+    end
+
+    test "with a map and without an id or id schema defined for the linked schema" do
+      assert_raise ArgumentError, "id missing and no id schema found", fn ->
+        Example.User.build!(EX.User0)
+        |> Grax.put(:posts, [%{title: "foo"}])
+      end
+    end
+
+    test "with a map for a heterogeneous property" do
+      assert_raise ArgumentError, fn ->
+        Example.HeterogeneousLinks.build!(EX.Foo)
+        |> Grax.put(:one, %{title: "foo"})
+      end
     end
 
     test "with a link property and a wrong Grax.Schema struct" do

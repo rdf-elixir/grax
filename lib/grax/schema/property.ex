@@ -34,7 +34,7 @@ defmodule Grax.Schema.Property do
   end
 
   def type_with_cardinality(name, type, false, property_type) do
-    case value_type(type, property_type) do
+    case initial_value_type(type, property_type) do
       {:ok, type, card} ->
         {type, card}
 
@@ -65,14 +65,14 @@ defmodule Grax.Schema.Property do
     end
   end
 
-  defp value_type({:list_set, type, cardinality}, property_type) do
-    with {:ok, inner_type} <- property_type.value_type(type) do
+  defp initial_value_type({:list_set, type, cardinality}, property_type) do
+    with {:ok, inner_type} <- property_type.initial_value_type(type) do
       {:ok, {:list_set, inner_type}, cardinality}
     end
   end
 
-  defp value_type(type, property_type) do
-    property_type.value_type(type)
+  defp initial_value_type(type, property_type) do
+    property_type.initial_value_type(type)
   end
 end
 
@@ -101,8 +101,8 @@ defmodule Grax.Schema.DataProperty do
     )
   end
 
-  def value_type(nil), do: value_type(@default_type)
-  def value_type(type), do: Datatype.get(type)
+  def initial_value_type(nil), do: initial_value_type(@default_type)
+  def initial_value_type(type), do: Datatype.get(type)
 
   defp init_default(type, nil), do: Property.default(type)
 
@@ -164,9 +164,9 @@ defmodule Grax.Schema.LinkProperty do
           })"
   end
 
-  def value_type(nil), do: {:error, "type missing"}
+  def initial_value_type(nil), do: {:error, "type missing"}
 
-  def value_type(class_mapping) when is_map(class_mapping) do
+  def initial_value_type(class_mapping) when is_map(class_mapping) do
     {:ok,
      {:resource,
       Map.new(class_mapping, fn
@@ -175,7 +175,14 @@ defmodule Grax.Schema.LinkProperty do
       end)}}
   end
 
-  def value_type(schema), do: {:ok, {:resource, schema}}
+  def initial_value_type(schema), do: {:ok, {:resource, schema}}
+
+  def value_type(%__MODULE__{} = schema), do: do_value_type(schema.type)
+
+  defp do_value_type({:list_set, type}), do: do_value_type(type)
+  defp do_value_type({:resource, %{}}), do: nil
+  defp do_value_type({:resource, type}), do: type
+  defp do_value_type(_), do: nil
 
   def default(%__MODULE__{} = link_schema) do
     %Link.NotLoaded{
