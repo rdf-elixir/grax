@@ -10,9 +10,11 @@ defmodule Grax.Schema do
   alias Grax.Schema.{Struct, Inheritance, DataProperty, LinkProperty, CustomField}
   alias RDF.IRI
 
+  def default_id_spec, do: Application.get_env(:grax, :id_spec)
+
   defmacro __using__(opts) do
     preload_default = opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec()
-    id_spec = Keyword.get(opts, :id_spec)
+    id_spec = Keyword.get(opts, :id_spec, default_id_spec())
 
     quote do
       import unquote(__MODULE__), only: [schema: 1, schema: 2]

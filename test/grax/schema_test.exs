@@ -327,5 +327,7 @@ defmodule Grax.SchemaTest do
     test "when an id spec is set explicitly" do
       assert Example.WithIdSchema.__id_schema__() == Example.IdSpecs.Foo.expected_id_schema()
     end
+
+    # tests for the application configured Id.Spec are in Grax.ConfigTest
   end
 end

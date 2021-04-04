@@ -209,6 +209,24 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule AppConfigIdSpec do
+    use Grax.Id.Spec
+    import Grax.Id.UUID
+
+    namespace "http://example.com/", prefix: :ex do
+      uuid4 Grax.ConfigTest.TestSchema
+    end
+
+    def expected_id_schema() do
+      %Id.Schema{
+        namespace: Example.IdSpecs.expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: Grax.ConfigTest.TestSchema,
+        extensions: [%Grax.Id.UUID{format: :default, version: 4}]
+      }
+    end
+  end
+
   def expected_namespace(:ex) do
     %Id.Namespace{
       segment: "http://example.com/",
