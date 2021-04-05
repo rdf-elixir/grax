@@ -65,6 +65,19 @@ defmodule Grax.Id.SpecTest do
     end
   end
 
+  test "vocab terms are only allowed on the top-level namespace" do
+    assert_raise ArgumentError, "absolute URIs are only allowed on the top-level namespace", fn ->
+      defmodule VocabTermsOnNestedNamespace do
+        use Grax.Id.Spec
+
+        namespace "http://example.com/" do
+          namespace EX do
+          end
+        end
+      end
+    end
+  end
+
   describe "id_schemas/0" do
     test "returns all namespaces" do
       assert IdSpecs.GenericIds.id_schemas() ==

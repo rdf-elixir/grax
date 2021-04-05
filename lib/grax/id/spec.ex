@@ -33,21 +33,25 @@ defmodule Grax.Id.Spec do
   defmacro namespace(segment, opts, do_block)
 
   defmacro namespace(segment, opts, do: block) do
-    segment =
+    {segment, absolute?} =
       case segment do
         {:__aliases__, _, _} = vocab_namespace ->
-          vocab_namespace
-          |> Macro.expand(__CALLER__)
-          |> apply(:__base_iri__, [])
+          {vocab_namespace
+           |> Macro.expand(__CALLER__)
+           |> apply(:__base_iri__, []), true}
 
         segment when is_binary(segment) ->
-          segment
+          {segment, nil}
 
         invalid ->
           raise "invalid namespace: #{inspect(invalid)}"
       end
 
     quote do
+      if @parent_namespace && unquote(absolute?) do
+        raise ArgumentError, "absolute URIs are only allowed on the top-level namespace"
+      end
+
       previous_parent_namespace = @parent_namespace
 
       namespace =
