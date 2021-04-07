@@ -120,6 +120,13 @@ defmodule Grax.Id.Spec do
       end
 
     quote do
+      if Enum.find(@custom_id_schema_selectors, fn {existing, _} ->
+           existing == unquote(custom_selector)
+         end) do
+        raise ArgumentError,
+              "custom selector #{inspect(unquote(custom_selector))} is already used for another id schema"
+      end
+
       id_schema = Grax.Id.Schema.new(@parent_namespace, unquote(template), unquote(opts))
       @id_schemas id_schema
       if unquote(custom_selector) do

@@ -165,6 +165,23 @@ defmodule Grax.Id.SpecTest do
     end
   end
 
+  test "multiple usages of the same custom selector raises an error" do
+    assert_raise ArgumentError,
+                 "custom selector {Grax.Id.SpecTest.MultipleCustomSelectorUsage, :test_selector} is already used for another id schema",
+                 fn ->
+                   defmodule MultipleCustomSelectorUsage do
+                     use Grax.Id.Spec
+
+                     namespace "http://example.com/" do
+                       id_schema "foo/{foo}", selector: :test_selector
+                       id_schema "bar/{bar}", selector: :test_selector
+                     end
+
+                     def test_selector(_, _), do: true
+                   end
+                 end
+  end
+
   describe "prefix_map/0" do
     test "returns a RDF.PrefixMap of all namespaces with prefixes defined" do
       assert IdSpecs.FlatNs.prefix_map() == PrefixMap.new(ex: EX)
