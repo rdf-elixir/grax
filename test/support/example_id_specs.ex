@@ -209,6 +209,67 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule SeparateCustomSelector do
+    def uuid4?(Example.WithCustomSelectedIdSchemaB, %{bar: "bar"}), do: true
+    def uuid4?(_, _), do: false
+
+    def uuid5?(Example.WithCustomSelectedIdSchemaB, %{bar: content}) when content != "", do: true
+    def uuid5?(_, _), do: false
+  end
+
+  defmodule CustomSelector do
+    use Grax.Id.Spec
+    import Grax.Id.UUID
+
+    namespace "http://example.com/", prefix: :ex do
+      id_schema "foo/{foo}", selector: :test_selector
+
+      uuid selector: {SeparateCustomSelector, :uuid5?},
+           uuid_version: 5,
+           uuid_name: :bar,
+           uuid_namespace: :url
+
+      uuid selector: {SeparateCustomSelector, :uuid4?}, uuid_version: 4
+    end
+
+    def test_selector(Example.WithCustomSelectedIdSchemaA, _), do: true
+    def test_selector(_, _), do: false
+
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
+
+    def expected_id_schema(:foo) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("foo/{foo}"),
+        schema: nil,
+        selector: {__MODULE__, :test_selector},
+        extensions: nil
+      }
+    end
+
+    def expected_id_schema(:uuid5) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: nil,
+        selector: {Example.IdSpecs.SeparateCustomSelector, :uuid5?},
+        extensions: [
+          %Grax.Id.UUID{format: :default, version: 5, name: :bar, namespace: :url}
+        ]
+      }
+    end
+
+    def expected_id_schema(:uuid4) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: nil,
+        selector: {Example.IdSpecs.SeparateCustomSelector, :uuid4?},
+        extensions: [%Grax.Id.UUID{format: :default, version: 4}]
+      }
+    end
+  end
+
   defmodule AppConfigIdSpec do
     use Grax.Id.Spec
     import Grax.Id.UUID

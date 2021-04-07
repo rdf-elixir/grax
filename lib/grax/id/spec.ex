@@ -13,6 +13,7 @@ defmodule Grax.Id.Spec do
 
       Module.register_attribute(__MODULE__, :namespaces, accumulate: true)
       Module.register_attribute(__MODULE__, :id_schemas, accumulate: true)
+      Module.register_attribute(__MODULE__, :custom_id_schema_selectors, accumulate: true)
       @parent_namespace nil
     end
   end
@@ -21,6 +22,7 @@ defmodule Grax.Id.Spec do
     quote do
       def namespaces, do: @namespaces
       def id_schemas, do: @id_schemas
+      def custom_id_schema_selectors, do: @custom_id_schema_selectors
 
       @prefix_map @namespaces
                   |> Enum.reject(&is_nil(&1.prefix))
@@ -104,8 +106,25 @@ defmodule Grax.Id.Spec do
   end
 
   defmacro id_schema(template, opts) do
+    {opts, custom_selector} =
+      case Keyword.get(opts, :selector) do
+        nil ->
+          {opts, nil}
+
+        name when is_atom(name) ->
+          custom_selector = {__CALLER__.module, name}
+          {Keyword.put(opts, :selector, custom_selector), custom_selector}
+
+        custom_selector ->
+          {opts, custom_selector}
+      end
+
     quote do
-      @id_schemas Grax.Id.Schema.new(@parent_namespace, unquote(template), unquote(opts))
+      id_schema = Grax.Id.Schema.new(@parent_namespace, unquote(template), unquote(opts))
+      @id_schemas id_schema
+      if unquote(custom_selector) do
+        @custom_id_schema_selectors {unquote(custom_selector), id_schema}
+      end
     end
   end
 
@@ -119,5 +138,11 @@ defmodule Grax.Id.Spec do
 
   def determine_id_schema(spec, schema) do
     Enum.find(spec.id_schemas, &(&1.schema == schema))
+  end
+
+  def custom_select_id_schema(spec, schema, attributes) do
+    Enum.find_value(spec.custom_id_schema_selectors, fn {{mod, fun}, id_schema} ->
+      apply(mod, fun, [schema, attributes]) && id_schema
+    end)
   end
 end

@@ -173,6 +173,30 @@ defmodule GraxTest do
       assert_valid_uuid(nested_id2, "http://example.com/", version: 4, type: :default)
       refute nested_id == nested_id2
     end
+
+    test "with matching custom selector" do
+      assert {:ok,
+              %Example.WithCustomSelectedIdSchemaA{
+                __id__: ~I<http://example.com/foo/foo1>,
+                foo: "foo1"
+              }} = Example.WithCustomSelectedIdSchemaA.build(foo: "foo1")
+
+      assert {:ok, %Example.WithCustomSelectedIdSchemaB{__id__: id, bar: "bar"}} =
+               Example.WithCustomSelectedIdSchemaB.build(bar: "bar")
+
+      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+
+      assert {:ok, %Example.WithCustomSelectedIdSchemaB{__id__: id, bar: "test"}} =
+               Example.WithCustomSelectedIdSchemaB.build(bar: "test")
+
+      assert_valid_uuid(id, "http://example.com/", version: 5, type: :default)
+    end
+
+    test "with non-matching custom selector" do
+      assert_raise ArgumentError, "id missing and no id schema found", fn ->
+        Example.WithCustomSelectedIdSchemaB.build(bar: "")
+      end
+    end
   end
 
   describe "build!/1" do

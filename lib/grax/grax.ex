@@ -25,8 +25,10 @@ defmodule Grax do
 
   def build(mod, %{__id__: id} = initial), do: build(mod, id, Map.delete(initial, :__id__))
 
-  def build(mod, initial) when is_map(initial) or is_list(initial) do
-    if id_schema = mod.__id_schema__() do
+  def build(mod, initial) when is_list(initial), do: build(mod, Map.new(initial))
+
+  def build(mod, initial) when is_map(initial) do
+    if id_schema = id_schema(mod, initial) do
       build(mod, id_schema, initial)
     else
       raise ArgumentError, "id missing and no id schema found"
@@ -78,6 +80,11 @@ defmodule Grax do
 
   defp do_build(mod, id) do
     struct(mod, __id__: id)
+  end
+
+  defp id_schema(mod, initial) do
+    mod.__id_schema__() ||
+      (mod.__id_spec__() && Id.Spec.custom_select_id_schema(mod.__id_spec__(), mod, initial))
   end
 
   def load(mod, id, graph, opts \\ []) do

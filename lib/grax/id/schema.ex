@@ -8,18 +8,27 @@ defmodule Grax.Id.Schema do
           namespace: Namespace.t(),
           template: template,
           schema: struct,
+          selector: {module, atom} | nil,
           extensions: list | nil
         }
 
   @enforce_keys [:namespace, :template, :schema]
-  defstruct [:namespace, :template, :schema, :extensions]
+  defstruct [:namespace, :template, :schema, :selector, :extensions]
 
   def new(%Id.Namespace{} = namespace, template, opts) do
+    selector = Keyword.get(opts, :selector)
+    schema = Keyword.get(opts, :schema)
+
+    unless schema || selector do
+      raise ArgumentError, "no :schema or :selector provided on Grax.Id.Schema"
+    end
+
     with {:ok, template} <- init_template(template) do
       %__MODULE__{
         namespace: namespace,
         template: template,
-        schema: Keyword.fetch!(opts, :schema)
+        schema: schema,
+        selector: selector
       }
       |> Extension.init(Keyword.get(opts, :extensions), opts)
     else

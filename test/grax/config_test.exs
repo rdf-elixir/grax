@@ -12,7 +12,7 @@ defmodule Grax.ConfigTest do
   end
 
   @tag config: [id_spec: Example.IdSpecs.AppConfigIdSpec]
-  test "application id_schema" do
+  test "application id_spec" do
     defmodule TestSchema do
       use Grax.Schema
 
@@ -20,6 +20,8 @@ defmodule Grax.ConfigTest do
         property foo: EX.foo()
       end
     end
+
+    assert TestSchema.__id_spec__() == Example.IdSpecs.AppConfigIdSpec
 
     assert TestSchema.__id_schema__() ==
              Example.IdSpecs.AppConfigIdSpec.expected_id_schema()

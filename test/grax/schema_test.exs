@@ -319,6 +319,18 @@ defmodule Grax.SchemaTest do
     assert Example.Datatypes.__class__() == nil
   end
 
+  describe "__id_spec__/0" do
+    test "when no id spec set or application configured" do
+      assert Example.User.__id_spec__() == nil
+    end
+
+    test "when an id spec is set explicitly" do
+      assert Example.WithIdSchema.__id_spec__() == Example.IdSpecs.Foo
+    end
+
+    # tests for the application configured Id.Spec are in Grax.ConfigTest
+  end
+
   describe "__id_schema__/0" do
     test "when no id spec set or application configured" do
       assert Example.User.__id_schema__() == nil

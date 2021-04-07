@@ -195,6 +195,22 @@ defmodule Example do
     end
   end
 
+  defmodule WithCustomSelectedIdSchemaA do
+    use Grax.Schema, id_spec: Example.IdSpecs.CustomSelector
+
+    schema do
+      property foo: EX.foo()
+    end
+  end
+
+  defmodule WithCustomSelectedIdSchemaB do
+    use Grax.Schema, id_spec: Example.IdSpecs.CustomSelector
+
+    schema do
+      property bar: EX.bar()
+    end
+  end
+
   defmodule Untyped do
     use Grax.Schema
 

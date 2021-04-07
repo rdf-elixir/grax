@@ -79,7 +79,7 @@ defmodule Grax.Id.SpecTest do
   end
 
   describe "id_schemas/0" do
-    test "returns all namespaces" do
+    test "returns all id schemas" do
       assert IdSpecs.GenericIds.id_schemas() ==
                [
                  IdSpecs.GenericIds.expected_id_schema(Post),
@@ -106,6 +106,15 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.ShortUuids.expected_id_schema(User)
                ]
     end
+
+    test "id schemas with custom selectors" do
+      assert IdSpecs.CustomSelector.id_schemas() ==
+               [
+                 IdSpecs.CustomSelector.expected_id_schema(:uuid4),
+                 IdSpecs.CustomSelector.expected_id_schema(:uuid5),
+                 IdSpecs.CustomSelector.expected_id_schema(:foo)
+               ]
+    end
   end
 
   describe "determine_id_schema/2" do
@@ -115,6 +124,44 @@ defmodule Grax.Id.SpecTest do
 
       assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, Post) ==
                IdSpecs.GenericIds.expected_id_schema(Post)
+    end
+
+    test "when no Id.Schema can be found" do
+      assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, Comment) == nil
+    end
+  end
+
+  describe "custom_select_id_schema/2" do
+    test "when Id.Schema can be found" do
+      assert Id.Spec.custom_select_id_schema(
+               IdSpecs.CustomSelector,
+               Example.WithCustomSelectedIdSchemaA,
+               %{}
+             ) ==
+               IdSpecs.CustomSelector.expected_id_schema(:foo)
+
+      assert Id.Spec.custom_select_id_schema(
+               IdSpecs.CustomSelector,
+               Example.WithCustomSelectedIdSchemaB,
+               %{bar: "bar"}
+             ) ==
+               IdSpecs.CustomSelector.expected_id_schema(:uuid4)
+
+      assert Id.Spec.custom_select_id_schema(
+               IdSpecs.CustomSelector,
+               Example.WithCustomSelectedIdSchemaB,
+               %{bar: "test"}
+             ) ==
+               IdSpecs.CustomSelector.expected_id_schema(:uuid5)
+    end
+
+    test "when no Id.Schema can be found" do
+      assert Id.Spec.custom_select_id_schema(
+               IdSpecs.CustomSelector,
+               Example.WithCustomSelectedIdSchemaB,
+               %{bar: ""}
+             ) ==
+               nil
     end
   end
 
