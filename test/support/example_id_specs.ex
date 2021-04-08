@@ -209,6 +209,43 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule VarProc do
+    use Grax.Id.Spec
+    import Grax.Id.UUID
+
+    namespace "http://example.com/", prefix: :ex do
+      id Example.VarProcA, "foo/{gen}", var_proc: :upcase_name
+      uuid5 Example.VarProcB, namespace: :oid, name: :gen, var_proc: :upcase_name
+    end
+
+    def upcase_name(%{name: name} = vars) do
+      {:ok, Map.put(vars, :gen, String.upcase(name))}
+    end
+
+    def upcase_name(vars), do: {:ok, vars}
+
+    def expected_id_schema(Example.VarProcA) do
+      %Id.Schema{
+        namespace: Example.IdSpecs.expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("foo/{gen}"),
+        schema: Example.VarProcA,
+        var_proc: {__MODULE__, :upcase_name}
+      }
+    end
+
+    def expected_id_schema(Example.VarProcB) do
+      %Id.Schema{
+        namespace: Example.IdSpecs.expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: Example.VarProcB,
+        var_proc: {__MODULE__, :upcase_name},
+        extensions: [
+          %Grax.Id.UUID{format: :default, version: 5, namespace: :oid, name: :gen}
+        ]
+      }
+    end
+  end
+
   defmodule SeparateCustomSelector do
     def uuid4?(Example.WithCustomSelectedIdSchemaB, %{bar: "bar"}), do: true
     def uuid4?(_, _), do: false

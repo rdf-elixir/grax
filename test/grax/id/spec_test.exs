@@ -107,6 +107,14 @@ defmodule Grax.Id.SpecTest do
                ]
     end
 
+    test "id schemas with var_proc" do
+      assert IdSpecs.VarProc.id_schemas() ==
+               [
+                 IdSpecs.VarProc.expected_id_schema(Example.VarProcB),
+                 IdSpecs.VarProc.expected_id_schema(Example.VarProcA)
+               ]
+    end
+
     test "id schemas with custom selectors" do
       assert IdSpecs.CustomSelector.id_schemas() ==
                [

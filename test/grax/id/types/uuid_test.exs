@@ -35,7 +35,7 @@ defmodule Grax.Id.Types.UuidTest do
       assert {:ok, %RDF.IRI{} = id} =
                Id.Schema.generate_id(
                  IdSpecs.ShortUuids.expected_id_schema(Comment),
-                 Example.comment(EX.Comment1, depth: 0)
+                 %{}
                )
 
       assert_valid_uuid(id, "http://example.com/comments/", version: 1, type: :hex)
@@ -72,7 +72,12 @@ defmodule Grax.Id.Types.UuidTest do
 
       assert_valid_uuid(id, "http://example.com/", version: 3, type: :default)
 
-      assert {:ok, %RDF.IRI{} = id} =
+      id =
+        RDF.iri(
+          "http://example.com/#{UUID.uuid5(:url, Example.user(EX.User0).canonical_email, :hex)}"
+        )
+
+      assert {:ok, %RDF.IRI{} = ^id} =
                Id.Schema.generate_id(
                  IdSpecs.ShortUuids.expected_id_schema(User),
                  Example.user(EX.User0)
@@ -86,6 +91,15 @@ defmodule Grax.Id.Types.UuidTest do
                )
 
       assert_valid_uuid(id, "http://example.com/", version: 5, type: :hex)
+    end
+
+    test "with var_proc" do
+      id = RDF.iri("http://example.com/#{UUID.uuid5(:oid, "FOO", :default)}")
+
+      assert {:ok, ^id} =
+               Id.Schema.generate_id(IdSpecs.VarProc.expected_id_schema(Example.VarProcB), %{
+                 name: "foo"
+               })
     end
   end
 end

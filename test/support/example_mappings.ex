@@ -195,6 +195,22 @@ defmodule Example do
     end
   end
 
+  defmodule VarProcA do
+    use Grax.Schema, id_spec: Example.IdSpecs.VarProc
+
+    schema do
+      property name: EX.name()
+    end
+  end
+
+  defmodule VarProcB do
+    use Grax.Schema, id_spec: Example.IdSpecs.VarProc
+
+    schema do
+      property name: EX.name()
+    end
+  end
+
   defmodule WithCustomSelectedIdSchemaA do
     use Grax.Schema, id_spec: Example.IdSpecs.CustomSelector
 

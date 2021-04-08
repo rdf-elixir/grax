@@ -106,6 +106,13 @@ defmodule Grax.Id.Spec do
   end
 
   defmacro id_schema(template, opts) do
+    opts =
+      case Keyword.get(opts, :var_proc) do
+        nil -> opts
+        name when is_atom(name) -> Keyword.put(opts, :var_proc, {__CALLER__.module, name})
+        _ -> opts
+      end
+
     {opts, custom_selector} =
       case Keyword.get(opts, :selector) do
         nil ->
