@@ -146,21 +146,30 @@ defmodule Grax.Id.SpecTest do
                Example.WithCustomSelectedIdSchemaA,
                %{}
              ) ==
-               IdSpecs.CustomSelector.expected_id_schema(:foo)
+               %{
+                 IdSpecs.CustomSelector.expected_id_schema(:foo)
+                 | schema: Example.WithCustomSelectedIdSchemaA
+               }
 
       assert Id.Spec.custom_select_id_schema(
                IdSpecs.CustomSelector,
                Example.WithCustomSelectedIdSchemaB,
                %{bar: "bar"}
              ) ==
-               IdSpecs.CustomSelector.expected_id_schema(:uuid4)
+               %{
+                 IdSpecs.CustomSelector.expected_id_schema(:uuid4)
+                 | schema: Example.WithCustomSelectedIdSchemaB
+               }
 
       assert Id.Spec.custom_select_id_schema(
                IdSpecs.CustomSelector,
                Example.WithCustomSelectedIdSchemaB,
                %{bar: "test"}
              ) ==
-               IdSpecs.CustomSelector.expected_id_schema(:uuid5)
+               %{
+                 IdSpecs.CustomSelector.expected_id_schema(:uuid5)
+                 | schema: Example.WithCustomSelectedIdSchemaB
+               }
     end
 
     test "when no Id.Schema can be found" do

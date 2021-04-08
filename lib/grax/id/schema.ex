@@ -44,16 +44,30 @@ defmodule Grax.Id.Schema do
 
   def generate_id(id_schema, variables, opts \\ [])
 
+  def generate_id(%__MODULE__{} = id_schema, variables, opts) when is_list(variables) do
+    generate_id(id_schema, Map.new(variables), opts)
+  end
+
   def generate_id(%__MODULE__{} = id_schema, %_{} = mapping, opts) do
-    generate_id(%__MODULE__{} = id_schema, Map.from_struct(mapping), opts)
+    generate_id(id_schema, Map.from_struct(mapping), opts)
   end
 
   def generate_id(%__MODULE__{} = id_schema, variables, opts) do
+    variables = add_schema_var(id_schema, variables)
+
     with {:ok, variables} <- var_proc(id_schema, variables),
          {:ok, variables} <- Extension.call(id_schema, variables, opts),
          {:ok, segment} <- YuriTemplate.expand(id_schema.template, variables) do
       {:ok, expand(id_schema, segment, opts)}
     end
+  end
+
+  defp add_schema_var(%{schema: nil} = id_schema, _) do
+    raise "no schema found in id schema #{inspect(id_schema)}"
+  end
+
+  defp add_schema_var(%{schema: schema}, variables) do
+    Map.put(variables, :__schema__, schema)
   end
 
   defp var_proc(%__MODULE__{var_proc: {mod, fun}}, variables), do: apply(mod, fun, [variables])

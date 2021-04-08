@@ -2,6 +2,8 @@ defmodule Example.IdSpecs do
   alias Example.{User, Post, Comment}
   alias Grax.Id
 
+  import ExUnit.Assertions
+
   defmodule FlatNs do
     use Grax.Id.Spec
 
@@ -219,6 +221,7 @@ defmodule Example.IdSpecs do
     end
 
     def upcase_name(%{name: name} = vars) do
+      assert vars.__schema__
       {:ok, Map.put(vars, :gen, String.upcase(name))}
     end
 

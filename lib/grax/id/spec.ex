@@ -156,7 +156,7 @@ defmodule Grax.Id.Spec do
 
   def custom_select_id_schema(spec, schema, attributes) do
     Enum.find_value(spec.custom_id_schema_selectors, fn {{mod, fun}, id_schema} ->
-      apply(mod, fun, [schema, attributes]) && id_schema
+      apply(mod, fun, [schema, attributes]) && %{id_schema | schema: schema}
     end)
   end
 end
