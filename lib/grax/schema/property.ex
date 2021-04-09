@@ -74,6 +74,8 @@ defmodule Grax.Schema.Property do
   defp initial_value_type(type, property_type) do
     property_type.initial_value_type(type)
   end
+
+  def value_type(%mod{} = schema), do: mod.value_type(schema)
 end
 
 defmodule Grax.Schema.DataProperty do
@@ -123,6 +125,11 @@ defmodule Grax.Schema.DataProperty do
   def normalize_custom_mapping_fun(nil, _), do: nil
   def normalize_custom_mapping_fun({_, _} = mod_fun, _), do: mod_fun
   def normalize_custom_mapping_fun(fun, schema), do: {schema, fun}
+
+  def value_type(%__MODULE__{} = schema), do: do_value_type(schema.type)
+
+  defp do_value_type({:list_set, type}), do: do_value_type(type)
+  defp do_value_type(type), do: type
 end
 
 defmodule Grax.Schema.LinkProperty do
