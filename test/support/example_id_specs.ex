@@ -341,7 +341,7 @@ defmodule Example.IdSpecs do
 
   def expected_namespace(:ex) do
     %Id.Namespace{
-      segment: "http://example.com/",
+      uri: "http://example.com/",
       prefix: :ex
     }
   end

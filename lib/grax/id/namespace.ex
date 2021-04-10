@@ -1,23 +1,25 @@
 defmodule Grax.Id.Namespace do
   @type t :: %__MODULE__{
           parent: t | nil,
-          segment: String.t(),
+          uri: String.t(),
           prefix: atom | nil
         }
 
-  @enforce_keys [:segment]
-  defstruct [:parent, :segment, :prefix]
+  @enforce_keys [:uri]
+  defstruct [:parent, :uri, :prefix]
 
-  def new(segment, opts) do
+  def new(parent, segment, opts) do
     %__MODULE__{
-      segment: segment,
-      parent: Keyword.get(opts, :parent),
+      uri: initialize_uri(parent, segment),
+      parent: parent,
       prefix: Keyword.get(opts, :prefix)
     }
   end
 
-  def uri(%__MODULE__{parent: nil, segment: segment}), do: segment
-  def uri(%__MODULE__{parent: parent, segment: segment}), do: uri(parent) <> segment
+  defp initialize_uri(nil, uri), do: uri
+  defp initialize_uri(%__MODULE__{} = parent, segment), do: uri(parent) <> segment
 
-  def iri(namespace), do: namespace |> uri() |> RDF.iri()
+  def uri(%__MODULE__{} = namespace), do: namespace.uri
+
+  def iri(%__MODULE__{} = namespace), do: namespace |> uri() |> RDF.iri()
 end

@@ -7,7 +7,7 @@ defmodule Grax.Id.SpecTest do
 
   describe "namespaces/0" do
     test "returns all namespaces" do
-      namespace = %Id.Namespace{segment: "http://example.com/", prefix: :ex}
+      namespace = %Id.Namespace{uri: "http://example.com/", prefix: :ex}
 
       assert IdSpecs.FlatNs.namespaces() == [namespace]
       assert IdSpecs.FlatNsWithVocabTerms.namespaces() == [namespace]
@@ -15,33 +15,33 @@ defmodule Grax.Id.SpecTest do
 
     test "includes base namespaces" do
       assert IdSpecs.FlatBase.namespaces() == [
-               %Id.Namespace{segment: "http://example.com/"}
+               %Id.Namespace{uri: "http://example.com/"}
              ]
     end
 
     test "includes nested namespaces" do
-      root_namespace = %Id.Namespace{segment: "http://example.com/", prefix: :ex}
+      root_namespace = %Id.Namespace{uri: "http://example.com/", prefix: :ex}
 
       foo_namespace = %Id.Namespace{
         parent: root_namespace,
-        segment: "foo/",
+        uri: "http://example.com/foo/",
         prefix: :foo
       }
 
       assert IdSpecs.NestedNs.namespaces() == [
                %Id.Namespace{
                  parent: root_namespace,
-                 segment: "qux/",
+                 uri: "http://example.com/qux/",
                  prefix: :qux
                },
                %Id.Namespace{
                  parent: foo_namespace,
-                 segment: "baz/",
+                 uri: "http://example.com/foo/baz/",
                  prefix: :baz
                },
                %Id.Namespace{
                  parent: foo_namespace,
-                 segment: "bar/",
+                 uri: "http://example.com/foo/bar/",
                  prefix: :bar
                },
                foo_namespace,
@@ -82,12 +82,12 @@ defmodule Grax.Id.SpecTest do
   describe "base_namespace/0" do
     test "when base namespace defined" do
       assert IdSpecs.FlatBase.base_namespace() ==
-               %Id.Namespace{segment: "http://example.com/"}
+               %Id.Namespace{uri: "http://example.com/"}
 
       assert IdSpecs.NestedBase.base_namespace() ==
                %Id.Namespace{
-                 parent: %Id.Namespace{segment: "http://example.com/"},
-                 segment: "foo/"
+                 parent: %Id.Namespace{uri: "http://example.com/"},
+                 uri: "http://example.com/foo/"
                }
     end
 

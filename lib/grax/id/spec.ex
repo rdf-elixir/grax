@@ -60,8 +60,9 @@ defmodule Grax.Id.Spec do
 
       namespace =
         Namespace.new(
+          previous_parent_namespace,
           unquote(segment),
-          Keyword.put(unquote(opts), :parent, previous_parent_namespace)
+          unquote(opts)
         )
 
       @namespaces namespace
