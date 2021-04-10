@@ -14,6 +14,7 @@ defmodule Grax.Id.Spec do
       Module.register_attribute(__MODULE__, :namespaces, accumulate: true)
       Module.register_attribute(__MODULE__, :id_schemas, accumulate: true)
       Module.register_attribute(__MODULE__, :custom_id_schema_selectors, accumulate: true)
+      @base_namespace nil
       @parent_namespace nil
     end
   end
@@ -21,6 +22,7 @@ defmodule Grax.Id.Spec do
   defmacro __before_compile__(_env) do
     quote do
       def namespaces, do: @namespaces
+      def base_namespace, do: @base_namespace
       def id_schemas, do: @id_schemas
       def custom_id_schema_selectors, do: @custom_id_schema_selectors
 
@@ -86,10 +88,13 @@ defmodule Grax.Id.Spec do
   defmacro base(segment, opts, do_block)
 
   defmacro base(segment, opts, do: block) do
-    opts = Keyword.put(opts, :base, true)
-
     quote do
+      if @base_namespace do
+        raise "already a base namespace defined: #{Namespace.uri(@base_namespace)}"
+      end
+
       namespace(unquote(segment), unquote(opts), do: unquote(block))
+      @base_namespace List.first(@namespaces)
     end
   end
 

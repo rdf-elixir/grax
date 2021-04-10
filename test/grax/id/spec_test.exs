@@ -7,11 +7,7 @@ defmodule Grax.Id.SpecTest do
 
   describe "namespaces/0" do
     test "returns all namespaces" do
-      namespace = %Id.Namespace{
-        segment: "http://example.com/",
-        prefix: :ex,
-        base: false
-      }
+      namespace = %Id.Namespace{segment: "http://example.com/", prefix: :ex}
 
       assert IdSpecs.FlatNs.namespaces() == [namespace]
       assert IdSpecs.FlatNsWithVocabTerms.namespaces() == [namespace]
@@ -19,45 +15,34 @@ defmodule Grax.Id.SpecTest do
 
     test "includes base namespaces" do
       assert IdSpecs.FlatBase.namespaces() == [
-               %Id.Namespace{
-                 segment: "http://example.com/",
-                 base: true
-               }
+               %Id.Namespace{segment: "http://example.com/"}
              ]
     end
 
     test "includes nested namespaces" do
-      root_namespace = %Id.Namespace{
-        segment: "http://example.com/",
-        prefix: :ex,
-        base: false
-      }
+      root_namespace = %Id.Namespace{segment: "http://example.com/", prefix: :ex}
 
       foo_namespace = %Id.Namespace{
         parent: root_namespace,
         segment: "foo/",
-        prefix: :foo,
-        base: false
+        prefix: :foo
       }
 
       assert IdSpecs.NestedNs.namespaces() == [
                %Id.Namespace{
                  parent: root_namespace,
                  segment: "qux/",
-                 prefix: :qux,
-                 base: false
+                 prefix: :qux
                },
                %Id.Namespace{
                  parent: foo_namespace,
                  segment: "baz/",
-                 prefix: :baz,
-                 base: false
+                 prefix: :baz
                },
                %Id.Namespace{
                  parent: foo_namespace,
                  segment: "bar/",
-                 prefix: :bar,
-                 base: false
+                 prefix: :bar
                },
                foo_namespace,
                root_namespace
@@ -75,6 +60,41 @@ defmodule Grax.Id.SpecTest do
           end
         end
       end
+    end
+  end
+
+  test "only one base namespace allowed" do
+    assert_raise RuntimeError, "already a base namespace defined: http://example.com/foo/", fn ->
+      defmodule VocabTermsOnNestedNamespace do
+        use Grax.Id.Spec
+
+        namespace "http://example.com/" do
+          base "foo/" do
+          end
+
+          base "bar/" do
+          end
+        end
+      end
+    end
+  end
+
+  describe "base_namespace/0" do
+    test "when base namespace defined" do
+      assert IdSpecs.FlatBase.base_namespace() ==
+               %Id.Namespace{segment: "http://example.com/"}
+
+      assert IdSpecs.NestedBase.base_namespace() ==
+               %Id.Namespace{
+                 parent: %Id.Namespace{segment: "http://example.com/"},
+                 segment: "foo/"
+               }
+    end
+
+    test "when no base namespace defined" do
+      refute IdSpecs.FlatNs.base_namespace()
+      refute IdSpecs.FlatNsWithVocabTerms.base_namespace()
+      refute IdSpecs.NestedNs.base_namespace()
     end
   end
 

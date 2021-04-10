@@ -2,19 +2,17 @@ defmodule Grax.Id.Namespace do
   @type t :: %__MODULE__{
           parent: t | nil,
           segment: String.t(),
-          prefix: atom | nil,
-          base: boolean
+          prefix: atom | nil
         }
 
   @enforce_keys [:segment]
-  defstruct [:parent, :segment, :prefix, :base]
+  defstruct [:parent, :segment, :prefix]
 
   def new(segment, opts) do
     %__MODULE__{
       segment: segment,
       parent: Keyword.get(opts, :parent),
-      prefix: Keyword.get(opts, :prefix),
-      base: Keyword.get(opts, :base, false)
+      prefix: Keyword.get(opts, :prefix)
     }
   end
 

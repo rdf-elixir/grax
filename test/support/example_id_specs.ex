@@ -29,6 +29,17 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule NestedBase do
+    use Grax.Id.Spec
+
+    alias Example.NS.EX
+
+    namespace EX do
+      base "foo/" do
+      end
+    end
+  end
+
   defmodule NestedNs do
     use Grax.Id.Spec
 
@@ -331,8 +342,7 @@ defmodule Example.IdSpecs do
   def expected_namespace(:ex) do
     %Id.Namespace{
       segment: "http://example.com/",
-      prefix: :ex,
-      base: false
+      prefix: :ex
     }
   end
 
