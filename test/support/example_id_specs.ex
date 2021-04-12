@@ -222,13 +222,60 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule Hashing do
+    use Grax.Id.Spec
+    import Grax.Id.Hash
+
+    namespace "http://example.com/", prefix: :ex do
+      hash User, data: :canonical_email, algorithm: :blake2b
+      hash Post, data: :content, algorithm: :sha256
+      hash Comment, data: :content, algorithm: :md5
+    end
+
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
+
+    def expected_id_schema(User) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{hash}"),
+        schema: User,
+        extensions: [
+          %Grax.Id.Hash{algorithm: :blake2b, data_variable: :canonical_email}
+        ]
+      }
+    end
+
+    def expected_id_schema(Post) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{hash}"),
+        schema: Post,
+        extensions: [
+          %Grax.Id.Hash{algorithm: :sha256, data_variable: :content}
+        ]
+      }
+    end
+
+    def expected_id_schema(Comment) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{hash}"),
+        schema: Comment,
+        extensions: [
+          %Grax.Id.Hash{algorithm: :md5, data_variable: :content}
+        ]
+      }
+    end
+  end
+
   defmodule VarProc do
     use Grax.Id.Spec
-    import Grax.Id.UUID
+    import Grax.Id.{UUID, Hash}
 
     namespace "http://example.com/", prefix: :ex do
       id Example.VarProcA, "foo/{gen}", var_proc: :upcase_name
       uuid5 Example.VarProcB, namespace: :oid, name: :gen, var_proc: :upcase_name
+      hash Example.VarProcC, data: :gen, algorithm: :sha, var_proc: :upcase_name
     end
 
     def upcase_name(%{name: name} = vars) do
@@ -255,6 +302,18 @@ defmodule Example.IdSpecs do
         var_proc: {__MODULE__, :upcase_name},
         extensions: [
           %Grax.Id.UUID{format: :default, version: 5, namespace: :oid, name: :gen}
+        ]
+      }
+    end
+
+    def expected_id_schema(Example.VarProcC) do
+      %Id.Schema{
+        namespace: Example.IdSpecs.expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{hash}"),
+        schema: Example.VarProcC,
+        var_proc: {__MODULE__, :upcase_name},
+        extensions: [
+          %Grax.Id.Hash{algorithm: :sha, data_variable: :gen}
         ]
       }
     end

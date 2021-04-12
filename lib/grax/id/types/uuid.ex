@@ -2,6 +2,8 @@ if Code.ensure_loaded?(UUID) do
   defmodule Grax.Id.UUID do
     use Grax.Id.Schema.Extension
 
+    import Grax.Utils, only: [rename_keyword: 3]
+
     defstruct [:version, :format, :namespace, :name]
 
     defmacro uuid(opts) do
@@ -63,16 +65,6 @@ if Code.ensure_loaded?(UUID) do
       end
       |> rename_keyword(:format, :uuid_format)
       |> Keyword.put(:uuid_version, version)
-    end
-
-    defp rename_keyword(opts, old_name, new_name) do
-      if Keyword.has_key?(opts, old_name) do
-        opts
-        |> Keyword.put(new_name, Keyword.get(opts, old_name))
-        |> Keyword.delete_first(old_name)
-      else
-        opts
-      end
     end
 
     defp default_template(_opts), do: "{uuid}"
@@ -145,10 +137,7 @@ if Code.ensure_loaded?(UUID) do
       end
     end
 
-    defp set_uuid(variables, uuid) when is_map(variables),
-      do: {:ok, Map.put(variables, :uuid, uuid)}
-
     defp set_uuid(variables, uuid),
-      do: {:ok, Keyword.put(variables, :uuid, uuid)}
+      do: {:ok, Map.put(variables, :uuid, uuid)}
   end
 end

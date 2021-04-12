@@ -6,7 +6,7 @@ defmodule Grax.Id.Types.UuidTest do
   alias Grax.Id
   alias Example.{IdSpecs, User, Post, Comment}
 
-  describe "generic uuid macro" do
+  describe "generic uuid" do
     test "random UUIDs" do
       assert {:ok, %RDF.IRI{} = id} =
                Id.Schema.generate_id(

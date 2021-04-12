@@ -125,11 +125,19 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.ShortUuids.expected_id_schema(Post),
                  IdSpecs.ShortUuids.expected_id_schema(User)
                ]
+
+      assert IdSpecs.Hashing.id_schemas() ==
+               [
+                 IdSpecs.Hashing.expected_id_schema(Comment),
+                 IdSpecs.Hashing.expected_id_schema(Post),
+                 IdSpecs.Hashing.expected_id_schema(User)
+               ]
     end
 
     test "id schemas with var_proc" do
       assert IdSpecs.VarProc.id_schemas() ==
                [
+                 IdSpecs.VarProc.expected_id_schema(Example.VarProcC),
                  IdSpecs.VarProc.expected_id_schema(Example.VarProcB),
                  IdSpecs.VarProc.expected_id_schema(Example.VarProcA)
                ]
