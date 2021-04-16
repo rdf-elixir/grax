@@ -12,6 +12,7 @@ defmodule Grax do
   alias RDF.{IRI, BlankNode, Graph}
 
   import RDF.Utils
+  import RDF.Utils.Guards
 
   @__id__property_access_error Schema.InvalidProperty.exception(
                                  property: :__id__,
@@ -23,15 +24,11 @@ defmodule Grax do
   def build(mod, %BlankNode{} = id), do: {:ok, do_build(mod, id)}
   def build(mod, %Id.Schema{} = id_schema), do: build(mod, id_schema, %{})
 
-  def build(mod, %{__id__: id} = initial), do: build(mod, id, Map.delete(initial, :__id__))
-
   def build(mod, initial) when is_list(initial), do: build(mod, Map.new(initial))
 
   def build(mod, initial) when is_map(initial) do
-    if id_schema = id_schema(mod, initial) do
-      build(mod, id_schema, initial)
-    else
-      raise ArgumentError, "id missing and no id schema found"
+    with {:ok, id} <- id(mod, initial) do
+      build(mod, id, Map.delete(initial, :__id__))
     end
   end
 
@@ -44,7 +41,7 @@ defmodule Grax do
   end
 
   def build(mod, %Id.Schema{} = id_schema, initial) do
-    with {:ok, id} <- Id.Schema.generate_id(id_schema, initial) do
+    with {:ok, id} <- id(id_schema, initial) do
       build(mod, id, initial)
     end
   end
@@ -82,9 +79,25 @@ defmodule Grax do
     struct(mod, __id__: id)
   end
 
-  defp id_schema(mod, initial) do
-    mod.__id_schema__() ||
-      (mod.__id_spec__() && Id.Spec.custom_select_id_schema(mod.__id_spec__(), mod, initial))
+  def id(_, %{__id__: %RDF.BlankNode{} = bnode}), do: {:ok, bnode}
+  def id(_, %{__id__: id}), do: {:ok, RDF.iri(id)}
+
+  def id(%Id.Schema{} = id_schema, attributes) do
+    Id.Schema.generate_id(id_schema, attributes)
+  end
+
+  def id(schema, attributes) when maybe_module(schema) do
+    schema
+    |> id_schema(attributes)
+    |> id(attributes)
+  end
+
+  def id(_, _), do: {:error, "no id schema found"}
+
+  def id_schema(schema, initial) when is_atom(schema) do
+    schema.__id_schema__() ||
+      (schema.__id_spec__() &&
+         Id.Spec.custom_select_id_schema(schema.__id_spec__(), schema, initial))
   end
 
   def load(mod, id, graph, opts \\ []) do

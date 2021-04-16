@@ -193,9 +193,8 @@ defmodule GraxTest do
     end
 
     test "with non-matching custom selector" do
-      assert_raise ArgumentError, "id missing and no id schema found", fn ->
-        Example.WithCustomSelectedIdSchemaB.build(bar: "")
-      end
+      assert Example.WithCustomSelectedIdSchemaB.build(bar: "") ==
+               {:error, "no id schema found"}
     end
   end
 
@@ -284,6 +283,42 @@ defmodule GraxTest do
                   |> Map.put(:age, "secret"))
                  | __id__: RDF.iri(EX.Other)
                }
+    end
+  end
+
+  describe "id/2" do
+    test "with a map containing an __id__ field" do
+      assert {:ok, RDF.iri(EX.Foo)} ==
+               Example.User.__id__(%{
+                 __id__: RDF.iri(EX.Foo),
+                 name: "Foo",
+                 email: ["foo@example.com"],
+                 password: "secret"
+               })
+
+      assert {:ok, RDF.iri(EX.Foo)} ==
+               Example.User.__id__(%{
+                 __id__: EX.Foo,
+                 name: "Foo",
+                 email: ["foo@example.com"],
+                 password: "secret"
+               })
+
+      assert {:ok, ~B"foo"} == Example.User.__id__(%{__id__: ~B"foo"})
+      assert {:ok, RDF.iri(EX.User0)} == Example.user(EX.User0) |> Example.User.__id__()
+    end
+
+    test "when an id schema exists" do
+      assert {:ok, id} = Example.WithIdSchema.__id__(%{foo: "Foo"})
+      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+
+      assert {:ok, id} = Example.WithIdSchema.__id__(foo: "Foo")
+      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+
+      assert {:ok, ~I<http://example.com/foo/FOO>} = Example.VarProcA.__id__(name: "Foo")
+
+      assert {:ok, ~I<http://example.com/feab40e1fca77c7360ccca1481bb8ba5f919ce3a>} =
+               Example.VarProcC.__id__(name: "Foo")
     end
   end
 
@@ -462,10 +497,9 @@ defmodule GraxTest do
     end
 
     test "with a map and without an id or id schema defined for the linked schema" do
-      assert_raise ArgumentError, "id missing and no id schema found", fn ->
-        Example.User.build!(EX.User0)
-        |> Grax.put(:posts, [%{title: "foo"}])
-      end
+      assert Example.User.build!(EX.User0)
+             |> Grax.put(:posts, [%{title: "foo"}]) ==
+               {:error, "no id schema found"}
     end
 
     test "with a map for a heterogeneous property" do
