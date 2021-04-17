@@ -9,44 +9,34 @@ defmodule Grax.Id.Types.UuidTest do
   describe "generic uuid" do
     test "random UUIDs" do
       assert {:ok, %RDF.IRI{} = id} =
-               Id.Schema.generate_id(
-                 IdSpecs.GenericUuids.expected_id_schema(User),
-                 Example.user(EX.User0)
-               )
+               IdSpecs.GenericUuids.expected_id_schema(User)
+               |> Id.Schema.generate_id(Example.user(EX.User0))
 
       assert_valid_uuid(id, "http://example.com/", version: 4, type: :hex)
 
       assert {:ok, %RDF.IRI{} = id} =
-               Id.Schema.generate_id(
-                 IdSpecs.GenericUuids.expected_id_schema(Post),
-                 Example.post()
-               )
+               IdSpecs.GenericUuids.expected_id_schema(Post)
+               |> Id.Schema.generate_id(Example.post())
 
       assert_valid_uuid(id, "http://example.com/posts/", version: 4, type: :default)
 
       assert {:ok, %RDF.IRI{} = id} =
-               Id.Schema.generate_id(
-                 IdSpecs.ShortUuids.expected_id_schema(Post),
-                 Example.post()
-               )
+               IdSpecs.ShortUuids.expected_id_schema(Post)
+               |> Id.Schema.generate_id(Example.post())
 
       assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
 
       assert {:ok, %RDF.IRI{} = id} =
-               Id.Schema.generate_id(
-                 IdSpecs.ShortUuids.expected_id_schema(Comment),
-                 %{}
-               )
+               IdSpecs.ShortUuids.expected_id_schema(Comment)
+               |> Id.Schema.generate_id(%{})
 
       assert_valid_uuid(id, "http://example.com/comments/", version: 1, type: :hex)
     end
 
     test "hash-based UUIDs" do
       assert {:ok, %RDF.IRI{} = id} =
-               Id.Schema.generate_id(
-                 IdSpecs.HashUuids.expected_id_schema(User),
-                 Example.user(EX.User0)
-               )
+               IdSpecs.HashUuids.expected_id_schema(User)
+               |> Id.Schema.generate_id(Example.user(EX.User0))
 
       # test that the generated UUIDs are reproducible
       assert {:ok, ^id} =
@@ -58,17 +48,13 @@ defmodule Grax.Id.Types.UuidTest do
       assert_valid_uuid(id, "http://example.com/", version: 5, type: :default)
 
       assert {:ok, %RDF.IRI{} = id} =
-               Id.Schema.generate_id(
-                 IdSpecs.HashUuids.expected_id_schema(Post),
-                 Example.post()
-               )
+               IdSpecs.HashUuids.expected_id_schema(Post)
+               |> Id.Schema.generate_id(Example.post())
 
       # test that the generated UUIDs are reproducible
       assert {:ok, ^id} =
-               Id.Schema.generate_id(
-                 IdSpecs.HashUuids.expected_id_schema(Post),
-                 Example.post() |> Map.from_struct()
-               )
+               IdSpecs.HashUuids.expected_id_schema(Post)
+               |> Id.Schema.generate_id(Example.post() |> Map.from_struct())
 
       assert_valid_uuid(id, "http://example.com/", version: 3, type: :default)
 
@@ -78,19 +64,25 @@ defmodule Grax.Id.Types.UuidTest do
         )
 
       assert {:ok, %RDF.IRI{} = ^id} =
-               Id.Schema.generate_id(
-                 IdSpecs.ShortUuids.expected_id_schema(User),
-                 Example.user(EX.User0)
-               )
+               IdSpecs.ShortUuids.expected_id_schema(User)
+               |> Id.Schema.generate_id(Example.user(EX.User0))
 
       # test that the generated UUIDs are reproducible
       assert {:ok, ^id} =
-               Id.Schema.generate_id(
-                 IdSpecs.ShortUuids.expected_id_schema(User),
-                 Example.user(EX.User0) |> Map.from_struct() |> Keyword.new()
+               IdSpecs.ShortUuids.expected_id_schema(User)
+               |> Id.Schema.generate_id(
+                 Example.user(EX.User0)
+                 |> Map.from_struct()
+                 |> Keyword.new()
                )
 
       assert_valid_uuid(id, "http://example.com/", version: 5, type: :hex)
+    end
+
+    test "when no value for the name present" do
+      assert IdSpecs.ShortUuids.expected_id_schema(User)
+             |> Id.Schema.generate_id(name: nil) ==
+               {:error, "no value for field :canonical_email for UUID name present"}
     end
 
     test "with var_proc" do

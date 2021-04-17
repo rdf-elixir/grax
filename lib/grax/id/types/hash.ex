@@ -60,7 +60,7 @@ defmodule Grax.Id.Hash do
 
   defp get_data(variables, variable) do
     case variables[variable] do
-      nil -> {:error, "name #{variable} for hashing not present"}
+      nil -> {:error, "no #{inspect(variable)} value for hashing present"}
       name -> {:ok, to_string(name)}
     end
   end

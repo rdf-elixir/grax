@@ -134,9 +134,9 @@ defmodule GraxTest do
     end
 
     test "when an explicitly given Id.Schema depends on a missing property value" do
-      assert {:error, "name canonical_email for UUID generation not present"} =
-               IdSpecs.HashUuids.expected_id_schema(Example.User)
-               |> Example.User.build(%{name: "Foo"})
+      assert IdSpecs.HashUuids.expected_id_schema(Example.User)
+             |> Example.User.build(%{name: "Foo"}) ==
+               {:error, "no value for field :canonical_email for UUID name present"}
     end
 
     test "when schema is associated with an id schema it is used implicitly" do

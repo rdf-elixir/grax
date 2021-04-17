@@ -132,7 +132,7 @@ if Code.ensure_loaded?(UUID) do
 
     defp get_name(variables, variable) do
       case variables[variable] do
-        nil -> {:error, "name #{variable} for UUID generation not present"}
+        nil -> {:error, "no value for field #{inspect(variable)} for UUID name present"}
         name -> {:ok, to_string(name)}
       end
     end

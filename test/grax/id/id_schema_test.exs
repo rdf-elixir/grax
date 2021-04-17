@@ -8,18 +8,18 @@ defmodule Grax.Id.SchemaTest do
 
   describe "generate_id/2" do
     test "based on another field" do
-      assert Id.Schema.generate_id(IdSpecs.GenericIds.expected_id_schema(Post), Example.post()) ==
+      assert IdSpecs.GenericIds.expected_id_schema(Post)
+             |> Id.Schema.generate_id(Example.post()) ==
                {:ok, ~I<http://example.com/posts/lorem-ipsum>}
 
       keyword_list = Example.post() |> Map.from_struct() |> Keyword.new()
 
-      assert Id.Schema.generate_id(IdSpecs.GenericIds.expected_id_schema(Post), keyword_list) ==
+      assert IdSpecs.GenericIds.expected_id_schema(Post)
+             |> Id.Schema.generate_id(keyword_list) ==
                {:ok, ~I<http://example.com/posts/lorem-ipsum>}
 
-      assert Id.Schema.generate_id(
-               IdSpecs.GenericIds.expected_id_schema(User),
-               Example.user(EX.User0)
-             ) ==
+      assert IdSpecs.GenericIds.expected_id_schema(User)
+             |> Id.Schema.generate_id(Example.user(EX.User0)) ==
                {:ok, ~I<http://example.com/users/John%20Doe>}
     end
 
@@ -28,6 +28,16 @@ defmodule Grax.Id.SchemaTest do
                name: "foo"
              }) ==
                {:ok, ~I<http://example.com/foo/FOO>}
+    end
+
+    test "when no values for the template parameters present" do
+      assert IdSpecs.GenericIds.expected_id_schema(User)
+             |> Id.Schema.generate_id(%{}) ==
+               {:error, "no value for id schema template parameter: name"}
+
+      assert IdSpecs.GenericIds.expected_id_schema(User)
+             |> Id.Schema.generate_id(%{name: nil}) ==
+               {:error, "no value for id schema template parameter: name"}
     end
 
     # generation of UUID-based ids are tested in uuid_test.exs
