@@ -57,7 +57,7 @@ defmodule Grax.Id.Schema do
 
     with {:ok, variables} <- var_proc(id_schema, variables),
          {:ok, variables} <- Extension.call(id_schema, variables, opts),
-         {:ok, variables} <- check_variables(id_schema, variables),
+         {:ok, variables} <- preprocess_variables(id_schema, variables),
          {:ok, segment} <- YuriTemplate.expand(id_schema.template, variables) do
       {:ok, expand(id_schema, segment, opts)}
     end
@@ -65,13 +65,17 @@ defmodule Grax.Id.Schema do
 
   def parameters(%{template: template}), do: YuriTemplate.parameters(template)
 
-  defp check_variables(id_schema, variables) do
-    id_schema
-    |> parameters()
+  defp preprocess_variables(id_schema, variables) do
+    parameters = parameters(id_schema)
+
+    parameters
     |> Enum.filter(fn parameter -> is_nil(Map.get(variables, parameter)) end)
     |> case do
       [] ->
-        {:ok, variables}
+        {:ok,
+         variables
+         |> Map.take(parameters)
+         |> Map.new(fn {variable, value} -> {variable, to_string(value)} end)}
 
       missing ->
         {:error, "no value for id schema template parameter: #{Enum.join(missing, ", ")}"}

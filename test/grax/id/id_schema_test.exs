@@ -30,6 +30,12 @@ defmodule Grax.Id.SchemaTest do
                {:ok, ~I<http://example.com/foo/FOO>}
     end
 
+    test "non-string values are converted to strings" do
+      assert IdSpecs.Foo.expected_id_schema(Example.WithIdSchemaNested)
+             |> Id.Schema.generate_id(bar: 42) ==
+               {:ok, ~I<http://example.com/bar/42>}
+    end
+
     test "when no values for the template parameters present" do
       assert IdSpecs.GenericIds.expected_id_schema(User)
              |> Id.Schema.generate_id(%{}) ==

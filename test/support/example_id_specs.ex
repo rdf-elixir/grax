@@ -212,12 +212,20 @@ defmodule Example.IdSpecs do
       id Example.WithIdSchemaNested, "bar/{bar}"
     end
 
-    def expected_id_schema() do
+    def expected_id_schema(Example.WithIdSchema) do
       %Id.Schema{
         namespace: Example.IdSpecs.expected_namespace(:ex),
         template: Example.IdSpecs.compiled_template("{uuid}"),
         schema: Example.WithIdSchema,
         extensions: [%Grax.Id.UUID{format: :default, version: 4}]
+      }
+    end
+
+    def expected_id_schema(Example.WithIdSchemaNested) do
+      %Id.Schema{
+        namespace: Example.IdSpecs.expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("bar/{bar}"),
+        schema: Example.WithIdSchemaNested
       }
     end
   end
