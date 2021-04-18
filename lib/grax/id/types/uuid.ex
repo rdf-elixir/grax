@@ -7,8 +7,12 @@ if Code.ensure_loaded?(UUID) do
     defstruct [:version, :format, :namespace, :name]
 
     defmacro uuid(opts) do
+      opts =
+        __MODULE__
+        |> extension_opt(opts)
+        |> normalize_opts()
+
       template = Keyword.get(opts, :template, default_template(opts))
-      opts = extension_opt(__MODULE__, opts)
 
       quote do
         id_schema unquote(template), unquote(opts)
@@ -51,20 +55,34 @@ if Code.ensure_loaded?(UUID) do
       end
     end)
 
+    defp normalize_opts(opts) do
+      opts =
+        opts
+        |> rename_keyword(:version, :uuid_version)
+        |> rename_keyword(:format, :uuid_format)
+
+      version = Keyword.get(opts, :uuid_version)
+
+      cond do
+        version in [1, 4] ->
+          opts
+
+        version in [3, 5] ->
+          opts
+          |> rename_keyword(:namespace, :uuid_namespace)
+          |> rename_keyword(:name, :uuid_name)
+
+        true ->
+          raise ArgumentError, "invalid UUID version: #{inspect(version)}"
+      end
+    end
+
     defp normalize_opts(opts, name, version) do
       if Keyword.has_key?(opts, :uuid_version) do
         raise ArgumentError, "trying to set :uuid_version on #{name}"
       end
 
-      if version in [3, 5] do
-        opts
-        |> rename_keyword(:namespace, :uuid_namespace)
-        |> rename_keyword(:name, :uuid_name)
-      else
-        opts
-      end
-      |> rename_keyword(:format, :uuid_format)
-      |> Keyword.put(:uuid_version, version)
+      Keyword.put(opts, :uuid_version, version)
     end
 
     defp default_template(_opts), do: "{uuid}"

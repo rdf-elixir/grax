@@ -85,9 +85,9 @@ defmodule Example.IdSpecs do
     import Grax.Id.UUID
 
     namespace "http://example.com/", prefix: :ex do
-      uuid schema: User, uuid_version: 4, uuid_format: :hex
+      uuid schema: User, version: 4, format: :hex
       id_schema "posts/{uuid}", schema: Post, extensions: Grax.Id.UUID, uuid_version: 4
-      uuid Comment, uuid_version: 1
+      uuid Comment, version: 1
     end
 
     def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
@@ -127,8 +127,8 @@ defmodule Example.IdSpecs do
     @custom_namespace UUID.uuid4()
 
     namespace "http://example.com/", prefix: :ex do
-      uuid User, uuid_version: 5, uuid_namespace: :url, uuid_name: :canonical_email
-      uuid Post, uuid_version: 3, uuid_namespace: @custom_namespace, uuid_name: :slug
+      uuid User, version: 5, namespace: :url, name: :canonical_email
+      uuid Post, version: 3, namespace: @custom_namespace, name: :slug
     end
 
     def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
