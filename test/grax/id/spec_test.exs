@@ -134,12 +134,11 @@ defmodule Grax.Id.SpecTest do
                ]
     end
 
-    test "id schemas with var_proc" do
-      assert IdSpecs.VarProc.id_schemas() ==
+    test "id schemas for multiple schemas" do
+      assert IdSpecs.MultipleSchemas.id_schemas() ==
                [
-                 IdSpecs.VarProc.expected_id_schema(Example.VarProcC),
-                 IdSpecs.VarProc.expected_id_schema(Example.VarProcB),
-                 IdSpecs.VarProc.expected_id_schema(Example.VarProcA)
+                 IdSpecs.MultipleSchemas.expected_id_schema(:content),
+                 IdSpecs.MultipleSchemas.expected_id_schema(:foo)
                ]
     end
 
@@ -151,6 +150,15 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.CustomSelector.expected_id_schema(:foo)
                ]
     end
+
+    test "id schemas with var_proc" do
+      assert IdSpecs.VarProc.id_schemas() ==
+               [
+                 IdSpecs.VarProc.expected_id_schema(Example.VarProcC),
+                 IdSpecs.VarProc.expected_id_schema(Example.VarProcB),
+                 IdSpecs.VarProc.expected_id_schema(Example.VarProcA)
+               ]
+    end
   end
 
   describe "determine_id_schema/2" do
@@ -160,6 +168,20 @@ defmodule Grax.Id.SpecTest do
 
       assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, Post) ==
                IdSpecs.GenericIds.expected_id_schema(Post)
+    end
+
+    test "with an Id.Schema for multiple Grax schema modules" do
+      assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Example.MultipleSchemasA) ==
+               IdSpecs.MultipleSchemas.expected_id_schema(:foo)
+
+      assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Example.MultipleSchemasB) ==
+               IdSpecs.MultipleSchemas.expected_id_schema(:foo)
+
+      assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Post) ==
+               IdSpecs.MultipleSchemas.expected_id_schema(:content)
+
+      assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Comment) ==
+               IdSpecs.MultipleSchemas.expected_id_schema(:content)
     end
 
     test "when no Id.Schema can be found" do

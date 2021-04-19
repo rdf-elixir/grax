@@ -80,6 +80,37 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule MultipleSchemas do
+    use Grax.Id.Spec
+    import Grax.Id.Hash
+
+    namespace "http://example.com/", prefix: :ex do
+      id [Example.MultipleSchemasA, Example.MultipleSchemasB], "{foo}"
+      hash [Post, Comment], data: :content, algorithm: :md5
+    end
+
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
+
+    def expected_id_schema(:foo) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{foo}"),
+        schema: [Example.MultipleSchemasA, Example.MultipleSchemasB]
+      }
+    end
+
+    def expected_id_schema(:content) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{hash}"),
+        schema: [Post, Comment],
+        extensions: [
+          %Grax.Id.Hash{algorithm: :md5, data_variable: :content}
+        ]
+      }
+    end
+  end
+
   defmodule GenericUuids do
     use Grax.Id.Spec
     import Grax.Id.UUID

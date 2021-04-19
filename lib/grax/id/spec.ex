@@ -157,7 +157,11 @@ defmodule Grax.Id.Spec do
   end
 
   def determine_id_schema(spec, schema) do
-    Enum.find(spec.id_schemas, &(&1.schema == schema))
+    Enum.find(spec.id_schemas, fn
+      %{schema: ^schema} -> true
+      %{schema: schemas} when is_list(schemas) -> schema in schemas
+      _ -> false
+    end)
   end
 
   def custom_select_id_schema(spec, schema, attributes) do

@@ -174,6 +174,14 @@ defmodule GraxTest do
       refute nested_id == nested_id2
     end
 
+    test "with a matching id schema associated with multiple schemas" do
+      assert {:ok, %Example.MultipleSchemasA{__id__: ~I<http://example.com/FooA>, foo: "FooA"}} =
+               Example.MultipleSchemasA.build(%{foo: "FooA"})
+
+      assert {:ok, %Example.MultipleSchemasB{__id__: ~I<http://example.com/FooB>, foo: "FooB"}} =
+               Example.MultipleSchemasB.build(%{foo: "FooB"})
+    end
+
     test "with matching custom selector" do
       assert {:ok,
               %Example.WithCustomSelectedIdSchemaA{

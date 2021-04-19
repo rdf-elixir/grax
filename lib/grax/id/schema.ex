@@ -7,7 +7,7 @@ defmodule Grax.Id.Schema do
   @type t :: %__MODULE__{
           namespace: Namespace.t(),
           template: template,
-          schema: struct,
+          schema: module | [module],
           selector: {module, atom} | nil,
           var_proc: {module, atom} | nil,
           extensions: list | nil

@@ -235,6 +235,22 @@ defmodule Example do
     end
   end
 
+  defmodule MultipleSchemasA do
+    use Grax.Schema, id_spec: Example.IdSpecs.MultipleSchemas
+
+    schema do
+      property foo: EX.foo()
+    end
+  end
+
+  defmodule MultipleSchemasB do
+    use Grax.Schema, id_spec: Example.IdSpecs.MultipleSchemas
+
+    schema do
+      property foo: EX.foo()
+    end
+  end
+
   defmodule Untyped do
     use Grax.Schema
 
