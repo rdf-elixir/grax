@@ -180,6 +180,9 @@ defmodule GraxTest do
 
       assert {:ok, %Example.MultipleSchemasB{__id__: ~I<http://example.com/FooB>, foo: "FooB"}} =
                Example.MultipleSchemasB.build(%{foo: "FooB"})
+
+      assert {:ok, %Example.VarProcD{__id__: ~I<http://example.com/foo/FOOD>, name: "FooD"}} =
+               Example.VarProcD.build(%{name: "FooD"})
     end
 
     test "with matching custom selector" do

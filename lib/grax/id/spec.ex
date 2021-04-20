@@ -162,6 +162,10 @@ defmodule Grax.Id.Spec do
       %{schema: schemas} when is_list(schemas) -> schema in schemas
       _ -> false
     end)
+    |> case do
+      nil -> nil
+      id_schema -> %{id_schema | schema: schema}
+    end
   end
 
   def custom_select_id_schema(spec, schema, attributes) do

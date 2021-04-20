@@ -24,10 +24,14 @@ defmodule Grax.Id.SchemaTest do
     end
 
     test "with var_proc" do
-      assert Id.Schema.generate_id(IdSpecs.VarProc.expected_id_schema(Example.VarProcA), %{
-               name: "foo"
-             }) ==
+      assert IdSpecs.VarProc.expected_id_schema(Example.VarProcA)
+             |> Map.put(:schema, Example.VarProcA)
+             |> Id.Schema.generate_id(%{name: "foo"}) ==
                {:ok, ~I<http://example.com/foo/FOO>}
+
+      assert IdSpecs.VarProc.expected_id_schema(Example.VarProcC)
+             |> Id.Schema.generate_id(%{name: "foo"}) ==
+               {:ok, ~I<http://example.com/feab40e1fca77c7360ccca1481bb8ba5f919ce3a>}
     end
 
     test "non-string values are converted to strings" do

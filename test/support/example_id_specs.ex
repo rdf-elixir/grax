@@ -312,13 +312,14 @@ defmodule Example.IdSpecs do
     import Grax.Id.{UUID, Hash}
 
     namespace "http://example.com/", prefix: :ex do
-      id Example.VarProcA, "foo/{gen}", var_proc: :upcase_name
+      id [Example.VarProcA, Example.VarProcD], "foo/{gen}", var_proc: :upcase_name
       uuid5 Example.VarProcB, namespace: :oid, name: :gen, var_proc: :upcase_name
       hash Example.VarProcC, data: :gen, algorithm: :sha, var_proc: :upcase_name
     end
 
     def upcase_name(%{name: name} = vars) do
       assert vars.__schema__
+      assert is_atom(vars.__schema__)
       {:ok, Map.put(vars, :gen, String.upcase(name))}
     end
 
@@ -328,7 +329,7 @@ defmodule Example.IdSpecs do
       %Id.Schema{
         namespace: Example.IdSpecs.expected_namespace(:ex),
         template: Example.IdSpecs.compiled_template("foo/{gen}"),
-        schema: Example.VarProcA,
+        schema: [Example.VarProcA, Example.VarProcD],
         var_proc: {__MODULE__, :upcase_name}
       }
     end

@@ -173,15 +173,19 @@ defmodule Grax.Id.SpecTest do
     test "with an Id.Schema for multiple Grax schema modules" do
       assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Example.MultipleSchemasA) ==
                IdSpecs.MultipleSchemas.expected_id_schema(:foo)
+               |> Map.put(:schema, Example.MultipleSchemasA)
 
       assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Example.MultipleSchemasB) ==
                IdSpecs.MultipleSchemas.expected_id_schema(:foo)
+               |> Map.put(:schema, Example.MultipleSchemasB)
 
       assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Post) ==
                IdSpecs.MultipleSchemas.expected_id_schema(:content)
+               |> Map.put(:schema, Post)
 
       assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Comment) ==
                IdSpecs.MultipleSchemas.expected_id_schema(:content)
+               |> Map.put(:schema, Comment)
     end
 
     test "when no Id.Schema can be found" do
