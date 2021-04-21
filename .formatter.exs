@@ -14,6 +14,8 @@ locals_without_parens = [
   id_schema: 2,
   id: 2,
   id: 3,
+  hash: 1,
+  hash: 2,
   uuid: 1,
   uuid: 2,
   uuid1: 1,
