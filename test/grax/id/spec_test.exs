@@ -98,6 +98,19 @@ defmodule Grax.Id.SpecTest do
     end
   end
 
+  describe "base_iri/0" do
+    test "when base namespace defined" do
+      assert IdSpecs.FlatBase.base_iri() == ~I<http://example.com/>
+      assert IdSpecs.NestedBase.base_iri() == ~I<http://example.com/foo/>
+    end
+
+    test "when no base namespace defined" do
+      refute IdSpecs.FlatNs.base_iri()
+      refute IdSpecs.FlatNsWithVocabTerms.base_iri()
+      refute IdSpecs.NestedNs.base_iri()
+    end
+  end
+
   describe "id_schemas/0" do
     test "returns all id schemas" do
       assert IdSpecs.GenericIds.id_schemas() ==

@@ -23,6 +23,13 @@ defmodule Grax.Id.Spec do
     quote do
       def namespaces, do: @namespaces
       def base_namespace, do: @base_namespace
+
+      if @base_namespace do
+        def base_iri, do: RDF.iri(@base_namespace.uri)
+      else
+        def base_iri, do: nil
+      end
+
       def id_schemas, do: @id_schemas
       def custom_id_schema_selectors, do: @custom_id_schema_selectors
 
