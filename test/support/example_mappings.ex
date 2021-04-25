@@ -1,7 +1,6 @@
 defmodule Example do
   alias Example.NS.EX
   alias RDF.{IRI, Description, Graph}
-  alias Grax.RDF.Loader
 
   import ExUnit.Assertions
 
@@ -92,9 +91,10 @@ defmodule Example do
       age: 42,
       email: ~w[jd@example.com john@doe.com],
       customer_type: :premium_user,
-      canonical_email: "mailto:jd@example.com"
+      canonical_email: "mailto:jd@example.com",
+      posts: [RDF.iri(EX.Post0)],
+      comments: []
     }
-    |> Loader.init_link_properties()
   end
 
   def user(EX.User1, depth: 0) do
@@ -102,9 +102,10 @@ defmodule Example do
       __id__: IRI.new(EX.User1),
       name: "Erika Mustermann",
       email: ["erika@mustermann.de"],
-      canonical_email: "mailto:erika@mustermann.de"
+      canonical_email: "mailto:erika@mustermann.de",
+      posts: [],
+      comments: [RDF.iri(EX.Comment1)]
     }
-    |> Loader.init_link_properties()
   end
 
   def user(EX.User2, depth: 0) do
@@ -112,9 +113,10 @@ defmodule Example do
       __id__: IRI.new(EX.User2),
       name: "Max Mustermann",
       email: ["max@mustermann.de"],
-      canonical_email: "mailto:max@mustermann.de"
+      canonical_email: "mailto:max@mustermann.de",
+      posts: [],
+      comments: [RDF.iri(EX.Comment2)]
     }
-    |> Loader.init_link_properties()
   end
 
   def user(EX.User0, depth: depth) do
@@ -128,9 +130,10 @@ defmodule Example do
       __id__: IRI.new(EX.Post0),
       title: "Lorem ipsum",
       content: "Lorem ipsum dolor sit amet, …",
-      slug: "lorem-ipsum"
+      slug: "lorem-ipsum",
+      author: RDF.iri(EX.User0),
+      comments: [RDF.iri(EX.Comment1), RDF.iri(EX.Comment2)]
     }
-    |> Loader.init_link_properties()
   end
 
   def post(depth: depth) do
@@ -148,17 +151,19 @@ defmodule Example do
   def comment(EX.Comment1, depth: 0) do
     %Example.Comment{
       __id__: IRI.new(EX.Comment1),
-      content: "First"
+      content: "First",
+      about: RDF.iri(EX.Post0),
+      author: RDF.iri(EX.User1)
     }
-    |> Loader.init_link_properties()
   end
 
   def comment(EX.Comment2, depth: 0) do
     %Example.Comment{
       __id__: IRI.new(EX.Comment2),
-      content: "Second"
+      content: "Second",
+      about: RDF.iri(EX.Post0),
+      author: RDF.iri(EX.User2)
     }
-    |> Loader.init_link_properties()
   end
 
   def comment(EX.Comment1, depth: depth) do

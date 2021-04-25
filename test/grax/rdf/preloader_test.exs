@@ -1,8 +1,8 @@
 defmodule Grax.RDF.PreloaderTest do
   use Grax.TestCase
 
-  alias Grax.RDF.{Preloader, Loader}
-  alias Grax.{Link, InvalidResourceTypeError}
+  alias Grax.RDF.Preloader
+  alias Grax.InvalidResourceTypeError
 
   test "link to itself without circle" do
     assert RDF.graph([
@@ -13,7 +13,7 @@ defmodule Grax.RDF.PreloaderTest do
            |> Example.SelfLinked.load(EX.A) ==
              Example.SelfLinked.build(EX.A,
                name: "a",
-               next: Example.SelfLinked.build!(EX.B, name: "b", next: Link.NotLoaded)
+               next: Example.SelfLinked.build!(EX.B, name: "b", next: RDF.iri(EX.C))
              )
   end
 
@@ -26,7 +26,7 @@ defmodule Grax.RDF.PreloaderTest do
            |> Example.SelfLinked.load(EX.A) ==
              Example.SelfLinked.build(EX.A,
                name: "a",
-               next: Example.SelfLinked.build!(~B"b", name: "b", next: Link.NotLoaded)
+               next: Example.SelfLinked.build!(~B"b", name: "b", next: ~B"c")
              )
 
     assert RDF.graph([
@@ -48,7 +48,7 @@ defmodule Grax.RDF.PreloaderTest do
   test "direct link to itself" do
     assert RDF.graph([EX.A |> EX.name("a") |> EX.next(EX.A)])
            |> Example.SelfLinked.load(EX.A) ==
-             Example.SelfLinked.build(EX.A, name: "a", next: Link.NotLoaded)
+             Example.SelfLinked.build(EX.A, name: "a", next: RDF.iri(EX.A))
   end
 
   test "link to itself with circle" do
@@ -66,7 +66,7 @@ defmodule Grax.RDF.PreloaderTest do
                    name: "b",
                    link2: [],
                    link1: [
-                     Example.Circle.build!(EX.C, name: "c", link1: Grax.Link.NotLoaded)
+                     Example.Circle.build!(EX.C, name: "c", link1: RDF.iri(EX.A))
                    ]
                  )
                ]
@@ -97,7 +97,7 @@ defmodule Grax.RDF.PreloaderTest do
                          Example.Circle.build!(EX.C,
                            name: "c",
                            link2: [],
-                           link1: [Example.Circle.build!(EX.E, name: "e", link1: Link.NotLoaded)]
+                           link1: [Example.Circle.build!(EX.E, name: "e", link1: RDF.iri(EX.B))]
                          )
                        ]
                      )
@@ -114,7 +114,7 @@ defmodule Grax.RDF.PreloaderTest do
                          Example.Circle.build!(EX.B,
                            name: "b",
                            link2: [],
-                           link1: [Example.Circle.build!(EX.D, name: "d", link1: Link.NotLoaded)]
+                           link1: [Example.Circle.build!(EX.D, name: "d", link1: RDF.iri(EX.C))]
                          )
                        ]
                      )
@@ -148,7 +148,7 @@ defmodule Grax.RDF.PreloaderTest do
                          Example.Circle.build!(EX.C,
                            name: "c",
                            link2: [],
-                           link1: [Example.Circle.build!(EX.E, name: "e", link2: Link.NotLoaded)]
+                           link1: [Example.Circle.build!(EX.E, name: "e", link2: RDF.iri(EX.B))]
                          )
                        ]
                      )
@@ -165,7 +165,7 @@ defmodule Grax.RDF.PreloaderTest do
                          Example.Circle.build!(EX.B,
                            name: "b",
                            link2: [],
-                           link1: [Example.Circle.build!(EX.D, name: "d", link2: Link.NotLoaded)]
+                           link1: [Example.Circle.build!(EX.D, name: "d", link2: RDF.iri(EX.C))]
                          )
                        ]
                      )
@@ -183,12 +183,8 @@ defmodule Grax.RDF.PreloaderTest do
              ])
              |> Example.HeterogeneousLinks.load(EX.A) ==
                Example.HeterogeneousLinks.build(EX.A,
-                 one:
-                   Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
-                   |> Loader.init_link_properties(),
-                 strict_one:
-                   Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
-                   |> Loader.init_link_properties(),
+                 one: Example.Post.build!(EX.Post1, title: "foo", slug: "foo"),
+                 strict_one: Example.Post.build!(EX.Post1, title: "foo", slug: "foo"),
                  many: []
                )
 
@@ -198,12 +194,8 @@ defmodule Grax.RDF.PreloaderTest do
              ])
              |> Example.HeterogeneousLinks.load(EX.A) ==
                Example.HeterogeneousLinks.build(EX.A,
-                 one:
-                   Example.Comment.build!(EX.Comment1, content: "foo")
-                   |> Loader.init_link_properties(),
-                 strict_one:
-                   Example.Comment.build!(EX.Comment1, content: "foo")
-                   |> Loader.init_link_properties(),
+                 one: Example.Comment.build!(EX.Comment1, content: "foo"),
+                 strict_one: Example.Comment.build!(EX.Comment1, content: "foo"),
                  many: []
                )
 
@@ -215,10 +207,7 @@ defmodule Grax.RDF.PreloaderTest do
                Example.HeterogeneousLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
-                 many: [
-                   Example.Comment.build!(EX.Comment1, content: "foo")
-                   |> Loader.init_link_properties()
-                 ]
+                 many: [Example.Comment.build!(EX.Comment1, content: "foo")]
                )
     end
 
@@ -231,10 +220,7 @@ defmodule Grax.RDF.PreloaderTest do
                Example.HeterogeneousLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
-                 many: [
-                   Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
-                   |> Loader.init_link_properties()
-                 ]
+                 many: [Example.Post.build!(EX.Post1, title: "foo", slug: "foo")]
                )
 
       assert RDF.graph([
@@ -247,10 +233,8 @@ defmodule Grax.RDF.PreloaderTest do
                  one: nil,
                  strict_one: nil,
                  many: [
-                   Example.Comment.build!(EX.Comment1, content: "foo")
-                   |> Loader.init_link_properties(),
+                   Example.Comment.build!(EX.Comment1, content: "foo"),
                    Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
-                   |> Loader.init_link_properties()
                  ]
                )
     end
@@ -287,9 +271,7 @@ defmodule Grax.RDF.PreloaderTest do
              ])
              |> Example.HeterogeneousLinks.load(EX.A) ==
                Example.HeterogeneousLinks.build(EX.A,
-                 one:
-                   Example.Comment.build!(EX.Comment1, content: "bar")
-                   |> Loader.init_link_properties(),
+                 one: Example.Comment.build!(EX.Comment1, content: "bar"),
                  strict_one: nil,
                  many: []
                )
@@ -340,7 +322,7 @@ defmodule Grax.RDF.PreloaderTest do
              Example.DepthPreloading.build(EX.A,
                next:
                  Example.DepthPreloading.build!(EX.B,
-                   next: Example.DepthPreloading.build!(EX.C, next: Link.NotLoaded)
+                   next: Example.DepthPreloading.build!(EX.C, next: RDF.iri(EX.D))
                  )
              )
   end
@@ -379,8 +361,7 @@ defmodule Grax.RDF.PreloaderTest do
                            name: "a",
                            link2: [],
                            link1: [
-                             Example.Circle.build!(EX.B, name: "b")
-                             |> Loader.init_link_properties()
+                             Example.Circle.build!(EX.B, name: "b", link1: RDF.iri(EX.C))
                            ]
                          )
                        ]
@@ -418,8 +399,7 @@ defmodule Grax.RDF.PreloaderTest do
                                name: "e",
                                link2: [],
                                link1: [
-                                 Example.Circle.build!(EX.B, name: "b")
-                                 |> Loader.init_link_properties()
+                                 Example.Circle.build!(EX.B, name: "b", link1: RDF.iri(EX.D))
                                ]
                              )
                            ]
@@ -444,8 +424,7 @@ defmodule Grax.RDF.PreloaderTest do
                                name: "d",
                                link2: [],
                                link1: [
-                                 Example.Circle.build!(EX.C, name: "c")
-                                 |> Loader.init_link_properties()
+                                 Example.Circle.build!(EX.C, name: "c", link1: RDF.iri(EX.E))
                                ]
                              )
                            ]

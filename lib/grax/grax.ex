@@ -244,9 +244,6 @@ defmodule Grax do
     end)
   end
 
-  defp normalize_value(%Link.NotLoaded{} = value, _), do: value
-  defp normalize_value(Link.NotLoaded, property_schema), do: Link.NotLoaded.new(property_schema)
-
   defp normalize_value(value, property_schema) do
     do_normalize_value(
       if(is_list(value), do: Enum.uniq(value), else: value),

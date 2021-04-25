@@ -190,11 +190,4 @@ defmodule Grax.Schema.LinkProperty do
   defp do_value_type({:resource, %{}}), do: nil
   defp do_value_type({:resource, type}), do: type
   defp do_value_type(_), do: nil
-
-  def default(%__MODULE__{} = link_schema) do
-    %Link.NotLoaded{
-      __owner__: link_schema.schema,
-      __field__: link_schema.name
-    }
-  end
 end

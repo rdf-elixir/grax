@@ -18,9 +18,6 @@ defmodule Grax.RDF.Mapper do
             [] ->
               {:cont, {:ok, description, graph}}
 
-            %Link.NotLoaded{} ->
-              {:cont, {:ok, description, graph}}
-
             values ->
               case handle(values, mapping, property_schema, opts) do
                 {:ok, values, additions} ->

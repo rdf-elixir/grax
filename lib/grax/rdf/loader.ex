@@ -3,7 +3,7 @@ defmodule Grax.RDF.Loader do
 
   alias RDF.{Literal, IRI, BlankNode, Graph, Description}
   alias Grax.RDF.Preloader
-  alias Grax.{Link, InvalidValueError}
+  alias Grax.InvalidValueError
 
   import RDF.Utils
 
@@ -21,19 +21,9 @@ defmodule Grax.RDF.Loader do
         opts
       end
 
-    with {:ok, mapping} <-
-           load_data_properties(schema, initial, graph, description),
-         {:ok, mapping} <-
-           init_link_properties(schema, mapping),
-         {:ok, mapping} <-
-           init_custom_fields(schema, mapping, graph, description) do
-      Preloader.call(
-        schema,
-        mapping,
-        graph,
-        description,
-        opts
-      )
+    with {:ok, mapping} <- load_properties(schema, initial, graph, description),
+         {:ok, mapping} <- init_custom_fields(schema, mapping, graph, description) do
+      Preloader.call(schema, mapping, graph, description, opts)
     end
   end
 
@@ -45,39 +35,41 @@ defmodule Grax.RDF.Loader do
     raise ArgumentError, "invalid input data: #{inspect(invalid)}"
   end
 
-  defp load_data_properties(schema, initial, graph, description) do
-    schema.__properties__(:data)
-    |> Enum.reduce_while({:ok, initial}, fn {property, property_schema}, {:ok, mapping} ->
-      cond do
-        objects = Description.get(description, property_schema.iri) ->
-          handle(objects, description, graph, property_schema)
-          |> case do
-            {:ok, mapped_objects} ->
-              {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
+  defp load_properties(schema, initial, graph, description) do
+    schema.__properties__()
+    |> Enum.reduce_while({:ok, initial}, fn
+      {property, %{iri: {:inverse, inverse_property}} = property_schema}, {:ok, mapping} ->
+        cond do
+          objects = Preloader.inverse_values(graph, description.subject, inverse_property) ->
+            handle(objects, description, graph, property_schema)
+            |> case do
+              {:ok, mapped_objects} ->
+                {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
 
-            {:error, _} = error ->
-              {:halt, error}
-          end
+              {:error, _} = error ->
+                {:halt, error}
+            end
 
-        true ->
-          {:cont, {:ok, mapping}}
-      end
+          true ->
+            {:cont, {:ok, mapping}}
+        end
+
+      {property, property_schema}, {:ok, mapping} ->
+        cond do
+          objects = Description.get(description, property_schema.iri) ->
+            handle(objects, description, graph, property_schema)
+            |> case do
+              {:ok, mapped_objects} ->
+                {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
+
+              {:error, _} = error ->
+                {:halt, error}
+            end
+
+          true ->
+            {:cont, {:ok, mapping}}
+        end
     end)
-  end
-
-  @doc false
-  def init_link_properties(%schema{} = mapping) do
-    with {:ok, mapping} <- init_link_properties(schema, mapping) do
-      mapping
-    end
-  end
-
-  defp init_link_properties(schema, mapping) do
-    {:ok,
-     schema.__properties__(:link)
-     |> Enum.reduce(mapping, fn {link, link_schema}, mapping ->
-       Map.put(mapping, link, Link.NotLoaded.new(link_schema))
-     end)}
   end
 
   defp init_custom_fields(schema, mapping, graph, description) do

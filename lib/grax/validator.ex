@@ -59,8 +59,6 @@ defmodule Grax.Validator do
     |> check_resource_type(link, value, type, opts)
   end
 
-  defp check_cardinality(validation, _, %Link.NotLoaded{}, _, _), do: validation
-
   defp check_cardinality(validation, property, values, {:list_set, _}, cardinality)
        when is_list(values) do
     count = length(values)
@@ -147,7 +145,8 @@ defmodule Grax.Validator do
     end
   end
 
-  defp check_resource_type(validation, _, %Link.NotLoaded{}, _, _), do: validation
+  defp check_resource_type(validation, _, %IRI{}, {:resource, _}, _), do: validation
+  defp check_resource_type(validation, _, %BlankNode{}, {:resource, _}, _), do: validation
   defp check_resource_type(validation, _, nil, _, _), do: validation
   defp check_resource_type(validation, _, [], _, _), do: validation
 

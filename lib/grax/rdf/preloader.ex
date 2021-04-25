@@ -74,13 +74,18 @@ defmodule Grax.RDF.Preloader do
     end)
   end
 
-  defp objects(graph, description, {:inverse, property_iri}) do
-    {:object?, property_iri, description.subject}
+  @doc false
+  def inverse_values(graph, subject, property) do
+    {:object?, property, subject}
     |> Query.execute!(graph)
     |> case do
       [] -> nil
       results -> Enum.map(results, &Map.fetch!(&1, :object))
     end
+  end
+
+  defp objects(graph, description, {:inverse, property_iri}) do
+    inverse_values(graph, description.subject, property_iri)
   end
 
   defp objects(_graph, description, property_iri) do
