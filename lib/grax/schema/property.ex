@@ -136,7 +136,6 @@ defmodule Grax.Schema.LinkProperty do
   @moduledoc false
 
   alias Grax.Schema.Property
-  alias Grax.Link
 
   defstruct Property.shared_attrs() ++ [:preload, :on_type_mismatch]
 
@@ -185,9 +184,13 @@ defmodule Grax.Schema.LinkProperty do
   def initial_value_type(schema), do: {:ok, {:resource, schema}}
 
   def value_type(%__MODULE__{} = schema), do: do_value_type(schema.type)
-
+  def value_type(_), do: nil
   defp do_value_type({:list_set, type}), do: do_value_type(type)
-  defp do_value_type({:resource, %{}}), do: nil
   defp do_value_type({:resource, type}), do: type
   defp do_value_type(_), do: nil
+
+  def heterogeneous_type?(schema) do
+    value_type = value_type(schema)
+    is_map(value_type) and not is_struct(value_type)
+  end
 end

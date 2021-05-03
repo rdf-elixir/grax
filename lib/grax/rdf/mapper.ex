@@ -2,7 +2,7 @@ defmodule Grax.RDF.Mapper do
   @moduledoc false
 
   alias RDF.{IRI, BlankNode, Literal, XSD, Graph, Description}
-  alias Grax.{Link, Validator}
+  alias Grax.Validator
   alias Grax.Schema.TypeError
 
   def call(%schema{} = mapping, opts) do

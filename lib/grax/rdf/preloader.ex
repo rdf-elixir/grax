@@ -1,17 +1,15 @@
 defmodule Grax.RDF.Preloader do
   @moduledoc false
 
-  alias RDF.{Description, Graph, Query}
-  alias Grax.Schema
-  alias Grax.InvalidResourceTypeError
+  alias Grax.RDF.Loader
+  import Grax.RDF.Access
 
   @default {:depth, 1}
 
   def default, do: @default
 
   def call(schema, mapping, graph, opts) do
-    description = Graph.description(graph, mapping.__id__) || Description.new(mapping.__id__)
-    call(schema, mapping, graph, description, opts)
+    call(schema, mapping, graph, description(graph, mapping.__id__), opts)
   end
 
   def call(schema, mapping, graph, description, opts) do
@@ -37,18 +35,12 @@ defmodule Grax.RDF.Preloader do
 
         cond do
           is_nil(objects) ->
-            {:cont,
-             {:ok,
-              Map.put(
-                mapping,
-                link,
-                if(Schema.Property.value_set?(link_schema), do: [], else: nil)
-              )}}
-
-          # The circle check is not needed when preload opts are given as there finite depth
-          # overwrite any additive preload depths by properties which may cause infinite preloads
-          is_nil(next_preload_opt) and circle?(objects, graph_load_path) ->
             {:cont, {:ok, mapping}}
+
+          # The circle check is not needed when preload opts are given as their finite depth
+          # overwrites any additive preload depths of properties which may cause infinite preloads
+          is_nil(next_preload_opt) and circle?(objects, graph_load_path) ->
+            Loader.add_objects(mapping, link, objects, description, graph, link_schema)
 
           true ->
             opts =
@@ -69,27 +61,13 @@ defmodule Grax.RDF.Preloader do
             end
         end
       else
-        {:cont, {:ok, mapping}}
+        Loader.load_properties([{link, link_schema}], mapping, graph, description)
+        |> case do
+          {:ok, _} = ok_mapping -> {:cont, ok_mapping}
+          {:error, _} = error -> {:balt, error}
+        end
       end
     end)
-  end
-
-  @doc false
-  def inverse_values(graph, subject, property) do
-    {:object?, property, subject}
-    |> Query.execute!(graph)
-    |> case do
-      [] -> nil
-      results -> Enum.map(results, &Map.fetch!(&1, :object))
-    end
-  end
-
-  defp objects(graph, description, {:inverse, property_iri}) do
-    inverse_values(graph, description.subject, property_iri)
-  end
-
-  defp objects(_graph, description, property_iri) do
-    Description.get(description, property_iri)
   end
 
   def next_preload_opt(nil, nil, schema, link, depth, max_depth) do
@@ -182,7 +160,7 @@ defmodule Grax.RDF.Preloader do
 
   defp map_link(resource, {:resource, class_mapping}, property_schema, graph, opts)
        when is_map(class_mapping) do
-    description = Graph.description(graph, resource) || Description.new(resource)
+    description = description(graph, resource)
 
     with {:ok, schema} when not is_nil(schema) <-
            determine_schema(
@@ -196,42 +174,5 @@ defmodule Grax.RDF.Preloader do
 
   defp map_link(resource, {:resource, schema}, _property_schema, graph, opts) do
     schema.load(graph, resource, opts)
-  end
-
-  defp determine_schema(types, class_mapping, on_type_mismatch) do
-    if types do
-      Enum.reduce(types, [], fn class, candidates ->
-        case class_mapping[class] do
-          nil -> candidates
-          schema -> [schema | candidates]
-        end
-      end)
-    else
-      []
-    end
-    |> case do
-      [schema] ->
-        {:ok, schema}
-
-      [] ->
-        case class_mapping[nil] do
-          nil ->
-            case on_type_mismatch do
-              :ignore ->
-                {:ok, nil}
-
-              :error ->
-                {:error,
-                 InvalidResourceTypeError.exception(type: :no_match, resource_types: types)}
-            end
-
-          schema ->
-            {:ok, schema}
-        end
-
-      _candidates ->
-        {:error,
-         InvalidResourceTypeError.exception(type: :multiple_matches, resource_types: types)}
-    end
   end
 end

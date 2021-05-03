@@ -243,7 +243,6 @@ defmodule Grax.RDF.MapperTest do
                 EX.S |> EX.name("subject"),
                 EX.User0 |> EX.foo(EX.S),
                 example_description(:user)
-                |> Description.delete_predicates(EX.post())
               ]
               |> RDF.graph()}
   end

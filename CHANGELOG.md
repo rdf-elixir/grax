@@ -5,6 +5,18 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+### Changed
+
+- not loaded links are no longer represented with `Grax.Link.NotLoaded` structs,
+  but with `RDF.IRI` or `RDF.BlankNode`s instead 
+
+
+[Compare v0.2.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.2.0...HEAD)
+
+
+
 ## v0.2.0 - 2021-03-16
 
 ### Added

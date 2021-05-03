@@ -6,7 +6,7 @@ defmodule Grax do
   Read about the API in the guide [here](https://rdf-elixir.dev/grax/api.html).
   """
 
-  alias Grax.{Schema, Id, Link, Validator, ValidationError}
+  alias Grax.{Schema, Id, Validator, ValidationError}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph}
@@ -263,11 +263,19 @@ defmodule Grax do
     if Map.has_key?(value, :__struct__) do
       {:ok, value}
     else
-      if resource_type = Schema.LinkProperty.value_type(property_schema) do
-        resource_type.build(value)
-      else
-        raise ArgumentError,
-              "unable to determine value type of property #{inspect(property_schema)}"
+      case Schema.LinkProperty.value_type(property_schema) do
+        nil ->
+          raise ArgumentError,
+                "unable to determine value type of property #{inspect(property_schema)}"
+
+        %{} = class_mapping when not is_struct(class_mapping) ->
+          raise ArgumentError,
+                "unable to determine value type of heterogeneous property #{
+                  inspect(property_schema)
+                }"
+
+        resource_type ->
+          resource_type.build(value)
       end
     end
   end

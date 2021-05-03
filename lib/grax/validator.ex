@@ -1,7 +1,7 @@
 defmodule Grax.Validator do
   @moduledoc false
 
-  alias Grax.{Link, ValidationError, InvalidIdError}
+  alias Grax.{ValidationError, InvalidIdError}
   alias Grax.Schema.{TypeError, CardinalityError}
   alias RDF.{IRI, BlankNode, Literal, XSD}
 

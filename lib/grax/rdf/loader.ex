@@ -5,13 +5,13 @@ defmodule Grax.RDF.Loader do
   alias Grax.RDF.Preloader
   alias Grax.InvalidValueError
 
+  import Grax.RDF.Access
   import RDF.Utils
 
   def call(schema, initial, %Graph{} = graph, opts) do
     id = initial.__id__
 
-    {description, opts} =
-      Keyword.pop(opts, :description, Graph.description(graph, id) || Description.new(id))
+    {description, opts} = Keyword.pop_lazy(opts, :description, fn -> description(graph, id) end)
 
     # TODO: Get rid of this! It's required currently for the case that the call received directly from load/4.
     opts =
@@ -21,8 +21,10 @@ defmodule Grax.RDF.Loader do
         opts
       end
 
-    with {:ok, mapping} <- load_properties(schema, initial, graph, description),
-         {:ok, mapping} <- init_custom_fields(schema, mapping, graph, description) do
+    with {:ok, mapping} <-
+           load_properties(schema.__properties__(:data), initial, graph, description),
+         {:ok, mapping} <-
+           init_custom_fields(schema, mapping, graph, description) do
       Preloader.call(schema, mapping, graph, description, opts)
     end
   end
@@ -35,41 +37,33 @@ defmodule Grax.RDF.Loader do
     raise ArgumentError, "invalid input data: #{inspect(invalid)}"
   end
 
-  defp load_properties(schema, initial, graph, description) do
-    schema.__properties__()
-    |> Enum.reduce_while({:ok, initial}, fn
-      {property, %{iri: {:inverse, inverse_property}} = property_schema}, {:ok, mapping} ->
-        cond do
-          objects = Preloader.inverse_values(graph, description.subject, inverse_property) ->
-            handle(objects, description, graph, property_schema)
-            |> case do
-              {:ok, mapped_objects} ->
-                {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
-
-              {:error, _} = error ->
-                {:halt, error}
-            end
-
-          true ->
-            {:cont, {:ok, mapping}}
-        end
-
+  @doc false
+  def load_properties(property_schemas, initial, graph, description) do
+    Enum.reduce_while(property_schemas, {:ok, initial}, fn
       {property, property_schema}, {:ok, mapping} ->
-        cond do
-          objects = Description.get(description, property_schema.iri) ->
-            handle(objects, description, graph, property_schema)
-            |> case do
-              {:ok, mapped_objects} ->
-                {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
+        case filtered_objects(graph, description, property_schema) do
+          {:ok, objects} ->
+            add_objects(mapping, property, objects, description, graph, property_schema)
 
-              {:error, _} = error ->
-                {:halt, error}
-            end
-
-          true ->
-            {:cont, {:ok, mapping}}
+          {:error, _} = error ->
+            {:halt, error}
         end
     end)
+  end
+
+  @doc false
+  def add_objects(mapping, property, objects, description, graph, property_schema)
+
+  def add_objects(mapping, _, nil, _, _, _), do: {:cont, {:ok, mapping}}
+
+  def add_objects(mapping, property, objects, description, graph, property_schema) do
+    case handle(objects, description, graph, property_schema) do
+      {:ok, mapped_objects} ->
+        {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
+
+      {:error, _} = error ->
+        {:halt, error}
+    end
   end
 
   defp init_custom_fields(schema, mapping, graph, description) do
