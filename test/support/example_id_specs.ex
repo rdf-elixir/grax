@@ -266,7 +266,7 @@ defmodule Example.IdSpecs do
     import Grax.Id.Hash
 
     namespace "http://example.com/", prefix: :ex do
-      hash User, data: :canonical_email, algorithm: :blake2b
+      hash User, data: :canonical_email, algorithm: :sha512
       hash Post, data: :content, algorithm: :sha256
       hash Comment, data: :content, algorithm: :md5
     end
@@ -279,7 +279,7 @@ defmodule Example.IdSpecs do
         template: Example.IdSpecs.compiled_template("{hash}"),
         schema: User,
         extensions: [
-          %Grax.Id.Hash{algorithm: :blake2b, data_variable: :canonical_email}
+          %Grax.Id.Hash{algorithm: :sha512, data_variable: :canonical_email}
         ]
       }
     end

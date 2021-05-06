@@ -8,7 +8,7 @@ defmodule Grax.Id.Types.HashTest do
 
   test "hash id" do
     assert {:ok,
-            ~I<http://example.com/9a4db41ca7f4b12aaaf554c8f9044a0e22bd969890fb03fc0af4e05221745e15d0ce8cd232d22ddee999e9c4faaee5b46e90ac6af21c9a5a6e0ca005a617db93>} =
+            ~I<http://example.com/f1ca4b7d9f704857b16b6dfef392146c8582930022217359e33cf94bf67a83ed162bdd47d7b51871d4a73083533bf2456ffcac6fca88064af426835f62d5f3fb>} =
              IdSpecs.Hashing.expected_id_schema(User)
              |> Id.Schema.generate_id(Example.user(EX.User0))
 
