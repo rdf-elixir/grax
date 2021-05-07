@@ -48,6 +48,19 @@ defmodule Grax.Id.SpecTest do
                root_namespace
              ]
     end
+
+    test "expressions in namespaces" do
+      root_namespace = %Id.Namespace{uri: "http://example.com/"}
+
+      assert IdSpecs.NsWithExpressions.namespaces() == [
+               %Id.Namespace{parent: root_namespace, uri: "http://example.com/sub/"},
+               root_namespace
+             ]
+
+      assert IdSpecs.NsWithExpressions2.namespaces() == [
+               %Id.Namespace{root_namespace | prefix: :ex}
+             ]
+    end
   end
 
   test "vocab terms are only allowed on the top-level namespace" do

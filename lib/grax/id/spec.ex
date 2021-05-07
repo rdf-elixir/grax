@@ -51,11 +51,8 @@ defmodule Grax.Id.Spec do
            |> Macro.expand(__CALLER__)
            |> apply(:__base_iri__, []), true}
 
-        segment when is_binary(segment) ->
+        segment ->
           {segment, nil}
-
-        invalid ->
-          raise "invalid namespace: #{inspect(invalid)}"
       end
 
     quote do

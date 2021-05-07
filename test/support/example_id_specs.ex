@@ -53,6 +53,27 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule NsWithExpressions do
+    use Grax.Id.Spec
+
+    @domain "http://example.com/"
+    def domain, do: @domain
+
+    @path "sub/"
+
+    namespace @domain do
+      base @path do
+      end
+    end
+  end
+
+  defmodule NsWithExpressions2 do
+    use Grax.Id.Spec
+
+    namespace NsWithExpressions.domain(), prefix: :ex do
+    end
+  end
+
   defmodule GenericIds do
     use Grax.Id.Spec
 
