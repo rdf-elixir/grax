@@ -425,14 +425,15 @@ defmodule Example.IdSpecs do
     import Grax.Id.UUID
 
     namespace "http://example.com/", prefix: :ex do
-      uuid4 Grax.ConfigTest.TestSchema
+      uuid4 Grax.ConfigTest.TestSchema1
+      uuid4 Grax.ConfigTest.TestSchema2
     end
 
-    def expected_id_schema() do
+    def expected_id_schema(schema) do
       %Id.Schema{
         namespace: Example.IdSpecs.expected_namespace(:ex),
         template: Example.IdSpecs.compiled_template("{uuid}"),
-        schema: Grax.ConfigTest.TestSchema,
+        schema: schema,
         extensions: [%Grax.Id.UUID{format: :default, version: 4}]
       }
     end

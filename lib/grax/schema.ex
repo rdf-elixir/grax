@@ -10,11 +10,15 @@ defmodule Grax.Schema do
   alias Grax.Schema.{Struct, Inheritance, DataProperty, LinkProperty, CustomField}
   alias RDF.IRI
 
-  def default_id_spec, do: Application.get_env(:grax, :id_spec)
-
   defmacro __using__(opts) do
     preload_default = opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec()
-    id_spec = Keyword.get(opts, :id_spec, default_id_spec())
+
+    id_spec_from_otp_app =
+      if id_spec_from_otp_app = Keyword.get(opts, :id_spec_from_otp_app) do
+        Application.get_env(id_spec_from_otp_app, :grax_id_spec)
+      end
+
+    id_spec = Keyword.get(opts, :id_spec, id_spec_from_otp_app)
 
     quote do
       import unquote(__MODULE__), only: [schema: 1, schema: 2]
@@ -24,13 +28,19 @@ defmodule Grax.Schema do
       @grax_preload_default unquote(preload_default)
       def __preload_default__(), do: @grax_preload_default
 
-      @grax_id_spec unquote(id_spec)
-      def __id_spec__(), do: @grax_id_spec
+      if unquote(id_spec) do
+        def __id_spec__(), do: unquote(id_spec)
+      else
+        def __id_spec__() do
+          __MODULE__
+          |> Application.get_application()
+          |> Application.get_env(:grax_id_spec)
+        end
+      end
 
-      @grax_id_schema (if @grax_id_spec do
-                         Grax.Id.Spec.determine_id_schema(@grax_id_spec, __MODULE__)
-                       end)
-      def __id_schema__(), do: @grax_id_schema
+      def __id_schema__(id_spec \\ nil)
+      def __id_schema__(nil), do: if(id_spec = __id_spec__(), do: __id_schema__(id_spec))
+      def __id_schema__(id_spec), do: Grax.Id.Spec.determine_id_schema(id_spec, __MODULE__)
     end
   end
 
