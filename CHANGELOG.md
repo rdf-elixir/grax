@@ -11,6 +11,10 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 - not loaded links are no longer represented with `Grax.Link.NotLoaded` structs,
   but with `RDF.IRI` or `RDF.BlankNode`s instead 
+- the value of link properties can be given as plain `RDF.IRI`, `RDF.BlankNode`
+  values or as vocabulary namespace terms on `Grax.new` and `Grax.build` 
+- the value of properties with type `:iri` can be given as vocabulary namespace
+  terms on `Grax.new` and `Grax.build`
 
 
 [Compare v0.2.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.2.0...HEAD)

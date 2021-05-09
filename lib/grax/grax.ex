@@ -7,6 +7,7 @@ defmodule Grax do
   """
 
   alias Grax.{Schema, Id, Validator, ValidationError}
+  alias Grax.Schema.{DataProperty, LinkProperty}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph}
@@ -202,8 +203,8 @@ defmodule Grax do
         property_schema = schema.__property__(property) ->
           validation =
             case property_schema.__struct__ do
-              Schema.DataProperty -> :check_property
-              Schema.LinkProperty -> :check_link
+              DataProperty -> :check_property
+              LinkProperty -> :check_link
             end
 
           do_put_property(validation, mapping, property, value, property_schema)
@@ -256,7 +257,15 @@ defmodule Grax do
   def put!(_, :__id__, _), do: raise(@__id__property_access_error)
 
   def put!(%schema{} = mapping, property, value) do
-    struct!(mapping, [{property, normalize_value(value, schema.__property__(property))}])
+    property_schema = schema.__property__(property)
+
+    value
+    |> normalize_value(property_schema)
+    |> build_linked(property_schema)
+    |> case do
+      {:ok, value} -> struct!(mapping, [{property, value}])
+      {:error, error} -> raise error
+    end
   end
 
   def put!(%_{} = mapping, values) do
@@ -267,25 +276,49 @@ defmodule Grax do
   end
 
   defp normalize_value(value, property_schema) do
-    do_normalize_value(
-      if(is_list(value), do: Enum.uniq(value), else: value),
-      Schema.Property.value_set?(property_schema)
-    )
+    normalized_value =
+      value
+      |> uniq_value()
+      |> normalize_list_value(Schema.Property.value_set?(property_schema))
+
+    if property_schema do
+      normalize_type(
+        normalized_value,
+        property_schema.__struct__,
+        Schema.Property.value_type(property_schema)
+      )
+    else
+      normalized_value
+    end
   end
 
-  defp do_normalize_value(value, true), do: List.wrap(value)
-  defp do_normalize_value([value], false), do: value
-  defp do_normalize_value(value, false), do: value
+  defp uniq_value(value) when is_list(value), do: Enum.uniq(value)
+  defp uniq_value(value), do: value
 
-  defp build_linked(values, %Schema.LinkProperty{} = property_schema) when is_list(values) do
+  defp normalize_list_value(value, true), do: List.wrap(value)
+  defp normalize_list_value([value], false), do: value
+  defp normalize_list_value(value, false), do: value
+
+  defp normalize_type(values, DataProperty, IRI) when is_list(values),
+    do: Enum.map(values, &normalize_type(&1, DataProperty, IRI))
+
+  defp normalize_type(%IRI{} = iri, DataProperty, IRI), do: iri
+  defp normalize_type(term, DataProperty, IRI) when maybe_module(term), do: IRI.new(term)
+  defp normalize_type(value, _, _), do: value
+
+  defp build_linked(values, %LinkProperty{} = property_schema) when is_list(values) do
     map_while_ok(values, &build_linked(&1, property_schema))
   end
 
-  defp build_linked(%{} = value, %Schema.LinkProperty{} = property_schema) do
+  defp build_linked(%IRI{} = value, %LinkProperty{}), do: {:ok, value}
+  defp build_linked(%BlankNode{} = value, %LinkProperty{}), do: {:ok, value}
+  defp build_linked(term, %LinkProperty{}) when maybe_module(term), do: {:ok, IRI.new(term)}
+
+  defp build_linked(%{} = value, %LinkProperty{} = property_schema) do
     if Map.has_key?(value, :__struct__) do
       {:ok, value}
     else
-      case Schema.LinkProperty.value_type(property_schema) do
+      case LinkProperty.value_type(property_schema) do
         nil ->
           raise ArgumentError,
                 "unable to determine value type of property #{inspect(property_schema)}"

@@ -399,6 +399,24 @@ defmodule GraxTest do
                 }}
     end
 
+    test "a vocabulary namespace term on an IRI property" do
+      assert Example.IdsAsPropertyValues.build!(EX.Foo)
+             |> Grax.put(:iri, EX.Bar) ==
+               {:ok,
+                %Example.IdsAsPropertyValues{
+                  __id__: IRI.new(EX.Foo),
+                  iri: IRI.new(EX.Bar)
+                }}
+
+      assert Example.IdsAsPropertyValues.build!(EX.Foo)
+             |> Grax.put(:iris, [EX.Bar, EX.Baz]) ==
+               {:ok,
+                %Example.IdsAsPropertyValues{
+                  __id__: IRI.new(EX.Foo),
+                  iris: [IRI.new(EX.Bar), IRI.new(EX.Baz)]
+                }}
+    end
+
     test "previous values are overwritten" do
       assert Example.user(EX.User0)
              |> Grax.put(:name, "Foo") ==
@@ -463,6 +481,105 @@ defmodule GraxTest do
                 %Example.User{
                   __id__: IRI.new(EX.User0),
                   posts: [Example.post(depth: 0)]
+                }}
+    end
+
+    test "a RDF.IRI on a link property" do
+      assert Example.SelfLinked.build!(EX.Foo)
+             |> Grax.put(:next, EX.bar()) ==
+               {:ok,
+                %Example.SelfLinked{
+                  __id__: IRI.new(EX.Foo),
+                  next: IRI.new(EX.bar())
+                }}
+
+      assert Example.User.build!(EX.User0)
+             |> Grax.put(:posts, [RDF.iri(EX.Foo), RDF.iri(EX.Bar)]) ==
+               {:ok,
+                %Example.User{
+                  __id__: IRI.new(EX.User0),
+                  posts: [IRI.new(EX.Foo), IRI.new(EX.Bar)]
+                }}
+
+      assert Example.HeterogeneousLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.bar(),
+               strict_one: EX.bar(),
+               many: [EX.baz1(), EX.baz2()]
+             ) ==
+               {:ok,
+                %Example.HeterogeneousLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: EX.bar(),
+                  strict_one: EX.bar(),
+                  many: [EX.baz1(), EX.baz2()]
+                }}
+    end
+
+    test "a RDF.BlankNode on a link property" do
+      assert Example.SelfLinked.build!(EX.Foo)
+             |> Grax.put(:next, RDF.bnode("bar")) ==
+               {:ok,
+                %Example.SelfLinked{
+                  __id__: IRI.new(EX.Foo),
+                  next: RDF.bnode("bar")
+                }}
+
+      assert Example.User.build!(EX.User0)
+             |> Grax.put(:posts, [RDF.bnode("bar"), RDF.bnode("baz")]) ==
+               {:ok,
+                %Example.User{
+                  __id__: IRI.new(EX.User0),
+                  posts: [
+                    RDF.bnode("bar"),
+                    RDF.bnode("baz")
+                  ]
+                }}
+
+      assert Example.HeterogeneousLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: RDF.bnode("bar"),
+               strict_one: RDF.bnode("bar"),
+               many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
+             ) ==
+               {:ok,
+                %Example.HeterogeneousLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: RDF.bnode("bar"),
+                  strict_one: RDF.bnode("bar"),
+                  many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
+                }}
+    end
+
+    test "a vocabulary namespace term on a link property" do
+      assert Example.SelfLinked.build!(EX.Foo)
+             |> Grax.put(:next, EX.Bar) ==
+               {:ok,
+                %Example.SelfLinked{
+                  __id__: IRI.new(EX.Foo),
+                  next: RDF.iri(EX.Bar)
+                }}
+
+      assert Example.User.build!(EX.User0)
+             |> Grax.put(:posts, [EX.Foo, EX.Bar]) ==
+               {:ok,
+                %Example.User{
+                  __id__: IRI.new(EX.User0),
+                  posts: [IRI.new(EX.Foo), IRI.new(EX.Bar)]
+                }}
+
+      assert Example.HeterogeneousLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.Bar,
+               strict_one: EX.Bar,
+               many: [EX.baz(), EX.Baz1, EX.Baz2]
+             ) ==
+               {:ok,
+                %Example.HeterogeneousLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: IRI.new(EX.Bar),
+                  strict_one: IRI.new(EX.Bar),
+                  many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
                 }}
     end
 
@@ -643,6 +760,17 @@ defmodule GraxTest do
       assert Example.SelfLinked.build!(EX.Foo)
              |> Grax.put!(:next, Example.User.build!(EX.Bar)) ==
                %Example.SelfLinked{__id__: IRI.new(EX.Foo), next: Example.User.build!(EX.Bar)}
+    end
+
+    test "with a map and an id schema defined for the linked schema" do
+      assert %Example.WithIdSchemaNested{
+               __id__: ~I<http://example.com/bar/bar1>,
+               foo: %Example.WithIdSchema{__id__: nested_id}
+             } =
+               Example.WithIdSchemaNested.build!(bar: "bar1")
+               |> Grax.put!(foo: %{foo: "foo1"})
+
+      assert_valid_uuid(nested_id, "http://example.com/", version: 4, type: :default)
     end
   end
 
