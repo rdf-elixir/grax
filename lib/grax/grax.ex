@@ -144,6 +144,28 @@ defmodule Grax do
     end
   end
 
+  def preloaded?(%schema{} = mapping) do
+    schema.__properties__(:link)
+    |> Enum.all?(fn {property, _} -> preloaded?(mapping, property) end)
+  end
+
+  def preloaded?(%schema{} = mapping, property) do
+    case schema.__property__(property) do
+      %LinkProperty{} -> mapping |> Map.get(property) |> do_preloaded?()
+      %DataProperty{} -> true
+      _ -> raise ArgumentError, "#{inspect(property)} is not a property of #{schema}"
+    end
+  end
+
+  defp do_preloaded?(nil), do: nil
+  defp do_preloaded?(%IRI{}), do: false
+  defp do_preloaded?(%BlankNode{}), do: false
+  defp do_preloaded?([]), do: true
+  defp do_preloaded?([value | _]), do: do_preloaded?(value)
+  defp do_preloaded?(%_{}), do: true
+  # This is the fallback case with an apparently invalid value.
+  defp do_preloaded?(_), do: false
+
   # TODO: This is a wrapper acting as a preliminary substitute for the preloading strategy selector
   def setup_depth_preload_opts(opts) do
     case Keyword.pop(opts, :depth) do

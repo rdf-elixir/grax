@@ -847,4 +847,46 @@ defmodule GraxTest do
                |> Grax.put!(:posts, [Grax.put!(post, :title, [post.title, "Other"])])
     end
   end
+
+  describe "preloaded?/1" do
+    test "when one of the link properties is not preloaded" do
+      refute Example.user(EX.User0, depth: 0) |> Grax.preloaded?()
+      refute Example.post(depth: 0) |> Grax.preloaded?()
+    end
+
+    test "when all of the link properties are preloaded" do
+      assert Example.user(EX.User0, depth: 1) |> Grax.preloaded?()
+      assert Example.post(depth: 1) |> Grax.preloaded?()
+    end
+  end
+
+  describe "preloaded?/2" do
+    test "with preloaded link properties" do
+      assert Example.user(EX.User0, depth: 1) |> Grax.preloaded?(:posts)
+      assert Example.user(EX.User0, depth: 1) |> Grax.preloaded?(:comments)
+      assert Example.post(depth: 1) |> Grax.preloaded?(:author)
+      assert Example.post(depth: 1) |> Grax.preloaded?(:comments)
+    end
+
+    test "with the link has not preloaded values" do
+      refute Example.user(EX.User0, depth: 0) |> Grax.preloaded?(:posts)
+      refute Example.post(depth: 0) |> Grax.preloaded?(:author)
+      refute Example.post(depth: 0) |> Grax.preloaded?(:comments)
+    end
+
+    test "with the link does not have values" do
+      assert Example.user(EX.User0, depth: 0) |> Grax.preloaded?(:comments)
+    end
+
+    test "with data properties" do
+      assert Example.user(EX.User0, depth: 0) |> Grax.preloaded?(:name)
+      assert Example.post(depth: 0) |> Grax.preloaded?(:title)
+    end
+
+    test "with non-existing properties" do
+      assert_raise ArgumentError, fn ->
+        Example.post(depth: 0) |> Grax.preloaded?(:not_existing)
+      end
+    end
+  end
 end
