@@ -132,6 +132,12 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.GenericIds.expected_id_schema(User)
                ]
 
+      assert IdSpecs.GenericShortIds.id_schemas() ==
+               [
+                 IdSpecs.GenericShortIds.expected_id_schema(Post),
+                 IdSpecs.GenericShortIds.expected_id_schema(User)
+               ]
+
       assert IdSpecs.GenericUuids.id_schemas() ==
                [
                  IdSpecs.GenericUuids.expected_id_schema(Comment),

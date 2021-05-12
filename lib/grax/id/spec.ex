@@ -152,7 +152,25 @@ defmodule Grax.Id.Spec do
     end
   end
 
-  defmacro id(schema, template, opts \\ []) do
+  defmacro id(schema_with_property) do
+    quote do
+      id unquote(schema_with_property), []
+    end
+  end
+
+  defmacro id({{:., _, [schema, property]}, _, []}, opts) do
+    quote do
+      id unquote(schema), "{#{unquote(property)}}", unquote(opts)
+    end
+  end
+
+  defmacro id(schema, template) when is_binary(template) do
+    quote do
+      id unquote(schema), unquote(template), []
+    end
+  end
+
+  defmacro id(schema, template, opts) do
     opts = Keyword.put(opts, :schema, schema)
 
     quote do

@@ -101,6 +101,33 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule GenericShortIds do
+    use Grax.Id.Spec
+
+    namespace "http://example.com/", prefix: :ex do
+      id User.name()
+      id Post.slug()
+    end
+
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
+
+    def expected_id_schema(User) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{name}"),
+        schema: User
+      }
+    end
+
+    def expected_id_schema(Post) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{slug}"),
+        schema: Post
+      }
+    end
+  end
+
   defmodule MultipleSchemas do
     use Grax.Id.Spec
     import Grax.Id.Hash
