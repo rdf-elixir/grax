@@ -2,6 +2,8 @@ if Code.ensure_loaded?(UUID) do
   defmodule Grax.Id.UUID do
     use Grax.Id.Schema.Extension
 
+    alias Grax.Id.UrnNamespace
+
     import Grax.Utils, only: [rename_keyword: 3]
 
     defstruct [:version, :format, :namespace, :name]
@@ -106,7 +108,7 @@ if Code.ensure_loaded?(UUID) do
         id_schema,
         %__MODULE__{
           version: init_version(Keyword.get(opts, :uuid_version)),
-          format: init_format(Keyword.get(opts, :uuid_format))
+          format: init_format(Keyword.get(opts, :uuid_format), id_schema.namespace)
         }
         |> init_name_params(opts)
       )
@@ -120,10 +122,12 @@ if Code.ensure_loaded?(UUID) do
     defp init_version(invalid),
       do: raise(ArgumentError, "invalid :uuid_version: #{inspect(invalid)}")
 
-    defp init_format(format) when format in ~w[default hex]a, do: format
-    defp init_format(nil), do: :default
+    defp init_format(nil, %UrnNamespace{nid: :uuid}), do: :urn
+    defp init_format(nil, _), do: :default
+    defp init_format(format, %UrnNamespace{}) when format in ~w[default hex urn]a, do: format
+    defp init_format(format, _) when format in ~w[default hex]a, do: format
 
-    defp init_format(invalid),
+    defp init_format(invalid, _),
       do: raise(ArgumentError, "invalid :uuid_format: #{inspect(invalid)}")
 
     defp init_name_params(%{version: version} = uuid_schema, opts) when version in [3, 5] do
@@ -144,20 +148,20 @@ if Code.ensure_loaded?(UUID) do
 
     @impl true
     def call(%{version: 1, format: format}, _, variables, _),
-      do: set_uuid(variables, UUID.uuid1(format))
+      do: set_uuid(variables, UUID.uuid1(format), format)
 
     def call(%{version: 4, format: format}, _, variables, _),
-      do: set_uuid(variables, UUID.uuid4(format))
+      do: set_uuid(variables, UUID.uuid4(format), format)
 
     def call(%{version: 3, format: format, namespace: namespace, name: variable}, _, variables, _) do
       with {:ok, name} <- get_name(variables, variable) do
-        set_uuid(variables, UUID.uuid3(namespace, name, format))
+        set_uuid(variables, UUID.uuid3(namespace, name, format), format)
       end
     end
 
     def call(%{version: 5, format: format, namespace: namespace, name: variable}, _, variables, _) do
       with {:ok, name} <- get_name(variables, variable) do
-        set_uuid(variables, UUID.uuid5(namespace, name, format))
+        set_uuid(variables, UUID.uuid5(namespace, name, format), format)
       end
     end
 
@@ -168,7 +172,7 @@ if Code.ensure_loaded?(UUID) do
       end
     end
 
-    defp set_uuid(variables, uuid),
-      do: {:ok, Map.put(variables, :uuid, uuid)}
+    defp set_uuid(variables, "urn:uuid:" <> uuid, :urn), do: set_uuid(variables, uuid, nil)
+    defp set_uuid(variables, uuid, _), do: {:ok, Map.put(variables, :uuid, uuid)}
   end
 end

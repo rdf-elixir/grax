@@ -198,6 +198,12 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.HashUrns.expected_id_schema(Comment),
                  IdSpecs.HashUrns.expected_id_schema(Post)
                ]
+
+      assert IdSpecs.UuidUrns.id_schemas() ==
+               [
+                 IdSpecs.UuidUrns.expected_id_schema(Post),
+                 IdSpecs.UuidUrns.expected_id_schema(User)
+               ]
     end
 
     test "id schemas for multiple schemas" do

@@ -6,6 +6,11 @@ defmodule Grax.UuidTestHelper do
     assert_valid_uuid(IRI.to_string(iri), prefix, opts)
   end
 
+  def assert_valid_uuid(iri, "urn:" <> _ = prefix, opts) do
+    assert String.starts_with?(iri, prefix)
+    assert_valid_uuid(iri, opts)
+  end
+
   def assert_valid_uuid(iri, prefix, opts) do
     assert String.starts_with?(iri, prefix)
 

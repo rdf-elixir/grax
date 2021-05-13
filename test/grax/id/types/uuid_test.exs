@@ -79,6 +79,20 @@ defmodule Grax.Id.Types.UuidTest do
       assert_valid_uuid(id, "http://example.com/", version: 5, type: :hex)
     end
 
+    test "URN UUIDs" do
+      assert {:ok, %RDF.IRI{} = id} =
+               IdSpecs.UuidUrns.expected_id_schema(User)
+               |> Id.Schema.generate_id(Example.user(EX.User0))
+
+      assert_valid_uuid(id, "urn:uuid:", version: 4, type: :urn)
+
+      assert {:ok, %RDF.IRI{} = id} =
+               IdSpecs.UuidUrns.expected_id_schema(Post)
+               |> Id.Schema.generate_id(Example.post())
+
+      assert_valid_uuid(id, "urn:uuid:", version: 5, type: :urn)
+    end
+
     test "when no value for the name present" do
       assert IdSpecs.ShortUuids.expected_id_schema(User)
              |> Id.Schema.generate_id(name: nil) ==

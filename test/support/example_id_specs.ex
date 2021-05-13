@@ -419,6 +419,41 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule UuidUrns do
+    use Grax.Id.Spec
+    import Grax.Id.UUID
+
+    urn :uuid do
+      uuid4 User
+      uuid5 Post.content(), namespace: :url
+    end
+
+    def expected_id_schema(User) do
+      %Id.Schema{
+        namespace: %Id.UrnNamespace{nid: :uuid, string: "urn:uuid:"},
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: User,
+        extensions: [%Grax.Id.UUID{format: :urn, version: 4}]
+      }
+    end
+
+    def expected_id_schema(Post) do
+      %Id.Schema{
+        namespace: %Id.UrnNamespace{nid: :uuid, string: "urn:uuid:"},
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: Post,
+        extensions: [
+          %Grax.Id.UUID{
+            format: :urn,
+            version: 5,
+            namespace: :url,
+            name: :content
+          }
+        ]
+      }
+    end
+  end
+
   defmodule HashUrns do
     use Grax.Id.Spec
     import Grax.Id.Hash
