@@ -46,6 +46,19 @@ if Code.ensure_loaded?(UUID) do
         end
       end
 
+      if version in [3, 5] do
+        defmacro unquote(name)({{:., _, [schema, uuid_name]}, _, []}, opts) do
+          opts =
+            opts
+            |> normalize_opts(unquote(name), unquote(version))
+            |> Keyword.put(:uuid_name, uuid_name)
+
+          quote do
+            uuid unquote(schema), unquote(opts)
+          end
+        end
+      end
+
       defmacro unquote(name)(schema, opts) do
         opts = normalize_opts(opts, unquote(name), unquote(version))
 

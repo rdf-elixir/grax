@@ -180,6 +180,7 @@ defmodule Grax.Id.SpecTest do
 
       assert IdSpecs.ShortUuids.id_schemas() ==
                [
+                 IdSpecs.ShortUuids.expected_id_schema(Example.SelfLinked),
                  IdSpecs.ShortUuids.expected_id_schema(Comment),
                  IdSpecs.ShortUuids.expected_id_schema(Post),
                  IdSpecs.ShortUuids.expected_id_schema(User)

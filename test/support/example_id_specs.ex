@@ -290,6 +290,7 @@ defmodule Example.IdSpecs do
       uuid5 User, namespace: :url, name: :canonical_email, format: :hex
       uuid4 Post
       uuid1 schema: Comment, format: :hex, template: "comments/{uuid}"
+      uuid5 Example.SelfLinked.name(), namespace: :url
     end
 
     def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
@@ -325,6 +326,22 @@ defmodule Example.IdSpecs do
         template: Example.IdSpecs.compiled_template("comments/{uuid}"),
         schema: Comment,
         extensions: [%Grax.Id.UUID{format: :hex, version: 1}]
+      }
+    end
+
+    def expected_id_schema(Example.SelfLinked) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: Example.SelfLinked,
+        extensions: [
+          %Grax.Id.UUID{
+            format: :default,
+            version: 5,
+            namespace: :url,
+            name: :name
+          }
+        ]
       }
     end
   end
