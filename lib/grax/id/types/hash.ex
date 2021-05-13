@@ -18,6 +18,17 @@ defmodule Grax.Id.Hash do
     end
   end
 
+  defmacro hash({{:., _, [schema, property]}, _, []}, opts) do
+    opts =
+      opts
+      |> Keyword.put(:schema, schema)
+      |> Keyword.put(:data, property)
+
+    quote do
+      hash unquote(opts)
+    end
+  end
+
   defmacro hash(schema, opts) do
     opts = Keyword.put(opts, :schema, schema)
 

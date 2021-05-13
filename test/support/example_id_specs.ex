@@ -316,7 +316,7 @@ defmodule Example.IdSpecs do
     namespace "http://example.com/", prefix: :ex do
       hash User, data: :canonical_email, algorithm: :sha512
       hash Post, data: :content, algorithm: :sha256
-      hash Comment, data: :content, algorithm: :md5
+      hash Comment.content(), algorithm: :md5
     end
 
     def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
