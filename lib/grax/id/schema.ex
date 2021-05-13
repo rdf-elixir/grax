@@ -1,7 +1,5 @@
 defmodule Grax.Id.Schema do
-  alias Grax.Id
   alias Grax.Id.Schema.Extension
-  alias RDF.IRI
 
   @type template :: struct
   @type t :: %__MODULE__{
@@ -16,7 +14,7 @@ defmodule Grax.Id.Schema do
   @enforce_keys [:namespace, :template, :schema]
   defstruct [:namespace, :template, :schema, :selector, :var_proc, :extensions]
 
-  def new(%Id.Namespace{} = namespace, template, opts) do
+  def new(namespace, template, opts) do
     selector = Keyword.get(opts, :selector)
     schema = Keyword.get(opts, :schema)
 
@@ -93,9 +91,13 @@ defmodule Grax.Id.Schema do
   defp var_proc(%__MODULE__{var_proc: {mod, fun}}, variables), do: apply(mod, fun, [variables])
   defp var_proc(_, variables), do: {:ok, variables}
 
-  def expand(%__MODULE__{} = id_schema, id_segment, _opts \\ []) do
-    id_schema.namespace
-    |> Id.Namespace.iri()
-    |> IRI.append(id_segment)
+  def expand(id_schema, id_segment, opts \\ [])
+
+  def expand(%__MODULE__{} = id_schema, id_segment, opts) do
+    expand(id_schema.namespace, id_segment, opts)
+  end
+
+  def expand(namespace, id_segment, _opts) do
+    RDF.iri(to_string(namespace) <> id_segment)
   end
 end

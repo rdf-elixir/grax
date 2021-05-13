@@ -21,5 +21,7 @@ defmodule Grax.Id.Namespace do
 
   def uri(%__MODULE__{} = namespace), do: namespace.uri
 
-  def iri(%__MODULE__{} = namespace), do: namespace |> uri() |> RDF.iri()
+  defimpl String.Chars do
+    def to_string(namespace), do: Grax.Id.Namespace.uri(namespace)
+  end
 end

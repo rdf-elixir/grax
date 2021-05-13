@@ -3,7 +3,7 @@ defmodule Grax.Id.Spec do
   A DSL for the specification of identifier schemas for `Grax.Schema`s.
   """
 
-  alias Grax.Id.Namespace
+  alias Grax.Id.{Namespace, UrnNamespace}
 
   defmacro __using__(_opts) do
     quote do
@@ -112,6 +112,25 @@ defmodule Grax.Id.Spec do
   defmacro base(segment, opts) do
     quote do
       base(unquote(segment), unquote(opts), do: nil)
+    end
+  end
+
+  defmacro urn(nid, opts \\ [], do_block)
+
+  defmacro urn(nid, opts, do: block) do
+    quote do
+      if @parent_namespace do
+        raise "urn namespaces can only be defined on the top-level"
+      end
+
+      namespace = UrnNamespace.new(unquote(nid), unquote(opts))
+
+      @namespaces namespace
+      @parent_namespace namespace
+
+      unquote(block)
+
+      @parent_namespace nil
     end
   end
 

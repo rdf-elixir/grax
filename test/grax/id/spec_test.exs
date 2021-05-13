@@ -19,6 +19,13 @@ defmodule Grax.Id.SpecTest do
              ]
     end
 
+    test "includes URN namespaces" do
+      assert IdSpecs.UrnNs.namespaces() == [
+               %Id.UrnNamespace{nid: :uuid, string: "urn:uuid:"},
+               %Id.UrnNamespace{nid: :isbn, string: "urn:isbn:"}
+             ]
+    end
+
     test "includes nested namespaces" do
       root_namespace = %Id.Namespace{uri: "http://example.com/", prefix: :ex}
 
@@ -70,6 +77,19 @@ defmodule Grax.Id.SpecTest do
 
         namespace "http://example.com/" do
           namespace EX do
+          end
+        end
+      end
+    end
+  end
+
+  test "urn namespaces are only allowed on the top-level" do
+    assert_raise RuntimeError, "urn namespaces can only be defined on the top-level", fn ->
+      defmodule VocabTermsOnNestedNamespace do
+        use Grax.Id.Spec
+
+        namespace "http://example.com/" do
+          urn :uuid do
           end
         end
       end
@@ -138,6 +158,13 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.GenericShortIds.expected_id_schema(User)
                ]
 
+      assert IdSpecs.UrnIds.id_schemas() ==
+               [
+                 IdSpecs.UrnIds.expected_id_schema(:integer),
+                 IdSpecs.UrnIds.expected_id_schema(Post),
+                 IdSpecs.UrnIds.expected_id_schema(User)
+               ]
+
       assert IdSpecs.GenericUuids.id_schemas() ==
                [
                  IdSpecs.GenericUuids.expected_id_schema(Comment),
@@ -163,6 +190,12 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.Hashing.expected_id_schema(Comment),
                  IdSpecs.Hashing.expected_id_schema(Post),
                  IdSpecs.Hashing.expected_id_schema(User)
+               ]
+
+      assert IdSpecs.HashUrns.id_schemas() ==
+               [
+                 IdSpecs.HashUrns.expected_id_schema(Comment),
+                 IdSpecs.HashUrns.expected_id_schema(Post)
                ]
     end
 

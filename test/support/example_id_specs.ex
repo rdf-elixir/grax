@@ -74,6 +74,16 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule UrnNs do
+    use Grax.Id.Spec
+
+    urn :isbn do
+    end
+
+    urn :uuid do
+    end
+  end
+
   defmodule GenericIds do
     use Grax.Id.Spec
 
@@ -155,6 +165,43 @@ defmodule Example.IdSpecs do
         extensions: [
           %Grax.Id.Hash{algorithm: :md5, data_variable: :content}
         ]
+      }
+    end
+  end
+
+  defmodule UrnIds do
+    use Grax.Id.Spec
+
+    urn :example do
+      id User, "{name}"
+      id Post.slug()
+    end
+
+    urn :other do
+      id Example.Datatypes.integer()
+    end
+
+    def expected_id_schema(User) do
+      %Id.Schema{
+        namespace: %Id.UrnNamespace{nid: :example, string: "urn:example:"},
+        template: Example.IdSpecs.compiled_template("{name}"),
+        schema: User
+      }
+    end
+
+    def expected_id_schema(Post) do
+      %Id.Schema{
+        namespace: %Id.UrnNamespace{nid: :example, string: "urn:example:"},
+        template: Example.IdSpecs.compiled_template("{slug}"),
+        schema: Post
+      }
+    end
+
+    def expected_id_schema(:integer) do
+      %Id.Schema{
+        namespace: %Id.UrnNamespace{nid: :other, string: "urn:other:"},
+        template: Example.IdSpecs.compiled_template("{integer}"),
+        schema: Example.Datatypes
       }
     end
   end
@@ -350,6 +397,41 @@ defmodule Example.IdSpecs do
         schema: Comment,
         extensions: [
           %Grax.Id.Hash{algorithm: :md5, data_variable: :content}
+        ]
+      }
+    end
+  end
+
+  defmodule HashUrns do
+    use Grax.Id.Spec
+    import Grax.Id.Hash
+
+    urn :sha1 do
+      hash Post.content(), algorithm: :sha
+    end
+
+    urn :hash do
+      hash Comment.content(), template: ":sha256:{hash}", algorithm: :sha256
+    end
+
+    def expected_id_schema(Post) do
+      %Id.Schema{
+        namespace: %Id.UrnNamespace{nid: :sha1, string: "urn:sha1:"},
+        template: Example.IdSpecs.compiled_template("{hash}"),
+        schema: Post,
+        extensions: [
+          %Grax.Id.Hash{algorithm: :sha, data_variable: :content}
+        ]
+      }
+    end
+
+    def expected_id_schema(Comment) do
+      %Id.Schema{
+        namespace: %Id.UrnNamespace{nid: :hash, string: "urn:hash:"},
+        template: Example.IdSpecs.compiled_template(":sha256:{hash}"),
+        schema: Comment,
+        extensions: [
+          %Grax.Id.Hash{algorithm: :sha256, data_variable: :content}
         ]
       }
     end
