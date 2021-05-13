@@ -12,6 +12,7 @@ locals_without_parens = [
   namespace: 2,
   base: 2,
   id_schema: 2,
+  id: 1,
   id: 2,
   id: 3,
   hash: 1,
