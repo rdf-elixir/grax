@@ -144,6 +144,23 @@ defmodule Grax.Id.SpecTest do
     end
   end
 
+  describe "prefix_map/0" do
+    test "returns a RDF.PrefixMap of all namespaces with prefixes defined" do
+      assert IdSpecs.FlatNs.prefix_map() == PrefixMap.new(ex: EX)
+      assert IdSpecs.FlatNsWithVocabTerms.prefix_map() == PrefixMap.new(ex: EX)
+      assert IdSpecs.FlatBase.prefix_map() == PrefixMap.new()
+
+      assert IdSpecs.NestedNs.prefix_map() ==
+               PrefixMap.new(
+                 ex: EX,
+                 foo: "#{EX.foo()}/",
+                 bar: "#{EX.foo()}/bar/",
+                 baz: "#{EX.foo()}/baz/",
+                 qux: EX.__base_iri__() <> "qux/"
+               )
+    end
+  end
+
   describe "id_schemas/0" do
     test "returns all id schemas" do
       assert IdSpecs.GenericIds.id_schemas() ==
@@ -323,22 +340,5 @@ defmodule Grax.Id.SpecTest do
                      def test_selector(_, _), do: true
                    end
                  end
-  end
-
-  describe "prefix_map/0" do
-    test "returns a RDF.PrefixMap of all namespaces with prefixes defined" do
-      assert IdSpecs.FlatNs.prefix_map() == PrefixMap.new(ex: EX)
-      assert IdSpecs.FlatNsWithVocabTerms.prefix_map() == PrefixMap.new(ex: EX)
-      assert IdSpecs.FlatBase.prefix_map() == PrefixMap.new()
-
-      assert IdSpecs.NestedNs.prefix_map() ==
-               PrefixMap.new(
-                 ex: EX,
-                 foo: "#{EX.foo()}/",
-                 bar: "#{EX.foo()}/bar/",
-                 baz: "#{EX.foo()}/baz/",
-                 qux: EX.__base_iri__() <> "qux/"
-               )
-    end
   end
 end

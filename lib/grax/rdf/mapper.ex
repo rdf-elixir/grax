@@ -6,6 +6,16 @@ defmodule Grax.RDF.Mapper do
   alias Grax.Schema.TypeError
 
   def call(%schema{} = mapping, opts) do
+    opts =
+      if id_spec = schema.__id_spec__() do
+        Keyword.put_new_lazy(opts, :prefixes, fn ->
+          RDF.default_prefixes()
+          |> RDF.PrefixMap.merge!(id_spec.prefix_map(), :overwrite)
+        end)
+      else
+        opts
+      end
+
     with {:ok, mapping} <- Validator.call(mapping, opts) do
       schema.__properties__()
       |> Enum.reduce_while(

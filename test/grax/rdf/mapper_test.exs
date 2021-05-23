@@ -257,6 +257,17 @@ defmodule Grax.RDF.MapperTest do
               |> RDF.graph()}
   end
 
+  test "when an id schema is associated with the Grax schema the prefix_map of it id spec is used" do
+    example = Example.WithIdSchema.build!(foo: "foo")
+    expected_prefixes = RDF.PrefixMap.add!(RDF.default_prefixes(), :ex, EX)
+
+    assert to_rdf(example) ==
+             {:ok,
+              example.__id__
+              |> EX.foo("foo")
+              |> RDF.graph(prefixes: expected_prefixes)}
+  end
+
   describe "custom mapping" do
     test "untyped data properties" do
       assert Example.CustomMapping.build!(EX.S,
