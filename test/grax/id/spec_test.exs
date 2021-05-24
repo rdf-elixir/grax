@@ -221,6 +221,15 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.UuidUrns.expected_id_schema(Post),
                  IdSpecs.UuidUrns.expected_id_schema(User)
                ]
+
+      assert IdSpecs.OptionInheritance.id_schemas() ==
+               [
+                 IdSpecs.OptionInheritance.expected_id_schema(Example.Datatypes),
+                 IdSpecs.OptionInheritance.expected_id_schema(Example.SelfLinked),
+                 IdSpecs.OptionInheritance.expected_id_schema(Comment),
+                 IdSpecs.OptionInheritance.expected_id_schema(Post),
+                 IdSpecs.OptionInheritance.expected_id_schema(User)
+               ]
     end
 
     test "id schemas for multiple schemas" do

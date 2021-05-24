@@ -602,6 +602,108 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule OptionInheritance do
+    use Grax.Id.Spec
+
+    import Grax.Id.{UUID, Hash}
+
+    namespace "http://example.com/",
+      prefix: :ex,
+      hash_algorithm: :sha,
+      uuid_format: :hex,
+      uuid_version: 3,
+      uuid_namespace: :url do
+      namespace "foo/", uuid_version: 5, uuid_namespace: :oid, uuid_format: :default do
+        uuid User.canonical_email()
+        hash Post.content()
+      end
+
+      uuid Comment.content()
+      uuid5 Example.SelfLinked.name()
+    end
+
+    urn :uuid, uuid_version: 5, uuid_namespace: :oid do
+      uuid Example.Datatypes.integer()
+    end
+
+    def expected_namespace(:ex) do
+      %{
+        Example.IdSpecs.expected_namespace(:ex)
+        | options: [
+            hash_algorithm: :sha,
+            uuid_format: :hex,
+            uuid_version: 3,
+            uuid_namespace: :url
+          ]
+      }
+    end
+
+    def expected_namespace(:foo) do
+      %Id.Namespace{
+        parent: expected_namespace(:ex),
+        uri: "http://example.com/foo/",
+        options: [uuid_version: 5, uuid_namespace: :oid, uuid_format: :default]
+      }
+    end
+
+    def expected_id_schema(User) do
+      %Id.Schema{
+        namespace: expected_namespace(:foo),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: User,
+        extensions: [
+          %Grax.Id.UUID{format: :default, version: 5, namespace: :oid, name: :canonical_email}
+        ]
+      }
+    end
+
+    def expected_id_schema(Post) do
+      %Id.Schema{
+        namespace: expected_namespace(:foo),
+        template: Example.IdSpecs.compiled_template("{hash}"),
+        schema: Post,
+        extensions: [%Grax.Id.Hash{algorithm: :sha, data_variable: :content}]
+      }
+    end
+
+    def expected_id_schema(Comment) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: Comment,
+        extensions: [
+          %Grax.Id.UUID{format: :hex, version: 3, namespace: :url, name: :content}
+        ]
+      }
+    end
+
+    def expected_id_schema(Example.SelfLinked) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: Example.SelfLinked,
+        extensions: [
+          %Grax.Id.UUID{format: :hex, version: 5, namespace: :url, name: :name}
+        ]
+      }
+    end
+
+    def expected_id_schema(Example.Datatypes) do
+      %Id.Schema{
+        namespace: %Id.UrnNamespace{
+          nid: :uuid,
+          string: "urn:uuid:",
+          options: [uuid_version: 5, uuid_namespace: :oid]
+        },
+        template: Example.IdSpecs.compiled_template("{uuid}"),
+        schema: Example.Datatypes,
+        extensions: [
+          %Grax.Id.UUID{format: :urn, version: 5, namespace: :oid, name: :integer}
+        ]
+      }
+    end
+  end
+
   defmodule AppConfigIdSpec do
     use Grax.Id.Spec
     import Grax.Id.UUID

@@ -1,4 +1,5 @@
 defmodule Grax.Id.Schema do
+  alias Grax.Id.Namespace
   alias Grax.Id.Schema.Extension
 
   @type template :: struct
@@ -99,5 +100,15 @@ defmodule Grax.Id.Schema do
 
   def expand(namespace, id_segment, _opts) do
     RDF.iri(to_string(namespace) <> id_segment)
+  end
+
+  def option(opts, key, id_schema) do
+    Keyword.get(opts, key) ||
+      Namespace.option(id_schema.namespace, key)
+  end
+
+  def option!(opts, key, id_schema) do
+    option(opts, key, id_schema) ||
+      raise ArgumentError, "required #{inspect(key)} keyword argument missing"
   end
 end

@@ -2,18 +2,15 @@ if Code.ensure_loaded?(UUID) do
   defmodule Grax.Id.UUID do
     use Grax.Id.Schema.Extension
 
+    alias Grax.Id
     alias Grax.Id.UrnNamespace
 
     import Grax.Utils, only: [rename_keyword: 3]
 
     defstruct [:version, :format, :namespace, :name]
 
-    defmacro uuid(opts) do
-      opts =
-        __MODULE__
-        |> extension_opt(opts)
-        |> normalize_opts()
-
+    defp __uuid__(opts) do
+      opts = extension_opt(__MODULE__, opts)
       template = Keyword.get(opts, :template, default_template(opts))
 
       quote do
@@ -21,76 +18,58 @@ if Code.ensure_loaded?(UUID) do
       end
     end
 
-    defmacro uuid(schema, opts) do
-      opts = Keyword.put(opts, :schema, schema)
+    defmacro uuid({{:., _, [schema, property]}, _, []}) do
+      __uuid__(schema: schema, uuid_name: property)
+    end
 
-      quote do
-        uuid unquote(opts)
-      end
+    defmacro uuid(opts) do
+      __uuid__(opts)
+    end
+
+    defmacro uuid(schema, opts) do
+      opts
+      |> Keyword.put(:schema, schema)
+      |> __uuid__()
     end
 
     Enum.each([1, 3, 4, 5], fn version ->
       name = String.to_atom("uuid#{version}")
 
-      defmacro unquote(name)(opts) when is_list(opts) do
-        opts = normalize_opts(opts, unquote(name), unquote(version))
-
-        quote do
-          uuid unquote(opts)
+      if version in [3, 5] do
+        defmacro unquote(name)({{:., _, [schema, uuid_name]}, _, []}) do
+          [schema: schema, uuid_name: uuid_name]
+          |> normalize_opts(unquote(name), unquote(version))
+          |> __uuid__()
         end
       end
 
-      defmacro unquote(name)(schema) do
-        opts = [uuid_version: unquote(version)]
+      defmacro unquote(name)(opts) when is_list(opts) do
+        opts
+        |> normalize_opts(unquote(name), unquote(version))
+        |> __uuid__()
+      end
 
-        quote do
-          uuid unquote(schema), unquote(opts)
-        end
+      defmacro unquote(name)(schema) do
+        __uuid__(schema: schema, uuid_version: unquote(version))
       end
 
       if version in [3, 5] do
         defmacro unquote(name)({{:., _, [schema, uuid_name]}, _, []}, opts) do
-          opts =
-            opts
-            |> normalize_opts(unquote(name), unquote(version))
-            |> Keyword.put(:uuid_name, uuid_name)
-
-          quote do
-            uuid unquote(schema), unquote(opts)
-          end
+          opts
+          |> Keyword.put(:schema, schema)
+          |> Keyword.put(:uuid_name, uuid_name)
+          |> normalize_opts(unquote(name), unquote(version))
+          |> __uuid__()
         end
       end
 
       defmacro unquote(name)(schema, opts) do
-        opts = normalize_opts(opts, unquote(name), unquote(version))
-
-        quote do
-          uuid unquote(schema), unquote(opts)
-        end
+        opts
+        |> Keyword.put(:schema, schema)
+        |> normalize_opts(unquote(name), unquote(version))
+        |> __uuid__()
       end
     end)
-
-    defp normalize_opts(opts) do
-      opts =
-        opts
-        |> rename_keyword(:version, :uuid_version)
-        |> rename_keyword(:format, :uuid_format)
-
-      version = Keyword.get(opts, :uuid_version)
-
-      cond do
-        version in [1, 4] ->
-          opts
-
-        version in [3, 5] ->
-          opts
-          |> rename_keyword(:namespace, :uuid_namespace)
-          |> rename_keyword(:name, :uuid_name)
-
-        true ->
-          raise ArgumentError, "invalid UUID version: #{inspect(version)}"
-      end
-    end
 
     defp normalize_opts(opts, name, version) do
       if Keyword.has_key?(opts, :uuid_version) do
@@ -104,13 +83,32 @@ if Code.ensure_loaded?(UUID) do
 
     @impl true
     def init(id_schema, opts) do
+      opts =
+        opts
+        |> rename_keyword(:version, :uuid_version)
+        |> rename_keyword(:format, :uuid_format)
+
+      version = init_version(Id.Schema.option(opts, :uuid_version, id_schema))
+      format = init_format(Id.Schema.option(opts, :uuid_format, id_schema), id_schema.namespace)
+
+      opts =
+        cond do
+          version in [1, 4] ->
+            opts
+
+          version in [3, 5] ->
+            opts
+            |> rename_keyword(:namespace, :uuid_namespace)
+            |> rename_keyword(:name, :uuid_name)
+
+          true ->
+            raise ArgumentError, "invalid UUID version: #{inspect(version)}"
+        end
+
       install(
         id_schema,
-        %__MODULE__{
-          version: init_version(Keyword.get(opts, :uuid_version)),
-          format: init_format(Keyword.get(opts, :uuid_format), id_schema.namespace)
-        }
-        |> init_name_params(opts)
+        %__MODULE__{version: version, format: format}
+        |> init_name_params(id_schema, opts)
       )
     end
 
@@ -130,15 +128,16 @@ if Code.ensure_loaded?(UUID) do
     defp init_format(invalid, _),
       do: raise(ArgumentError, "invalid :uuid_format: #{inspect(invalid)}")
 
-    defp init_name_params(%{version: version} = uuid_schema, opts) when version in [3, 5] do
+    defp init_name_params(%{version: version} = uuid_schema, id_schema, opts)
+         when version in [3, 5] do
       %__MODULE__{
         uuid_schema
-        | namespace: Keyword.fetch!(opts, :uuid_namespace),
-          name: Keyword.fetch!(opts, :uuid_name)
+        | namespace: Id.Schema.option(opts, :uuid_namespace, id_schema),
+          name: Id.Schema.option(opts, :uuid_name, id_schema)
       }
     end
 
-    defp init_name_params(%{version: version} = uuid_schema, opts) do
+    defp init_name_params(%{version: version} = uuid_schema, _id_schema, opts) do
       if Keyword.has_key?(opts, :uuid_namespace) or Keyword.has_key?(opts, :uuid_namespace) do
         raise(ArgumentError, "uuid version #{version} doesn't support name arguments")
       else
