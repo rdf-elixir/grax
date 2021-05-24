@@ -603,14 +603,13 @@ defmodule Example.IdSpecs do
   end
 
   defmodule OptionInheritance do
-    use Grax.Id.Spec
+    use Grax.Id.Spec, uuid_format: :hex
 
     import Grax.Id.{UUID, Hash}
 
     namespace "http://example.com/",
       prefix: :ex,
       hash_algorithm: :sha,
-      uuid_format: :hex,
       uuid_version: 3,
       uuid_namespace: :url do
       namespace "foo/", uuid_version: 5, uuid_namespace: :oid, uuid_format: :default do
@@ -630,8 +629,8 @@ defmodule Example.IdSpecs do
       %{
         Example.IdSpecs.expected_namespace(:ex)
         | options: [
-            hash_algorithm: :sha,
             uuid_format: :hex,
+            hash_algorithm: :sha,
             uuid_version: 3,
             uuid_namespace: :url
           ]

@@ -5,15 +5,18 @@ defmodule Grax.Id.Spec do
 
   alias Grax.Id.{Namespace, UrnNamespace}
 
-  defmacro __using__(_opts) do
+  defmacro __using__(opts) do
     quote do
       import unquote(__MODULE__)
 
       @before_compile unquote(__MODULE__)
 
+      @options unquote(opts)
+
       Module.register_attribute(__MODULE__, :namespaces, accumulate: true)
       Module.register_attribute(__MODULE__, :id_schemas, accumulate: true)
       Module.register_attribute(__MODULE__, :custom_id_schema_selectors, accumulate: true)
+
       @base_namespace nil
       @parent_namespace nil
     end
@@ -66,7 +69,11 @@ defmodule Grax.Id.Spec do
         Namespace.new(
           previous_parent_namespace,
           unquote(segment),
-          unquote(opts)
+          if @parent_namespace do
+            unquote(opts)
+          else
+            Keyword.merge(@options, unquote(opts))
+          end
         )
 
       @namespaces namespace
