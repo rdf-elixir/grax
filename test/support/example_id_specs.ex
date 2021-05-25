@@ -253,8 +253,8 @@ defmodule Example.IdSpecs do
     @custom_namespace UUID.uuid4()
 
     namespace "http://example.com/", prefix: :ex do
-      uuid User, version: 5, namespace: :url, name: :canonical_email
-      uuid Post, version: 3, namespace: @custom_namespace, name: :slug
+      uuid User, version: 5, namespace: :url, name_var: :canonical_email
+      uuid Post, version: 3, namespace: @custom_namespace, name_var: :slug
     end
 
     def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
@@ -265,7 +265,7 @@ defmodule Example.IdSpecs do
         template: Example.IdSpecs.compiled_template("{uuid}"),
         schema: User,
         extensions: [
-          %Grax.Id.UUID{format: :default, version: 5, namespace: :url, name: :canonical_email}
+          %Grax.Id.UUID{format: :default, version: 5, namespace: :url, name_var: :canonical_email}
         ]
       }
     end
@@ -276,7 +276,12 @@ defmodule Example.IdSpecs do
         template: Example.IdSpecs.compiled_template("{uuid}"),
         schema: Post,
         extensions: [
-          %Grax.Id.UUID{format: :default, version: 3, namespace: @custom_namespace, name: :slug}
+          %Grax.Id.UUID{
+            format: :default,
+            version: 3,
+            namespace: @custom_namespace,
+            name_var: :slug
+          }
         ]
       }
     end
@@ -287,7 +292,7 @@ defmodule Example.IdSpecs do
     import Grax.Id.UUID
 
     namespace "http://example.com/", prefix: :ex do
-      uuid5 User, namespace: :url, name: :canonical_email, format: :hex
+      uuid5 User, namespace: :url, name_var: :canonical_email, format: :hex
       uuid4 Post
       uuid1 schema: Comment, format: :hex, template: "comments/{uuid}"
       uuid5 Example.SelfLinked.name(), namespace: :url
@@ -305,7 +310,7 @@ defmodule Example.IdSpecs do
             format: :hex,
             version: 5,
             namespace: :url,
-            name: :canonical_email
+            name_var: :canonical_email
           }
         ]
       }
@@ -339,7 +344,7 @@ defmodule Example.IdSpecs do
             format: :default,
             version: 5,
             namespace: :url,
-            name: :name
+            name_var: :name
           }
         ]
       }
@@ -447,7 +452,7 @@ defmodule Example.IdSpecs do
             format: :urn,
             version: 5,
             namespace: :url,
-            name: :content
+            name_var: :content
           }
         ]
       }
@@ -495,7 +500,7 @@ defmodule Example.IdSpecs do
 
     namespace "http://example.com/", prefix: :ex do
       id [Example.VarMappingA, Example.VarMappingD], "foo/{gen}", var_mapping: :upcase_name
-      uuid5 Example.VarMappingB, namespace: :oid, name: :gen, var_mapping: :upcase_name
+      uuid5 Example.VarMappingB, namespace: :oid, name_var: :gen, var_mapping: :upcase_name
       hash Example.VarMappingC, data: :gen, algorithm: :sha, var_mapping: :upcase_name
     end
 
@@ -523,7 +528,7 @@ defmodule Example.IdSpecs do
         schema: Example.VarMappingB,
         var_mapping: {__MODULE__, :upcase_name},
         extensions: [
-          %Grax.Id.UUID{format: :default, version: 5, namespace: :oid, name: :gen}
+          %Grax.Id.UUID{format: :default, version: 5, namespace: :oid, name_var: :gen}
         ]
       }
     end
@@ -558,7 +563,7 @@ defmodule Example.IdSpecs do
 
       uuid selector: {SeparateCustomSelector, :uuid5?},
            uuid_version: 5,
-           uuid_name: :bar,
+           uuid_name_var: :bar,
            uuid_namespace: :url
 
       uuid selector: {SeparateCustomSelector, :uuid4?}, uuid_version: 4
@@ -586,7 +591,7 @@ defmodule Example.IdSpecs do
         schema: nil,
         selector: {Example.IdSpecs.SeparateCustomSelector, :uuid5?},
         extensions: [
-          %Grax.Id.UUID{format: :default, version: 5, name: :bar, namespace: :url}
+          %Grax.Id.UUID{format: :default, version: 5, name_var: :bar, namespace: :url}
         ]
       }
     end
@@ -651,7 +656,7 @@ defmodule Example.IdSpecs do
         template: Example.IdSpecs.compiled_template("{uuid}"),
         schema: User,
         extensions: [
-          %Grax.Id.UUID{format: :default, version: 5, namespace: :oid, name: :canonical_email}
+          %Grax.Id.UUID{format: :default, version: 5, namespace: :oid, name_var: :canonical_email}
         ]
       }
     end
@@ -671,7 +676,7 @@ defmodule Example.IdSpecs do
         template: Example.IdSpecs.compiled_template("{uuid}"),
         schema: Comment,
         extensions: [
-          %Grax.Id.UUID{format: :hex, version: 3, namespace: :url, name: :content}
+          %Grax.Id.UUID{format: :hex, version: 3, namespace: :url, name_var: :content}
         ]
       }
     end
@@ -682,7 +687,7 @@ defmodule Example.IdSpecs do
         template: Example.IdSpecs.compiled_template("{uuid}"),
         schema: Example.SelfLinked,
         extensions: [
-          %Grax.Id.UUID{format: :hex, version: 5, namespace: :url, name: :name}
+          %Grax.Id.UUID{format: :hex, version: 5, namespace: :url, name_var: :name}
         ]
       }
     end
@@ -697,7 +702,7 @@ defmodule Example.IdSpecs do
         template: Example.IdSpecs.compiled_template("{uuid}"),
         schema: Example.Datatypes,
         extensions: [
-          %Grax.Id.UUID{format: :urn, version: 5, namespace: :oid, name: :integer}
+          %Grax.Id.UUID{format: :urn, version: 5, namespace: :oid, name_var: :integer}
         ]
       }
     end

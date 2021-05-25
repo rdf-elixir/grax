@@ -7,7 +7,7 @@ if Code.ensure_loaded?(UUID) do
 
     import Grax.Utils, only: [rename_keyword: 3]
 
-    defstruct [:version, :format, :namespace, :name]
+    defstruct [:version, :format, :namespace, :name_var]
 
     defp __uuid__(opts) do
       opts = extension_opt(__MODULE__, opts)
@@ -19,7 +19,7 @@ if Code.ensure_loaded?(UUID) do
     end
 
     defmacro uuid({{:., _, [schema, property]}, _, []}) do
-      __uuid__(schema: schema, uuid_name: property)
+      __uuid__(schema: schema, uuid_name_var: property)
     end
 
     defmacro uuid(opts) do
@@ -36,8 +36,8 @@ if Code.ensure_loaded?(UUID) do
       name = String.to_atom("uuid#{version}")
 
       if version in [3, 5] do
-        defmacro unquote(name)({{:., _, [schema, uuid_name]}, _, []}) do
-          [schema: schema, uuid_name: uuid_name]
+        defmacro unquote(name)({{:., _, [schema, uuid_name_var]}, _, []}) do
+          [schema: schema, uuid_name_var: uuid_name_var]
           |> normalize_opts(unquote(name), unquote(version))
           |> __uuid__()
         end
@@ -54,10 +54,10 @@ if Code.ensure_loaded?(UUID) do
       end
 
       if version in [3, 5] do
-        defmacro unquote(name)({{:., _, [schema, uuid_name]}, _, []}, opts) do
+        defmacro unquote(name)({{:., _, [schema, uuid_name_var]}, _, []}, opts) do
           opts
           |> Keyword.put(:schema, schema)
-          |> Keyword.put(:uuid_name, uuid_name)
+          |> Keyword.put(:uuid_name_var, uuid_name_var)
           |> normalize_opts(unquote(name), unquote(version))
           |> __uuid__()
         end
@@ -99,7 +99,7 @@ if Code.ensure_loaded?(UUID) do
           version in [3, 5] ->
             opts
             |> rename_keyword(:namespace, :uuid_namespace)
-            |> rename_keyword(:name, :uuid_name)
+            |> rename_keyword(:name_var, :uuid_name_var)
 
           true ->
             raise ArgumentError, "invalid UUID version: #{inspect(version)}"
@@ -133,7 +133,7 @@ if Code.ensure_loaded?(UUID) do
       %__MODULE__{
         uuid_schema
         | namespace: Id.Schema.option(opts, :uuid_namespace, id_schema),
-          name: Id.Schema.option(opts, :uuid_name, id_schema)
+          name_var: Id.Schema.option(opts, :uuid_name_var, id_schema)
       }
     end
 
@@ -152,13 +152,23 @@ if Code.ensure_loaded?(UUID) do
     def call(%{version: 4, format: format}, _, variables, _),
       do: set_uuid(variables, UUID.uuid4(format), format)
 
-    def call(%{version: 3, format: format, namespace: namespace, name: variable}, _, variables, _) do
+    def call(
+          %{version: 3, format: format, namespace: namespace, name_var: variable},
+          _,
+          variables,
+          _
+        ) do
       with {:ok, name} <- get_name(variables, variable) do
         set_uuid(variables, UUID.uuid3(namespace, name, format), format)
       end
     end
 
-    def call(%{version: 5, format: format, namespace: namespace, name: variable}, _, variables, _) do
+    def call(
+          %{version: 5, format: format, namespace: namespace, name_var: variable},
+          _,
+          variables,
+          _
+        ) do
       with {:ok, name} <- get_name(variables, variable) do
         set_uuid(variables, UUID.uuid5(namespace, name, format), format)
       end
