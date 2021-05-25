@@ -19,11 +19,7 @@ defmodule Grax.ValidationError do
         """
         :
 
-        - #{
-          Enum.map_join(validation_error.errors, "\n- ", fn {property, error} ->
-            "#{property}: #{Exception.message(error)}"
-          end)
-        }
+        - #{Enum.map_join(validation_error.errors, "\n- ", fn {property, error} -> "#{property}: #{Exception.message(error)}" end)}
         """
       end
   end

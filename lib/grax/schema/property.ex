@@ -165,9 +165,7 @@ defmodule Grax.Schema.LinkProperty do
 
   defp init_on_type_mismatch(value) do
     raise ArgumentError,
-          "invalid on_type_mismatch value: #{inspect(value)} (valid values: #{
-            inspect(@valid_on_type_mismatch_values)
-          })"
+          "invalid on_type_mismatch value: #{inspect(value)} (valid values: #{inspect(@valid_on_type_mismatch_values)})"
   end
 
   def initial_value_type(nil), do: {:error, "type missing"}

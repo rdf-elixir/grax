@@ -456,9 +456,7 @@ defmodule Grax.RDF.PreloaderTest do
         result = Preloader.next_preload_opt(nil, preload_spec, Example, :next, depth, max_depth)
 
         assert result == expected_result,
-               "expected result for {#{inspect(depth)}, #{inspect(max_depth)}, #{
-                 inspect(preload_spec)
-               }} is #{inspect(expected_result)} but gut #{inspect(result)}"
+               "expected result for {#{inspect(depth)}, #{inspect(max_depth)}, #{inspect(preload_spec)}} is #{inspect(expected_result)} but gut #{inspect(result)}"
       end)
     end
 
@@ -476,9 +474,7 @@ defmodule Grax.RDF.PreloaderTest do
         result = Preloader.next_preload_opt(nil, nil, schema, :next, depth, max_depth)
 
         assert result == expected_result,
-               "expected result for {#{inspect(depth)}, #{inspect(max_depth)}, #{inspect(schema)}} is #{
-                 inspect(expected_result)
-               } but gut #{inspect(result)}"
+               "expected result for {#{inspect(depth)}, #{inspect(max_depth)}, #{inspect(schema)}} is #{inspect(expected_result)} but gut #{inspect(result)}"
       end)
     end
 
@@ -495,9 +491,7 @@ defmodule Grax.RDF.PreloaderTest do
         result = Preloader.next_preload_opt(nil, nil, Example.User, :next, depth, max_depth)
 
         assert result == expected_result,
-               "expected result for {#{inspect(depth)}, #{inspect(max_depth)}} is #{
-                 inspect(expected_result)
-               } but gut #{inspect(result)}"
+               "expected result for {#{inspect(depth)}, #{inspect(max_depth)}} is #{inspect(expected_result)} but gut #{inspect(result)}"
       end)
     end
   end
