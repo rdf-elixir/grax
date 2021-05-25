@@ -181,8 +181,8 @@ defmodule GraxTest do
       assert {:ok, %Example.MultipleSchemasB{__id__: ~I<http://example.com/FooB>, foo: "FooB"}} =
                Example.MultipleSchemasB.build(%{foo: "FooB"})
 
-      assert {:ok, %Example.VarProcD{__id__: ~I<http://example.com/foo/FOOD>, name: "FooD"}} =
-               Example.VarProcD.build(%{name: "FooD"})
+      assert {:ok, %Example.VarMappingD{__id__: ~I<http://example.com/foo/FOOD>, name: "FooD"}} =
+               Example.VarMappingD.build(%{name: "FooD"})
     end
 
     test "with matching custom selector" do
@@ -326,10 +326,10 @@ defmodule GraxTest do
       assert {:ok, id} = Example.WithIdSchema.__id__(foo: "Foo")
       assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
 
-      assert {:ok, ~I<http://example.com/foo/FOO>} = Example.VarProcA.__id__(name: "Foo")
+      assert {:ok, ~I<http://example.com/foo/FOO>} = Example.VarMappingA.__id__(name: "Foo")
 
       assert {:ok, ~I<http://example.com/feab40e1fca77c7360ccca1481bb8ba5f919ce3a>} =
-               Example.VarProcC.__id__(name: "Foo")
+               Example.VarMappingC.__id__(name: "Foo")
     end
   end
 

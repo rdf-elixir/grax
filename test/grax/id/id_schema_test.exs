@@ -23,13 +23,13 @@ defmodule Grax.Id.SchemaTest do
                {:ok, ~I<http://example.com/users/John%20Doe>}
     end
 
-    test "with var_proc" do
-      assert IdSpecs.VarProc.expected_id_schema(Example.VarProcA)
-             |> Map.put(:schema, Example.VarProcA)
+    test "with var_mapping" do
+      assert IdSpecs.VarMapping.expected_id_schema(Example.VarMappingA)
+             |> Map.put(:schema, Example.VarMappingA)
              |> Id.Schema.generate_id(%{name: "foo"}) ==
                {:ok, ~I<http://example.com/foo/FOO>}
 
-      assert IdSpecs.VarProc.expected_id_schema(Example.VarProcC)
+      assert IdSpecs.VarMapping.expected_id_schema(Example.VarMappingC)
              |> Id.Schema.generate_id(%{name: "foo"}) ==
                {:ok, ~I<http://example.com/feab40e1fca77c7360ccca1481bb8ba5f919ce3a>}
     end

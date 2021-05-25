@@ -249,12 +249,12 @@ defmodule Grax.Id.SpecTest do
                ]
     end
 
-    test "id schemas with var_proc" do
-      assert IdSpecs.VarProc.id_schemas() ==
+    test "id schemas with var_mapping" do
+      assert IdSpecs.VarMapping.id_schemas() ==
                [
-                 IdSpecs.VarProc.expected_id_schema(Example.VarProcC),
-                 IdSpecs.VarProc.expected_id_schema(Example.VarProcB),
-                 IdSpecs.VarProc.expected_id_schema(Example.VarProcA)
+                 IdSpecs.VarMapping.expected_id_schema(Example.VarMappingC),
+                 IdSpecs.VarMapping.expected_id_schema(Example.VarMappingB),
+                 IdSpecs.VarMapping.expected_id_schema(Example.VarMappingA)
                ]
     end
   end

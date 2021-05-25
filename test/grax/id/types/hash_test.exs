@@ -28,9 +28,9 @@ defmodule Grax.Id.Types.HashTest do
              {:error, "no :content value for hashing present"}
   end
 
-  test "with var_proc" do
+  test "with var_mapping" do
     assert {:ok, ~I<http://example.com/feab40e1fca77c7360ccca1481bb8ba5f919ce3a>} =
-             Id.Schema.generate_id(IdSpecs.VarProc.expected_id_schema(Example.VarProcC), %{
+             Id.Schema.generate_id(IdSpecs.VarMapping.expected_id_schema(Example.VarMappingC), %{
                name: "foo"
              })
   end

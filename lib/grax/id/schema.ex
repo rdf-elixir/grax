@@ -8,12 +8,12 @@ defmodule Grax.Id.Schema do
           template: template,
           schema: module | [module],
           selector: {module, atom} | nil,
-          var_proc: {module, atom} | nil,
+          var_mapping: {module, atom} | nil,
           extensions: list | nil
         }
 
   @enforce_keys [:namespace, :template, :schema]
-  defstruct [:namespace, :template, :schema, :selector, :var_proc, :extensions]
+  defstruct [:namespace, :template, :schema, :selector, :var_mapping, :extensions]
 
   def new(namespace, template, opts) do
     selector = Keyword.get(opts, :selector)
@@ -28,7 +28,7 @@ defmodule Grax.Id.Schema do
         namespace: namespace,
         template: template,
         schema: schema,
-        var_proc: Keyword.get(opts, :var_proc),
+        var_mapping: Keyword.get(opts, :var_mapping),
         selector: selector
       }
       |> Extension.init(Keyword.get(opts, :extensions), opts)
@@ -54,7 +54,7 @@ defmodule Grax.Id.Schema do
   def generate_id(%__MODULE__{} = id_schema, variables, opts) do
     variables = add_schema_var(id_schema, variables)
 
-    with {:ok, variables} <- var_proc(id_schema, variables),
+    with {:ok, variables} <- var_mapping(id_schema, variables),
          {:ok, variables} <- Extension.call(id_schema, variables, opts),
          {:ok, variables} <- preprocess_variables(id_schema, variables),
          {:ok, segment} <- YuriTemplate.expand(id_schema.template, variables) do
@@ -89,8 +89,10 @@ defmodule Grax.Id.Schema do
     Map.put(variables, :__schema__, schema)
   end
 
-  defp var_proc(%__MODULE__{var_proc: {mod, fun}}, variables), do: apply(mod, fun, [variables])
-  defp var_proc(_, variables), do: {:ok, variables}
+  defp var_mapping(%__MODULE__{var_mapping: {mod, fun}}, variables),
+    do: apply(mod, fun, [variables])
+
+  defp var_mapping(_, variables), do: {:ok, variables}
 
   def expand(id_schema, id_segment, opts \\ [])
 

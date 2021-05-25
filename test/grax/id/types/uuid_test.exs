@@ -99,13 +99,14 @@ defmodule Grax.Id.Types.UuidTest do
                {:error, "no value for field :canonical_email for UUID name present"}
     end
 
-    test "with var_proc" do
+    test "with var_mapping" do
       id = RDF.iri("http://example.com/#{UUID.uuid5(:oid, "FOO", :default)}")
 
       assert {:ok, ^id} =
-               Id.Schema.generate_id(IdSpecs.VarProc.expected_id_schema(Example.VarProcB), %{
-                 name: "foo"
-               })
+               Id.Schema.generate_id(
+                 IdSpecs.VarMapping.expected_id_schema(Example.VarMappingB),
+                 %{name: "foo"}
+               )
     end
   end
 end

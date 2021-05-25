@@ -200,32 +200,32 @@ defmodule Example do
     end
   end
 
-  defmodule VarProcA do
-    use Grax.Schema, id_spec: Example.IdSpecs.VarProc
+  defmodule VarMappingA do
+    use Grax.Schema, id_spec: Example.IdSpecs.VarMapping
 
     schema do
       property name: EX.name()
     end
   end
 
-  defmodule VarProcB do
-    use Grax.Schema, id_spec: Example.IdSpecs.VarProc
+  defmodule VarMappingB do
+    use Grax.Schema, id_spec: Example.IdSpecs.VarMapping
 
     schema do
       property name: EX.name()
     end
   end
 
-  defmodule VarProcC do
-    use Grax.Schema, id_spec: Example.IdSpecs.VarProc
+  defmodule VarMappingC do
+    use Grax.Schema, id_spec: Example.IdSpecs.VarMapping
 
     schema do
       property name: EX.name()
     end
   end
 
-  defmodule VarProcD do
-    use Grax.Schema, id_spec: Example.IdSpecs.VarProc
+  defmodule VarMappingD do
+    use Grax.Schema, id_spec: Example.IdSpecs.VarMapping
 
     schema do
       property name: EX.name()
