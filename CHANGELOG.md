@@ -5,7 +5,13 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.3.0 - 2021-05-26
+
+### Added
+
+- Grax ids - see the [new chapter in the Grax guide](https://rdf-elixir.dev/grax/ids.html)
+  for more on this bigger feature
+
 
 ### Changed
 
@@ -17,7 +23,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   terms on `Grax.new` and `Grax.build`
 
 
-[Compare v0.2.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.2.0...HEAD)
+[Compare v0.2.0...v0.3.0](https://github.com/rdf-elixir/grax/compare/v0.2.0...v0.3.0)
 
 
 
