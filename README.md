@@ -85,7 +85,7 @@ iex> User.load(graph, EX.User1)
    posts: [
      %Post{
        __id__: ~I<http://example.com/Post1>,
-       author: #Grax.Link.NotLoaded<link :author is not loaded>,
+       author: ~I<http://example.com/User1>,
        content: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Provident, nihil, dignissimos. Nesciunt aut totam eius. Magnam quaerat modi vel sed, ipsam atque rem, eos vero ducimus beatae harum explicabo labore!",
        title: "Lorem"
      }
