@@ -59,7 +59,8 @@ defmodule Grax.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto]
+      extra_applications: [:logger, :crypto],
+      mod: {Grax.Application, []}
     ]
   end
 
