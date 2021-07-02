@@ -10,6 +10,8 @@ defmodule Grax.Schema do
   alias Grax.Schema.{Struct, Inheritance, DataProperty, LinkProperty, CustomField}
   alias RDF.IRI
 
+  @type t() :: struct
+
   defmacro __using__(opts) do
     preload_default = opts |> Keyword.get(:depth) |> Grax.normalize_preload_spec()
 
@@ -54,11 +56,11 @@ defmodule Grax.Schema do
       def build!(id, initial), do: Grax.build!(__MODULE__, id, initial)
 
       @spec load(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
-              {:ok, struct} | {:error, any}
+              {:ok, __MODULE__.t()} | {:error, any}
       def load(graph, id, opts \\ []), do: Grax.load(__MODULE__, id, graph, opts)
 
       @spec load!(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
-              struct
+              __MODULE__.t()
       def load!(graph, id, opts \\ []), do: Grax.load!(__MODULE__, id, graph, opts)
 
       Module.delete_attribute(__MODULE__, :rdf_property_acc)
@@ -113,6 +115,8 @@ defmodule Grax.Schema do
 
     postlude =
       quote unquote: false do
+        @type t() :: %__MODULE__{}
+
         @__properties__ Inheritance.inherit_properties(
                           __MODULE__,
                           @grax_parent_schema,
