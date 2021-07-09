@@ -1,21 +1,17 @@
 defmodule Grax.Id.Counter.Dets do
-  use GenServer
+  use Grax.Id.Counter.Adapter
 
-  @behaviour Grax.Id.Counter.Adapter
-
-  @default_value 0
-
-  def start_link(name, opts \\ []) do
-    GenServer.start_link(__MODULE__, {name, opts}, name: name)
+  def start_link(name) do
+    GenServer.start_link(__MODULE__, name, name: via_process_name(name))
   end
 
   @impl true
-  def init({name, opts}) do
+  def init(name) do
     name
     |> table_name()
     |> :dets.open_file(
       type: :set,
-      file: name |> file_path(opts) |> to_charlist(),
+      file: name |> file_path() |> to_charlist(),
       repair: true
     )
     |> case do
@@ -39,6 +35,8 @@ defmodule Grax.Id.Counter.Dets do
 
   @impl true
   def value(counter) do
+    process(counter)
+
     counter
     |> table_name
     |> :dets.lookup(:value)
@@ -50,6 +48,8 @@ defmodule Grax.Id.Counter.Dets do
 
   @impl true
   def inc(counter) do
+    process(counter)
+
     {:ok,
      counter
      |> table_name
@@ -58,6 +58,8 @@ defmodule Grax.Id.Counter.Dets do
 
   @impl true
   def reset(counter, value \\ @default_value) do
+    process(counter)
+
     counter
     |> table_name
     |> :dets.insert({:value, value})
@@ -65,9 +67,7 @@ defmodule Grax.Id.Counter.Dets do
 
   def table_name(counter_name), do: Module.concat(__MODULE__, counter_name)
 
-  def file_path(counter_name, opts \\ []) do
-    path = Keyword.get(opts, :path, Grax.Id.Counter.default_counter_dir())
-    File.mkdir_p!(path)
-    Path.join(path, Atom.to_string(counter_name) <> ".dets")
+  def file_path(counter_name) do
+    Grax.Id.Counter.path(Atom.to_string(counter_name) <> ".dets")
   end
 end

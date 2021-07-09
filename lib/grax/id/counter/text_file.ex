@@ -1,32 +1,34 @@
 defmodule Grax.Id.Counter.TextFile do
-  use GenServer
+  use Grax.Id.Counter.Adapter
 
-  @behaviour Grax.Id.Counter.Adapter
-
-  @default_value 0
-
-  def start_link(name, opts \\ []) do
-    GenServer.start_link(__MODULE__, {name, opts}, name: name)
+  def start_link(name) do
+    GenServer.start_link(__MODULE__, name, name: via_process_name(name))
   end
 
   @impl true
-  def init({name, opts}) do
-    {:ok, file_path(name, opts)}
+  def init(name) do
+    {:ok, file_path(name)}
   end
 
   @impl true
   def value(counter) do
-    GenServer.call(counter, :value)
+    counter
+    |> process()
+    |> GenServer.call(:value)
   end
 
   @impl true
   def inc(counter) do
-    GenServer.call(counter, :inc)
+    counter
+    |> process()
+    |> GenServer.call(:inc)
   end
 
   @impl true
   def reset(counter, value \\ @default_value) do
-    GenServer.call(counter, {:reset, value})
+    counter
+    |> process()
+    |> GenServer.call({:reset, value})
   end
 
   @impl true
@@ -44,10 +46,8 @@ defmodule Grax.Id.Counter.TextFile do
     {:reply, write(path, value), path}
   end
 
-  def file_path(name, opts \\ []) do
-    path = Keyword.get(opts, :path, Grax.Id.Counter.default_counter_dir())
-    File.mkdir_p!(path)
-    Path.join(path, Atom.to_string(name))
+  def file_path(counter_name) do
+    Grax.Id.Counter.path(Atom.to_string(counter_name))
   end
 
   defp read(path) do
@@ -66,10 +66,13 @@ defmodule Grax.Id.Counter.TextFile do
     end
   end
 
+  defp to_integer("", _), do: {:ok, @default_value}
+
   defp to_integer(string, path) do
     case Integer.parse(string) do
       {integer, ""} -> {:ok, integer}
-      _ -> {:error, "Invalid counter value in #{path}"}
+      {integer, ""} -> {:ok, integer}
+      _ -> {:error, "Invalid counter value in #{path}: #{inspect(string)}"}
     end
   end
 

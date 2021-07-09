@@ -29,6 +29,14 @@ defmodule Grax.Id.Counter.Adapter.TestCase do
           assert unquote(adapter).inc(counter) == {:ok, 43}
           assert unquote(adapter).value(counter) == {:ok, 43}
         end
+
+        test "inc when the counter file does not exist", %{counter: counter} do
+          assert unquote(adapter).inc(counter) == {:ok, 1}
+        end
+
+        test "reset when the counter file does not exist", %{counter: counter} do
+          assert unquote(adapter).reset(counter) == :ok
+        end
       end
 
       def with_counter(context) do
