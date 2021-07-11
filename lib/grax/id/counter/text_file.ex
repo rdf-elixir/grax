@@ -71,7 +71,6 @@ defmodule Grax.Id.Counter.TextFile do
   defp to_integer(string, path) do
     case Integer.parse(string) do
       {integer, ""} -> {:ok, integer}
-      {integer, ""} -> {:ok, integer}
       _ -> {:error, "Invalid counter value in #{path}: #{inspect(string)}"}
     end
   end
