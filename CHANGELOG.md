@@ -5,6 +5,17 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+### Added
+
+- support for counter-based Grax ids 
+
+
+[Compare v0.3.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.0...HEAD)
+
+
+
 ## v0.3.0 - 2021-05-26
 
 ### Added

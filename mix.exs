@@ -59,7 +59,8 @@ defmodule Grax.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :crypto]
+      extra_applications: [:logger, :crypto],
+      mod: {Grax.Application, []}
     ]
   end
 
@@ -70,7 +71,8 @@ defmodule Grax.MixProject do
       {:elixir_uuid, "~> 1.2", optional: true},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.14", only: :test}
+      {:excoveralls, "~> 0.14", only: :test},
+      {:benchee, "~> 1.0", only: :dev}
     ]
   end
 

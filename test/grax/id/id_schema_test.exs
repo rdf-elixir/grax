@@ -23,6 +23,30 @@ defmodule Grax.Id.SchemaTest do
                {:ok, ~I<http://example.com/users/John%20Doe>}
     end
 
+    test "based on a counter" do
+      Id.Counter.Dets.reset(:user, 42)
+      Id.Counter.TextFile.reset(:post, 23)
+      Id.Counter.TextFile.reset(:comment, 99)
+
+      assert IdSpecs.WithCounter.expected_id_schema(Post)
+             |> Id.Schema.generate_id(Example.post()) ==
+               {:ok, ~I<http://example.com/posts/24>}
+
+      assert IdSpecs.WithCounter.expected_id_schema(User)
+             |> Id.Schema.generate_id(Example.user(EX.User0)) ==
+               {:ok, ~I<http://example.com/users/43>}
+
+      keyword_list = Example.post() |> Map.from_struct() |> Keyword.new()
+
+      assert IdSpecs.WithCounter.expected_id_schema(Post)
+             |> Id.Schema.generate_id(keyword_list) ==
+               {:ok, ~I<http://example.com/posts/25>}
+
+      assert IdSpecs.WithCounter.expected_id_schema(Example.Comment)
+             |> Id.Schema.generate_id([]) ==
+               {:ok, ~I<http://example.com/comments/100>}
+    end
+
     test "with var_mapping" do
       assert IdSpecs.VarMapping.expected_id_schema(Example.VarMappingA)
              |> Map.put(:schema, Example.VarMappingA)
