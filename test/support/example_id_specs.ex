@@ -494,6 +494,58 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule WithCounter do
+    use Grax.Id.Spec
+
+    alias Grax.Id.Counter
+
+    namespace "http://example.com/", prefix: :ex do
+      id_schema "users/{counter}", schema: User, counter: :user
+      id Post, "posts/{counter}", counter: :post, counter_adapter: Grax.Id.Counter.TextFile
+
+      namespace "comments/", counter_adapter: Grax.Id.Counter.TextFile do
+        id Comment.counter(), counter: :comment
+      end
+    end
+
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
+
+    def expected_namespace(:comments) do
+      %Id.Namespace{
+        parent: expected_namespace(:ex),
+        uri: "http://example.com/comments/",
+        options: [counter_adapter: Grax.Id.Counter.TextFile]
+      }
+    end
+
+    def expected_id_schema(User) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("users/{counter}"),
+        schema: User,
+        counter: {Counter.Dets, :user}
+      }
+    end
+
+    def expected_id_schema(Post) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("posts/{counter}"),
+        schema: Post,
+        counter: {Counter.TextFile, :post}
+      }
+    end
+
+    def expected_id_schema(Comment) do
+      %Id.Schema{
+        namespace: expected_namespace(:comments),
+        template: Example.IdSpecs.compiled_template("{counter}"),
+        schema: Comment,
+        counter: {Counter.TextFile, :comment}
+      }
+    end
+  end
+
   defmodule VarMapping do
     use Grax.Id.Spec
     import Grax.Id.{UUID, Hash}

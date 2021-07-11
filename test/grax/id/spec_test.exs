@@ -222,6 +222,13 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.UuidUrns.expected_id_schema(User)
                ]
 
+      assert IdSpecs.WithCounter.id_schemas() ==
+               [
+                 IdSpecs.WithCounter.expected_id_schema(Comment),
+                 IdSpecs.WithCounter.expected_id_schema(Post),
+                 IdSpecs.WithCounter.expected_id_schema(User)
+               ]
+
       assert IdSpecs.OptionInheritance.id_schemas() ==
                [
                  IdSpecs.OptionInheritance.expected_id_schema(Example.Datatypes),

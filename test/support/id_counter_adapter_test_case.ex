@@ -5,7 +5,7 @@ defmodule Grax.Id.Counter.Adapter.TestCase do
     adapter = Keyword.get(opts, :adapter)
 
     quote do
-      alias Grax.Id.Counter
+      alias Grax.Id.{Counter, CounterTestHelper}
 
       @test_counter_name :example_counter
 
@@ -40,20 +40,13 @@ defmodule Grax.Id.Counter.Adapter.TestCase do
       end
 
       def with_counter(context) do
-        counter = start_supervised!({unquote(adapter), @test_counter_name})
+        CounterTestHelper.with_counter(unquote(adapter), @test_counter_name)
         {:ok, Map.put(context, :counter, @test_counter_name)}
       end
 
       def with_clean_fs(context) do
-        remove_counter_file(@test_counter_name)
-        on_exit(fn -> remove_counter_file(@test_counter_name) end)
+        CounterTestHelper.with_clean_fs(unquote(adapter), @test_counter_name)
         {:ok, context}
-      end
-
-      def remove_counter_file(name) do
-        name
-        |> unquote(adapter).file_path()
-        |> File.rm()
       end
 
       defoverridable with_clean_fs: 1, with_counter: 1

@@ -8,12 +8,13 @@ defmodule Grax.Id.Schema do
           template: template,
           schema: module | [module],
           selector: {module, atom} | nil,
+          counter: {module, atom} | nil,
           var_mapping: {module, atom} | nil,
           extensions: list | nil
         }
 
   @enforce_keys [:namespace, :template, :schema]
-  defstruct [:namespace, :template, :schema, :selector, :var_mapping, :extensions]
+  defstruct [:namespace, :template, :schema, :selector, :counter, :var_mapping, :extensions]
 
   def new(namespace, template, opts) do
     selector = Keyword.get(opts, :selector)
@@ -28,6 +29,7 @@ defmodule Grax.Id.Schema do
         namespace: namespace,
         template: template,
         schema: schema,
+        counter: counter_tuple(namespace, opts),
         var_mapping: Keyword.get(opts, :var_mapping),
         selector: selector
       }
@@ -41,6 +43,23 @@ defmodule Grax.Id.Schema do
     YuriTemplate.parse(template)
   end
 
+  defp counter_tuple(namespace, opts) do
+    opts
+    |> Keyword.get(:counter)
+    |> counter_tuple(namespace, opts)
+  end
+
+  defp counter_tuple(nil, _, _), do: nil
+
+  defp counter_tuple(name, namespace, opts) do
+    {
+      Keyword.get(opts, :counter_adapter) ||
+        Namespace.option(namespace, :counter_adapter) ||
+        Grax.Id.Counter.default_adapter(),
+      name
+    }
+  end
+
   def generate_id(id_schema, variables, opts \\ [])
 
   def generate_id(%__MODULE__{} = id_schema, variables, opts) when is_list(variables) do
@@ -52,7 +71,10 @@ defmodule Grax.Id.Schema do
   end
 
   def generate_id(%__MODULE__{} = id_schema, variables, opts) do
-    variables = add_schema_var(id_schema, variables)
+    variables =
+      variables
+      |> add_schema_var(id_schema)
+      |> add_counter_var(id_schema)
 
     with {:ok, variables} <- var_mapping(id_schema, variables),
          {:ok, variables} <- Extension.call(id_schema, variables, opts),
@@ -81,12 +103,21 @@ defmodule Grax.Id.Schema do
     end
   end
 
-  defp add_schema_var(%{schema: nil} = id_schema, _) do
+  defp add_schema_var(_, %{schema: nil} = id_schema) do
     raise "no schema found in id schema #{inspect(id_schema)}"
   end
 
-  defp add_schema_var(%{schema: schema}, variables) do
+  defp add_schema_var(variables, %{schema: schema}) do
     Map.put(variables, :__schema__, schema)
+  end
+
+  defp add_counter_var(variables, %{counter: nil}), do: variables
+
+  defp add_counter_var(variables, %{counter: {adapter, name}}) do
+    case adapter.inc(name) do
+      {:ok, value} -> Map.put(variables, :counter, value)
+      {:error, error} -> raise error
+    end
   end
 
   defp var_mapping(%__MODULE__{var_mapping: {mod, fun}}, variables),

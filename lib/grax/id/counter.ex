@@ -1,4 +1,6 @@
 defmodule Grax.Id.Counter do
+  def default_adapter, do: Grax.Id.Counter.Dets
+
   def path, do: Application.get_env(:grax, :counter_dir, ".")
 
   def path(filename) do
