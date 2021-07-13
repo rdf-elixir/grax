@@ -30,6 +30,7 @@ alias RDF.{NTriples, NQuads, Turtle}
 alias Decimal, as: D
 
 c "test/support/example_ns.ex"
-c "test/support/example_mappings.ex"
+c "test/support/example_id_specs.ex"
+c "test/support/example_schemas.ex"
 
 alias Example.NS.EX
