@@ -72,7 +72,7 @@ defmodule Grax.Id.Schema do
 
   def generate_id(id_schema, variables, opts \\ [])
 
-  def generate_id(%__MODULE__{template: @bnode_template} = id_schema, _, _) do
+  def generate_id(%__MODULE__{template: @bnode_template}, _, _) do
     {:ok, RDF.BlankNode.new("_" <> UUID.uuid4(:hex))}
   end
 
