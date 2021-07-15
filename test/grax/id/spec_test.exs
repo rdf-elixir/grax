@@ -274,55 +274,6 @@ defmodule Grax.Id.SpecTest do
     end
   end
 
-  describe "determine_id_schema/2" do
-    test "when an Id.Schema can be found for a given Grax schema module" do
-      assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, User) ==
-               IdSpecs.GenericIds.expected_id_schema(User)
-
-      assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, Post) ==
-               IdSpecs.GenericIds.expected_id_schema(Post)
-    end
-
-    test "BlankNode" do
-      assert Id.Spec.determine_id_schema(IdSpecs.BlankNodes, User) ==
-               IdSpecs.BlankNodes.expected_id_schema(User)
-
-      assert Id.Spec.determine_id_schema(IdSpecs.BlankNodes, Post) ==
-               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
-               |> Map.put(:schema, Post)
-
-      assert Id.Spec.determine_id_schema(IdSpecs.BlankNodes, Comment) ==
-               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
-               |> Map.put(:schema, Comment)
-
-      assert Id.Spec.determine_id_schema(IdSpecs.BlankNodes, Example.WithBlankNodeIdSchema) ==
-               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
-               |> Map.put(:schema, Example.WithBlankNodeIdSchema)
-    end
-
-    test "with an Id.Schema for multiple Grax schema modules" do
-      assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Example.MultipleSchemasA) ==
-               IdSpecs.MultipleSchemas.expected_id_schema(:foo)
-               |> Map.put(:schema, Example.MultipleSchemasA)
-
-      assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Example.MultipleSchemasB) ==
-               IdSpecs.MultipleSchemas.expected_id_schema(:foo)
-               |> Map.put(:schema, Example.MultipleSchemasB)
-
-      assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Post) ==
-               IdSpecs.MultipleSchemas.expected_id_schema(:content)
-               |> Map.put(:schema, Post)
-
-      assert Id.Spec.determine_id_schema(IdSpecs.MultipleSchemas, Comment) ==
-               IdSpecs.MultipleSchemas.expected_id_schema(:content)
-               |> Map.put(:schema, Comment)
-    end
-
-    test "when no Id.Schema can be found" do
-      assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, Comment) == nil
-    end
-  end
-
   describe "custom_select_id_schema/2" do
     test "when Id.Schema can be found" do
       assert Id.Spec.custom_select_id_schema(

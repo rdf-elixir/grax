@@ -34,6 +34,10 @@ defmodule Grax.Id.Spec do
       end
 
       def id_schemas, do: @id_schemas
+
+      @id_schema_index unquote(__MODULE__).id_schema_index(@id_schemas)
+      def id_schema(schema), do: @id_schema_index[schema]
+
       def custom_id_schema_selectors, do: @custom_id_schema_selectors
 
       @prefix_map @namespaces
@@ -42,6 +46,18 @@ defmodule Grax.Id.Spec do
                   |> RDF.PrefixMap.new()
       def prefix_map, do: @prefix_map
     end
+  end
+
+  @doc false
+  def id_schema_index(id_schemas) do
+    Enum.flat_map(id_schemas, fn
+      %{schema: schemas} = id_schema when is_list(schemas) ->
+        Enum.map(schemas, &{&1, %{id_schema | schema: &1}})
+
+      %{schema: schema} = id_schema ->
+        [{schema, id_schema}]
+    end)
+    |> Map.new()
   end
 
   defmacro namespace(segment, opts, do_block)
@@ -207,18 +223,6 @@ defmodule Grax.Id.Spec do
 
     quote do
       id_schema unquote(template), unquote(opts)
-    end
-  end
-
-  def determine_id_schema(spec, schema) do
-    Enum.find(spec.id_schemas, fn
-      %{schema: ^schema} -> true
-      %{schema: schemas} when is_list(schemas) -> schema in schemas
-      _ -> false
-    end)
-    |> case do
-      nil -> nil
-      id_schema -> %{id_schema | schema: schema}
     end
   end
 

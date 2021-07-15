@@ -1,6 +1,8 @@
 defmodule Grax.SchemaTest do
   use Grax.TestCase
 
+  alias Example.{IdSpecs, User, Post, Comment}
+
   describe "default values" do
     test "on properties and links" do
       assert %Example.DefaultValues{} ==
@@ -98,8 +100,8 @@ defmodule Grax.SchemaTest do
           property p2: EX.p1(), type: :string, required: false
           property p3: EX.p3(), type: list(), required: true
           property p4: EX.p4(), type: list(), required: false
-          link l1: EX.l1(), type: Example.User, required: true
-          link l2: EX.l2(), type: list_of(Example.User), required: true
+          link l1: EX.l1(), type: User, required: true
+          link l2: EX.l2(), type: list_of(User), required: true
         end
       end
 
@@ -130,7 +132,7 @@ defmodule Grax.SchemaTest do
           use Grax.Schema
 
           schema do
-            link foo: EX.foo(), type: list_of(Example.User, card: 2..3), required: true
+            link foo: EX.foo(), type: list_of(User, card: 2..3), required: true
           end
         end
       end
@@ -178,21 +180,21 @@ defmodule Grax.SchemaTest do
                  iri: ~I<http://example.com/lp1>,
                  schema: Example.ChildSchema,
                  on_type_mismatch: :ignore,
-                 type: {:resource, Example.User}
+                 type: {:resource, User}
                },
                lp2: %Grax.Schema.LinkProperty{
                  name: :lp2,
                  iri: ~I<http://example.com/lp22>,
                  schema: Example.ChildSchema,
                  on_type_mismatch: :ignore,
-                 type: {:resource, Example.User}
+                 type: {:resource, User}
                },
                lp3: %Grax.Schema.LinkProperty{
                  name: :lp3,
                  iri: ~I<http://example.com/lp3>,
                  schema: Example.ChildSchema,
                  on_type_mismatch: :ignore,
-                 type: {:resource, Example.User}
+                 type: {:resource, User}
                }
              }
     end
@@ -239,28 +241,28 @@ defmodule Grax.SchemaTest do
                  iri: ~I<http://example.com/lp1>,
                  schema: Example.ChildOfMany,
                  on_type_mismatch: :ignore,
-                 type: {:resource, Example.User}
+                 type: {:resource, User}
                },
                lp2: %Grax.Schema.LinkProperty{
                  name: :lp2,
                  iri: ~I<http://example.com/lp2>,
                  schema: Example.ChildOfMany,
                  on_type_mismatch: :ignore,
-                 type: {:resource, Example.User}
+                 type: {:resource, User}
                },
                lp3: %Grax.Schema.LinkProperty{
                  name: :lp3,
                  iri: ~I<http://example.com/lp3>,
                  schema: Example.ChildOfMany,
                  on_type_mismatch: :ignore,
-                 type: {:resource, Example.User}
+                 type: {:resource, User}
                },
                lp4: %Grax.Schema.LinkProperty{
                  name: :lp4,
                  iri: ~I<http://example.com/lp4>,
                  schema: Example.ChildOfMany,
                  on_type_mismatch: :ignore,
-                 type: {:resource, Example.User}
+                 type: {:resource, User}
                }
              }
 
@@ -321,11 +323,11 @@ defmodule Grax.SchemaTest do
 
   describe "__id_spec__/0" do
     test "when no id spec set or application configured" do
-      assert Example.User.__id_spec__() == nil
+      assert User.__id_spec__() == nil
     end
 
     test "when an id spec is set explicitly" do
-      assert Example.WithIdSchema.__id_spec__() == Example.IdSpecs.Foo
+      assert Example.WithIdSchema.__id_spec__() == IdSpecs.Foo
     end
 
     # tests for the application configured Id.Spec are in Grax.ConfigTest
@@ -333,14 +335,63 @@ defmodule Grax.SchemaTest do
 
   describe "__id_schema__/0" do
     test "when no id spec set or application configured" do
-      assert Example.User.__id_schema__() == nil
+      assert User.__id_schema__() == nil
     end
 
     test "when an id spec is set explicitly" do
       assert Example.WithIdSchema.__id_schema__() ==
-               Example.IdSpecs.Foo.expected_id_schema(Example.WithIdSchema)
+               IdSpecs.Foo.expected_id_schema(Example.WithIdSchema)
     end
 
     # tests for the application configured Id.Spec are in Grax.ConfigTest
+  end
+
+  describe "__id_schema__/1" do
+    test "when an Id.Schema can be found for a given Grax schema module" do
+      assert User.__id_schema__(IdSpecs.GenericIds) ==
+               IdSpecs.GenericIds.expected_id_schema(User)
+
+      assert Post.__id_schema__(IdSpecs.GenericIds) ==
+               IdSpecs.GenericIds.expected_id_schema(Post)
+    end
+
+    test "BlankNode" do
+      assert User.__id_schema__(IdSpecs.BlankNodes) ==
+               IdSpecs.BlankNodes.expected_id_schema(User)
+
+      assert Post.__id_schema__(IdSpecs.BlankNodes) ==
+               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
+               |> Map.put(:schema, Post)
+
+      assert Comment.__id_schema__(IdSpecs.BlankNodes) ==
+               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
+               |> Map.put(:schema, Comment)
+
+      assert Example.WithBlankNodeIdSchema.__id_schema__(IdSpecs.BlankNodes) ==
+               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
+               |> Map.put(:schema, Example.WithBlankNodeIdSchema)
+    end
+
+    test "with an Id.Schema for multiple Grax schema modules" do
+      assert Example.MultipleSchemasA.__id_schema__(IdSpecs.MultipleSchemas) ==
+               IdSpecs.MultipleSchemas.expected_id_schema(:foo)
+               |> Map.put(:schema, Example.MultipleSchemasA)
+
+      assert Example.MultipleSchemasB.__id_schema__(IdSpecs.MultipleSchemas) ==
+               IdSpecs.MultipleSchemas.expected_id_schema(:foo)
+               |> Map.put(:schema, Example.MultipleSchemasB)
+
+      assert Post.__id_schema__(IdSpecs.MultipleSchemas) ==
+               IdSpecs.MultipleSchemas.expected_id_schema(:content)
+               |> Map.put(:schema, Post)
+
+      assert Comment.__id_schema__(IdSpecs.MultipleSchemas) ==
+               IdSpecs.MultipleSchemas.expected_id_schema(:content)
+               |> Map.put(:schema, Comment)
+    end
+
+    test "when no Id.Schema can be found" do
+      assert Comment.__id_schema__(IdSpecs.GenericIds) == nil
+    end
   end
 end

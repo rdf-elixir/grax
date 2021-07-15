@@ -13,6 +13,11 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - support for blank nodes as Grax ids 
 
 
+### Optimized
+
+- improved Grax id schema lookup performance
+
+
 [Compare v0.3.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.0...HEAD)
 
 

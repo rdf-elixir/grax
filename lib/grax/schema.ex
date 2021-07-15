@@ -42,7 +42,7 @@ defmodule Grax.Schema do
 
       def __id_schema__(id_spec \\ nil)
       def __id_schema__(nil), do: if(id_spec = __id_spec__(), do: __id_schema__(id_spec))
-      def __id_schema__(id_spec), do: Grax.Id.Spec.determine_id_schema(id_spec, __MODULE__)
+      def __id_schema__(id_spec), do: id_spec.id_schema(__MODULE__)
     end
   end
 
