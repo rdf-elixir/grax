@@ -222,6 +222,14 @@ defmodule Grax.Id.SpecTest do
                  IdSpecs.UuidUrns.expected_id_schema(User)
                ]
 
+      assert IdSpecs.BlankNodes.id_schemas() ==
+               [
+                 IdSpecs.BlankNodes.expected_id_schema(Example.Datatypes),
+                 IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema),
+                 IdSpecs.BlankNodes.expected_id_schema(Example.SelfLinked),
+                 IdSpecs.BlankNodes.expected_id_schema(User)
+               ]
+
       assert IdSpecs.WithCounter.id_schemas() ==
                [
                  IdSpecs.WithCounter.expected_id_schema(Comment),
@@ -273,6 +281,23 @@ defmodule Grax.Id.SpecTest do
 
       assert Id.Spec.determine_id_schema(IdSpecs.GenericIds, Post) ==
                IdSpecs.GenericIds.expected_id_schema(Post)
+    end
+
+    test "BlankNode" do
+      assert Id.Spec.determine_id_schema(IdSpecs.BlankNodes, User) ==
+               IdSpecs.BlankNodes.expected_id_schema(User)
+
+      assert Id.Spec.determine_id_schema(IdSpecs.BlankNodes, Post) ==
+               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
+               |> Map.put(:schema, Post)
+
+      assert Id.Spec.determine_id_schema(IdSpecs.BlankNodes, Comment) ==
+               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
+               |> Map.put(:schema, Comment)
+
+      assert Id.Spec.determine_id_schema(IdSpecs.BlankNodes, Example.WithBlankNodeIdSchema) ==
+               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
+               |> Map.put(:schema, Example.WithBlankNodeIdSchema)
     end
 
     test "with an Id.Schema for multiple Grax schema modules" do

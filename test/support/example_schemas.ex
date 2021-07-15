@@ -200,6 +200,14 @@ defmodule Example do
     end
   end
 
+  defmodule WithBlankNodeIdSchema do
+    use Grax.Schema, id_spec: Example.IdSpecs.BlankNodes
+
+    schema do
+      property name: EX.name()
+    end
+  end
+
   defmodule VarMappingA do
     use Grax.Schema, id_spec: Example.IdSpecs.VarMapping
 

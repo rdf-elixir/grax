@@ -494,6 +494,45 @@ defmodule Example.IdSpecs do
     end
   end
 
+  defmodule BlankNodes do
+    use Grax.Id.Spec
+
+    blank_node User
+
+    namespace "http://example.com/", prefix: :ex do
+      id Example.SelfLinked.name()
+      blank_node [Post, Comment, Example.WithBlankNodeIdSchema]
+      id Example.Datatypes.string()
+    end
+
+    def expected_namespace(:ex), do: Example.IdSpecs.expected_namespace(:ex)
+
+    def expected_id_schema(User), do: Grax.Id.Schema.new_blank_node_schema(nil, User)
+
+    def expected_id_schema(Example.WithBlankNodeIdSchema) do
+      Grax.Id.Schema.new_blank_node_schema(
+        expected_namespace(:ex),
+        [Post, Comment, Example.WithBlankNodeIdSchema]
+      )
+    end
+
+    def expected_id_schema(Example.SelfLinked) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{name}"),
+        schema: Example.SelfLinked
+      }
+    end
+
+    def expected_id_schema(Example.Datatypes) do
+      %Id.Schema{
+        namespace: expected_namespace(:ex),
+        template: Example.IdSpecs.compiled_template("{string}"),
+        schema: Example.Datatypes
+      }
+    end
+  end
+
   defmodule WithCounter do
     use Grax.Id.Spec
 

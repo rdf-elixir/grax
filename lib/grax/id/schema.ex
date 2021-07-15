@@ -5,7 +5,7 @@ defmodule Grax.Id.Schema do
   @type template :: struct
   @type t :: %__MODULE__{
           namespace: Namespace.t(),
-          template: template,
+          template: template | :bnode,
           schema: module | [module],
           selector: {module, atom} | nil,
           counter: {module, atom} | nil,
@@ -15,6 +15,8 @@ defmodule Grax.Id.Schema do
 
   @enforce_keys [:namespace, :template, :schema]
   defstruct [:namespace, :template, :schema, :selector, :counter, :var_mapping, :extensions]
+
+  @bnode_template :bnode
 
   def new(namespace, template, opts) do
     selector = Keyword.get(opts, :selector)
@@ -39,6 +41,14 @@ defmodule Grax.Id.Schema do
     end
   end
 
+  def new_blank_node_schema(namespace, schema) do
+    %__MODULE__{
+      namespace: namespace,
+      schema: schema,
+      template: @bnode_template
+    }
+  end
+
   defp init_template(template) do
     YuriTemplate.parse(template)
   end
@@ -61,6 +71,10 @@ defmodule Grax.Id.Schema do
   end
 
   def generate_id(id_schema, variables, opts \\ [])
+
+  def generate_id(%__MODULE__{template: @bnode_template} = id_schema, _, _) do
+    {:ok, RDF.BlankNode.new("_" <> UUID.uuid4(:hex))}
+  end
 
   def generate_id(%__MODULE__{} = id_schema, variables, opts) when is_list(variables) do
     generate_id(id_schema, Map.new(variables), opts)

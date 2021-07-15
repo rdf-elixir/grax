@@ -207,6 +207,23 @@ defmodule GraxTest do
       assert Example.WithCustomSelectedIdSchemaB.build(bar: "") ==
                {:error, "no id schema found"}
     end
+
+    test "Id.BlankNode as a Id.Schema" do
+      assert {:ok, %Example.WithBlankNodeIdSchema{__id__: %RDF.BlankNode{}}} =
+               IdSpecs.BlankNodes.expected_id_schema(Example.WithBlankNodeIdSchema)
+               |> Example.WithBlankNodeIdSchema.build()
+
+      assert {:ok, %Example.WithBlankNodeIdSchema{__id__: %RDF.BlankNode{}, name: "Foo"}} =
+               Example.WithBlankNodeIdSchema.build(%{name: "Foo"})
+
+      assert {:ok, %Example.WithBlankNodeIdSchema{__id__: %RDF.BlankNode{} = id1, name: "Foo"}} =
+               Example.WithBlankNodeIdSchema.build(name: "Foo")
+
+      assert {:ok, %Example.WithBlankNodeIdSchema{__id__: %RDF.BlankNode{} = id2}} =
+               Example.WithBlankNodeIdSchema.build(name: "Foo")
+
+      assert id1 != id2
+    end
   end
 
   describe "build!/1" do

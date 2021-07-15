@@ -122,6 +122,12 @@ defmodule Grax.Id.Spec do
     end
   end
 
+  defmacro blank_node(schema) do
+    quote do
+      @id_schemas Grax.Id.Schema.new_blank_node_schema(@parent_namespace, unquote(schema))
+    end
+  end
+
   defmacro urn(nid, opts \\ [], do_block)
 
   defmacro urn(nid, opts, do: block) do
