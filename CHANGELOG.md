@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.3.1 - 2021-07-16
 
 ### Added
 
@@ -18,7 +18,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - improved Grax id schema lookup performance
 
 
-[Compare v0.3.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.0...HEAD)
+[Compare v0.3.0...v0.3.1](https://github.com/rdf-elixir/grax/compare/v0.3.0...v0.3.1)
 
 
 
