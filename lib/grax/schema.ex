@@ -23,6 +23,8 @@ defmodule Grax.Schema do
     id_spec = Keyword.get(opts, :id_spec, id_spec_from_otp_app)
 
     quote do
+      @behaviour Grax.Callbacks
+
       import unquote(__MODULE__), only: [schema: 1, schema: 2]
 
       @before_compile unquote(__MODULE__)
@@ -43,6 +45,14 @@ defmodule Grax.Schema do
       def __id_schema__(id_spec \\ nil)
       def __id_schema__(nil), do: if(id_spec = __id_spec__(), do: __id_schema__(id_spec))
       def __id_schema__(id_spec), do: id_spec.id_schema(__MODULE__)
+
+      @impl Grax.Callbacks
+      def on_load(schema, _graph, _opts), do: {:ok, schema}
+
+      @impl Grax.Callbacks
+      def on_to_rdf(_schema, graph, _opts), do: {:ok, graph}
+
+      defoverridable on_load: 3, on_to_rdf: 3
     end
   end
 

@@ -5,6 +5,17 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+### Added
+
+- `on_load/3` and `on_to_rdf/3` callbacks on `Grax.Schema`s
+
+
+[Compare v0.3.1...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.1...HEAD)
+
+
+
 ## v0.3.1 - 2021-07-16
 
 ### Added

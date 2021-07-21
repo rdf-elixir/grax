@@ -120,8 +120,9 @@ defmodule Grax do
   end
 
   defp do_load(mod, id, graph, false, opts) do
-    with {:ok, initial} <- build(mod, id) do
-      Loader.call(mod, initial, graph, opts)
+    with {:ok, initial} <- build(mod, id),
+         {:ok, loaded} <- Loader.call(mod, initial, graph, opts) do
+      mod.on_load(loaded, graph, opts)
     end
   end
 
@@ -354,8 +355,10 @@ defmodule Grax do
     match?({:ok, _}, validate(mapping, opts))
   end
 
-  @spec to_rdf(Schema.t(), opts :: Keyword) :: {:ok, Graph.t()} | {:error, any}
-  def to_rdf(%_{} = mapping, opts \\ []) do
-    Mapper.call(mapping, opts)
+  @spec to_rdf(Schema.t(), opts :: keyword()) :: {:ok, Graph.t()} | {:error, any}
+  def to_rdf(%schema{} = mapping, opts \\ []) do
+    with {:ok, rdf} <- Mapper.call(mapping, opts) do
+      schema.on_to_rdf(mapping, rdf, opts)
+    end
   end
 end

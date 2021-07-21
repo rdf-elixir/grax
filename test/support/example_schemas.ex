@@ -637,4 +637,48 @@ defmodule Example do
 
     def to_bar(_, _), do: {:ok, "bar"}
   end
+
+  defmodule UserWithCallbacks do
+    use Grax.Schema
+
+    @compile {:no_warn_undefined, Example.NS.EX}
+
+    schema EX.User do
+      property name: EX.name(), type: :string
+      property email: EX.email(), type: list_of(:string)
+      property age: EX.age(), type: :integer
+
+      field :password
+      field :canonical_email, from_rdf: :canonical_email
+      field :customer_type
+
+      link posts: EX.post(), type: list_of(Example.Post)
+      link comments: -EX.author(), type: list_of(%{EX.Comment => Example.Comment})
+    end
+
+    def on_load(user, graph, opts) do
+      assert %__MODULE__{} = user
+      assert "mailto:" <> _ = user.canonical_email
+      assert Keyword.get(opts, :test) == 42
+      assert %RDF.Graph{} = graph
+      assert RDF.iri(EX.PremiumUser) in graph[user.__id__][RDF.type()]
+      {:ok, %{user | customer_type: :admin}}
+    end
+
+    def on_to_rdf(user, graph, opts) do
+      assert %__MODULE__{} = user
+      assert Keyword.get(opts, :test) == 42
+      assert %RDF.Graph{} = graph
+      assert RDF.iri(EX.User) in graph[user.__id__][RDF.type()]
+      {:ok, Graph.add(graph, user.__id__ |> RDF.type(EX.Admin))}
+    end
+
+    def canonical_email(description, _) do
+      {:ok,
+       case description[EX.email()] do
+         [email | _] -> "mailto:#{to_string(email)}"
+         _ -> nil
+       end}
+    end
+  end
 end
