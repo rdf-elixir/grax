@@ -4,6 +4,8 @@ defmodule Grax.ValidationError do
   """
   defexception [:errors, :context]
 
+  @type t :: %__MODULE__{errors: list, context: any}
+
   def exception(opts \\ []) do
     errors = Keyword.get(opts, :errors, []) |> List.wrap()
     context = Keyword.get(opts, :context)

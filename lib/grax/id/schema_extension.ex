@@ -3,9 +3,9 @@ defmodule Grax.Id.Schema.Extension do
 
   @type t :: struct | module
 
-  @callback init(Id.Schema.t(), opts :: Keyword.t()) :: Id.Schema.t()
+  @callback init(Id.Schema.t(), opts :: keyword()) :: Id.Schema.t()
 
-  @callback call(extension :: t, Id.Schema.t(), variables :: map, opts :: Keyword.t()) ::
+  @callback call(extension :: t, Id.Schema.t(), variables :: map, opts :: keyword()) ::
               Id.Schema.t()
 
   defmacro __using__(_opts) do

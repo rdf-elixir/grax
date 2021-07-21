@@ -55,11 +55,11 @@ defmodule Grax.Schema do
       def build!(id), do: Grax.build!(__MODULE__, id)
       def build!(id, initial), do: Grax.build!(__MODULE__, id, initial)
 
-      @spec load(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
+      @spec load(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: keyword()) ::
               {:ok, __MODULE__.t()} | {:error, any}
       def load(graph, id, opts \\ []), do: Grax.load(__MODULE__, id, graph, opts)
 
-      @spec load!(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: Keyword) ::
+      @spec load!(Graph.t() | Description.t(), IRI.coercible() | BlankNode.t(), opts :: keyword()) ::
               __MODULE__.t()
       def load!(graph, id, opts \\ []), do: Grax.load!(__MODULE__, id, graph, opts)
 

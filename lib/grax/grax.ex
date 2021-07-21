@@ -335,12 +335,13 @@ defmodule Grax do
 
   defp build_linked(value, _), do: {:ok, value}
 
-  @spec validate(Schema.t(), opts :: Keyword) :: {:ok, Schema.t()} | {:error, ValidationError.t()}
+  @spec validate(Schema.t(), opts :: keyword()) ::
+          {:ok, Schema.t()} | {:error, ValidationError.t()}
   def validate(%_{} = mapping, opts \\ []) do
     Validator.call(mapping, opts)
   end
 
-  @spec validate!(Schema.t(), opts :: Keyword) :: Schema.t()
+  @spec validate!(Schema.t(), opts :: keyword()) :: Schema.t()
   def validate!(%_{} = mapping, opts \\ []) do
     case validate(mapping, opts) do
       {:ok, _} -> mapping
@@ -348,7 +349,7 @@ defmodule Grax do
     end
   end
 
-  @spec valid?(Schema.t(), opts :: Keyword) :: boolean
+  @spec valid?(Schema.t(), opts :: keyword()) :: boolean
   def valid?(%_{} = mapping, opts \\ []) do
     match?({:ok, _}, validate(mapping, opts))
   end
