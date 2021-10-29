@@ -80,12 +80,10 @@ defmodule Grax do
     struct(mod, __id__: id)
   end
 
-  # TODO: use RDF.resource() in the following clause to get rid if this clause
   def id(_, %{__id__: %RDF.BlankNode{} = bnode}), do: {:ok, bnode}
   def id(_, %{__id__: id}), do: {:ok, RDF.iri(id)}
 
   def id(%Id.Schema{} = id_schema, attributes) do
-    # TODO: Do we need/want to create an intermediary form without an id as the basis on which we apply the template in Id.Schema.generate_id?
     Id.Schema.generate_id(id_schema, attributes)
   end
 
