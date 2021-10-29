@@ -158,6 +158,7 @@ defmodule Grax.Schema do
           do: @__properties__ |> Enum.filter(&match?({_, %LinkProperty{}}, &1))
 
         def __property__(property), do: @__properties__[property]
+        def __domain_properties__(), do: Grax.Schema.domain_properties(@__properties__)
 
         def __custom_fields__, do: @__custom_fields__
       end
@@ -223,6 +224,14 @@ defmodule Grax.Schema do
     property_schema = LinkProperty.new(mod, name, iri, opts)
 
     Module.put_attribute(mod, :rdf_property_acc, {name, property_schema})
+  end
+
+  @doc false
+  def domain_properties(properties) do
+    properties
+    |> Map.values()
+    |> Enum.map(& &1.iri)
+    |> Enum.reject(&match?({:inverse, _}, &1))
   end
 
   @doc false

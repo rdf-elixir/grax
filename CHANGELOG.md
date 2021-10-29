@@ -10,6 +10,9 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 ### Added
 
 - `on_load/3` and `on_to_rdf/3` callbacks on `Grax.Schema`s
+- `Grax.Schema`s now have an `__additional_statements__` field, which holds
+  additional statements about the resource, which are not mapped to schema 
+  fields, but should be mapped back to RDF
 
 
 [Compare v0.3.1...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.1...HEAD)

@@ -10,7 +10,7 @@ defmodule Grax do
   alias Grax.Schema.{DataProperty, LinkProperty}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
-  alias RDF.{IRI, BlankNode, Graph}
+  alias RDF.{IRI, BlankNode, Graph, Statement}
 
   import RDF.Utils
   import RDF.Utils.Guards
@@ -80,10 +80,12 @@ defmodule Grax do
     struct(mod, __id__: id)
   end
 
+  # TODO: use RDF.resource() in the following clause to get rid if this clause
   def id(_, %{__id__: %RDF.BlankNode{} = bnode}), do: {:ok, bnode}
   def id(_, %{__id__: id}), do: {:ok, RDF.iri(id)}
 
   def id(%Id.Schema{} = id_schema, attributes) do
+    # TODO: Do we need/want to create an intermediary form without an id as the basis on which we apply the template in Id.Schema.generate_id?
     Id.Schema.generate_id(id_schema, attributes)
   end
 
@@ -198,6 +200,11 @@ defmodule Grax do
 
   def put(_, :__id__, _), do: {:error, @__id__property_access_error}
 
+  # Note, this clause is duplicated on put!/3
+  def put(mapping, :__additional_statements__, predications) do
+    {:ok, put_additional_statements(mapping, predications)}
+  end
+
   def put(%schema{} = mapping, property, value) do
     if Schema.has_field?(schema, property) do
       cond do
@@ -256,6 +263,11 @@ defmodule Grax do
   end
 
   def put!(_, :__id__, _), do: raise(@__id__property_access_error)
+
+  # Note, this clause is duplicated on put/3
+  def put!(mapping, :__additional_statements__, predications) do
+    put_additional_statements(mapping, predications)
+  end
 
   def put!(%schema{} = mapping, property, value) do
     property_schema = schema.__property__(property)
@@ -335,6 +347,59 @@ defmodule Grax do
   end
 
   defp build_linked(value, _), do: {:ok, value}
+
+  @spec add_additional_statements(Schema.t(), keyword()) :: Schema.t()
+  def add_additional_statements(%_{} = mapping, predications) do
+    %{
+      mapping
+      | __additional_statements__:
+          do_add_additional_statements(mapping.__additional_statements__, predications)
+    }
+  end
+
+  defp do_add_additional_statements(additional_statements, predications) do
+    Enum.reduce(predications, additional_statements, fn
+      {predicate, objects}, additional_statements ->
+        coerced_objects =
+          objects
+          |> List.wrap()
+          |> Enum.map(&Statement.coerce_object/1)
+          |> MapSet.new()
+
+        Map.update(
+          additional_statements,
+          Statement.coerce_predicate(predicate),
+          coerced_objects,
+          &MapSet.union(&1, coerced_objects)
+        )
+    end)
+  end
+
+  @spec put_additional_statements(Schema.t(), keyword()) :: Schema.t()
+  def put_additional_statements(%_{} = mapping, predications) do
+    %{
+      mapping
+      | __additional_statements__:
+          do_put_additional_statements(mapping.__additional_statements__, predications)
+    }
+  end
+
+  defp do_put_additional_statements(additional_statements, predications) do
+    Enum.reduce(predications, additional_statements, fn
+      {predicate, nil}, additional_statements ->
+        Map.delete(additional_statements, Statement.coerce_predicate(predicate))
+
+      {predicate, objects}, additional_statements ->
+        Map.put(
+          additional_statements,
+          Statement.coerce_predicate(predicate),
+          objects
+          |> List.wrap()
+          |> Enum.map(&Statement.coerce_object/1)
+          |> MapSet.new()
+        )
+    end)
+  end
 
   @spec validate(Schema.t(), opts :: keyword()) ::
           {:ok, Schema.t()} | {:error, ValidationError.t()}

@@ -90,6 +90,31 @@ defmodule GraxTest do
                   ]
                 }}
     end
+
+    test "with __additional_statements__ map" do
+      assert Example.User.build(EX.User0, %{
+               name: "Foo",
+               email: ["foo@example.com"],
+               password: "secret",
+               posts: Example.post(depth: 0),
+               __additional_statements__: %{
+                 EX.P1 => EX.O1,
+                 EX.P2 => "foo"
+               }
+             }) ==
+               {:ok,
+                %Example.User{
+                  __id__: IRI.new(EX.User0),
+                  __additional_statements__: %{
+                    RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
+                    RDF.iri(EX.P2) => MapSet.new([~L"foo"])
+                  },
+                  name: "Foo",
+                  email: ["foo@example.com"],
+                  password: "secret",
+                  posts: [Example.post(depth: 0)]
+                }}
+    end
   end
 
   describe "build with an explicitly given id as part of the initial data" do
@@ -290,6 +315,30 @@ defmodule GraxTest do
     test "with another Grax.Schema mapping of the same type" do
       assert Example.User.build!(EX.Other, Example.user(EX.User0)) ==
                %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
+    end
+
+    test "with __additional_statements__ map" do
+      assert Example.User.build!(EX.User0, %{
+               name: "Foo",
+               email: ["foo@example.com"],
+               password: "secret",
+               posts: Example.post(depth: 0),
+               __additional_statements__: %{
+                 EX.P1 => EX.O1,
+                 EX.P2 => "foo"
+               }
+             }) ==
+               %Example.User{
+                 __id__: IRI.new(EX.User0),
+                 __additional_statements__: %{
+                   RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
+                   RDF.iri(EX.P2) => MapSet.new([~L"foo"])
+                 },
+                 name: "Foo",
+                 email: ["foo@example.com"],
+                 password: "secret",
+                 posts: [Example.post(depth: 0)]
+               }
     end
 
     test "with invalid property values" do
@@ -898,6 +947,159 @@ defmodule GraxTest do
                  name: "Foo",
                  age: "secret",
                  posts: [Example.user(EX.User0)]
+               }
+    end
+  end
+
+  describe "add_additional_statements/2" do
+    test "with RDF terms" do
+      user =
+        Example.user(EX.User0)
+        |> Grax.add_additional_statements(%{
+          EX.p1() => RDF.iri(EX.O1),
+          EX.p2() => RDF.iri(EX.O2)
+        })
+
+      assert user ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     EX.p1() => MapSet.new([RDF.iri(EX.O1)]),
+                     EX.p2() => MapSet.new([RDF.iri(EX.O2)])
+                   }
+               }
+
+      assert user
+             |> Grax.add_additional_statements(%{
+               EX.p1() => ~L"O1",
+               EX.p3() => RDF.iri(EX.O3)
+             }) ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     EX.p1() => MapSet.new([RDF.iri(EX.O1), ~L"O1"]),
+                     EX.p2() => MapSet.new([RDF.iri(EX.O2)]),
+                     EX.p3() => MapSet.new([RDF.iri(EX.O3)])
+                   }
+               }
+    end
+
+    test "with coercible RDF terms" do
+      user =
+        Example.user(EX.User0)
+        |> Grax.add_additional_statements(%{
+          EX.P1 => EX.O1,
+          EX.P2 => EX.O2
+        })
+
+      assert user ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
+                     RDF.iri(EX.P2) => MapSet.new([RDF.iri(EX.O2)])
+                   }
+               }
+
+      assert user
+             |> Grax.add_additional_statements(%{
+               EX.P1 => "O1",
+               EX.P3 => 1
+             }) ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1), ~L"O1"]),
+                     RDF.iri(EX.P2) => MapSet.new([RDF.iri(EX.O2)]),
+                     RDF.iri(EX.P3) => MapSet.new([RDF.XSD.integer(1)])
+                   }
+               }
+    end
+  end
+
+  describe "put_additional_statements/2" do
+    test "with RDF terms" do
+      user =
+        Example.user(EX.User0)
+        |> Grax.put_additional_statements(%{
+          EX.p1() => RDF.iri(EX.O1),
+          EX.p2() => RDF.iri(EX.O2)
+        })
+
+      assert user ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     EX.p1() => MapSet.new([RDF.iri(EX.O1)]),
+                     EX.p2() => MapSet.new([RDF.iri(EX.O2)])
+                   }
+               }
+
+      assert user
+             |> Grax.put_additional_statements(%{
+               EX.p1() => ~L"O1",
+               EX.p3() => RDF.iri(EX.O3)
+             }) ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     EX.p1() => MapSet.new([~L"O1"]),
+                     EX.p2() => MapSet.new([RDF.iri(EX.O2)]),
+                     EX.p3() => MapSet.new([RDF.iri(EX.O3)])
+                   }
+               }
+    end
+
+    test "with coercible RDF terms" do
+      user =
+        Example.user(EX.User0)
+        |> Grax.put_additional_statements(%{
+          EX.P1 => EX.O1,
+          EX.P2 => EX.O2
+        })
+
+      assert user ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
+                     RDF.iri(EX.P2) => MapSet.new([RDF.iri(EX.O2)])
+                   }
+               }
+
+      assert user
+             |> Grax.put_additional_statements(%{
+               EX.P1 => "O1",
+               EX.P3 => 1
+             }) ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     RDF.iri(EX.P1) => MapSet.new([~L"O1"]),
+                     RDF.iri(EX.P2) => MapSet.new([RDF.iri(EX.O2)]),
+                     RDF.iri(EX.P3) => MapSet.new([RDF.XSD.integer(1)])
+                   }
+               }
+    end
+
+    test "with nil as a value, the property gets deleted from the additional_statements" do
+      user =
+        Example.user(EX.User0)
+        |> Grax.put_additional_statements(%{
+          EX.P1 => EX.O1,
+          EX.P2 => EX.O2
+        })
+
+      assert user
+             |> Grax.put_additional_statements(%{
+               EX.P1 => nil,
+               EX.P2 => 2
+             }) ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     RDF.iri(EX.P2) => MapSet.new([RDF.XSD.integer(2)])
+                   }
                }
     end
   end

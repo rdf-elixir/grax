@@ -21,8 +21,10 @@ defmodule Grax.RDF.Loader do
         opts
       end
 
+    mapping = load_additional_statements(schema, description, initial)
+
     with {:ok, mapping} <-
-           load_properties(schema.__properties__(:data), initial, graph, description),
+           load_properties(schema.__properties__(:data), mapping, graph, description),
          {:ok, mapping} <-
            init_custom_fields(schema, mapping, graph, description) do
       Preloader.call(schema, mapping, graph, description, opts)
@@ -37,7 +39,24 @@ defmodule Grax.RDF.Loader do
     raise ArgumentError, "invalid input data: #{inspect(invalid)}"
   end
 
-  @doc false
+  def load_additional_statements(schema, description, initial) do
+    %{
+      initial
+      | __additional_statements__:
+          additional_statements(schema.__domain_properties__(), description)
+    }
+  end
+
+  defp additional_statements(properties, description) do
+    Enum.reduce(description, %{}, fn {_, p, o}, additional_statements ->
+      if p in properties do
+        additional_statements
+      else
+        Map.update(additional_statements, p, MapSet.new([o]), &MapSet.put(&1, o))
+      end
+    end)
+  end
+
   def load_properties(property_schemas, initial, graph, description) do
     Enum.reduce_while(property_schemas, {:ok, initial}, fn
       {property, property_schema}, {:ok, mapping} ->
@@ -51,7 +70,6 @@ defmodule Grax.RDF.Loader do
     end)
   end
 
-  @doc false
   def add_objects(mapping, property, objects, description, graph, property_schema)
 
   def add_objects(mapping, _, nil, _, _, _), do: {:cont, {:ok, mapping}}

@@ -183,8 +183,18 @@ defmodule Grax.RDF.PreloaderTest do
              ])
              |> Example.HeterogeneousLinks.load(EX.A) ==
                Example.HeterogeneousLinks.build(EX.A,
-                 one: Example.Post.build!(EX.Post1, title: "foo", slug: "foo"),
-                 strict_one: Example.Post.build!(EX.Post1, title: "foo", slug: "foo"),
+                 one:
+                   Example.Post.build!(EX.Post1,
+                     title: "foo",
+                     slug: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Post}
+                   ),
+                 strict_one:
+                   Example.Post.build!(EX.Post1,
+                     title: "foo",
+                     slug: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Post}
+                   ),
                  many: []
                )
 
@@ -194,8 +204,16 @@ defmodule Grax.RDF.PreloaderTest do
              ])
              |> Example.HeterogeneousLinks.load(EX.A) ==
                Example.HeterogeneousLinks.build(EX.A,
-                 one: Example.Comment.build!(EX.Comment1, content: "foo"),
-                 strict_one: Example.Comment.build!(EX.Comment1, content: "foo"),
+                 one:
+                   Example.Comment.build!(EX.Comment1,
+                     content: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Comment}
+                   ),
+                 strict_one:
+                   Example.Comment.build!(EX.Comment1,
+                     content: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Comment}
+                   ),
                  many: []
                )
 
@@ -207,7 +225,12 @@ defmodule Grax.RDF.PreloaderTest do
                Example.HeterogeneousLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
-                 many: [Example.Comment.build!(EX.Comment1, content: "foo")]
+                 many: [
+                   Example.Comment.build!(EX.Comment1,
+                     content: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Comment}
+                   )
+                 ]
                )
     end
 
@@ -233,8 +256,15 @@ defmodule Grax.RDF.PreloaderTest do
                  one: nil,
                  strict_one: nil,
                  many: [
-                   Example.Comment.build!(EX.Comment1, content: "foo"),
-                   Example.Post.build!(EX.Post1, title: "foo", slug: "foo")
+                   Example.Comment.build!(EX.Comment1,
+                     content: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Comment}
+                   ),
+                   Example.Post.build!(EX.Post1,
+                     title: "foo",
+                     slug: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Other}
+                   )
                  ]
                )
     end
@@ -271,7 +301,11 @@ defmodule Grax.RDF.PreloaderTest do
              ])
              |> Example.HeterogeneousLinks.load(EX.A) ==
                Example.HeterogeneousLinks.build(EX.A,
-                 one: Example.Comment.build!(EX.Comment1, content: "bar"),
+                 one:
+                   Example.Comment.build!(EX.Comment1,
+                     content: "bar",
+                     __additional_statements__: %{RDF.type() => EX.Comment}
+                   ),
                  strict_one: nil,
                  many: []
                )

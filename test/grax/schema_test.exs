@@ -145,7 +145,7 @@ defmodule Grax.SchemaTest do
              |> Map.from_struct()
              |> Map.keys()
              |> MapSet.new() ==
-               MapSet.new(~w[__id__ dp1 dp2 dp3 lp1 lp2 lp3 f1 f2 f3]a)
+               MapSet.new(~w[__id__ __additional_statements__ dp1 dp2 dp3 lp1 lp2 lp3 f1 f2 f3]a)
 
       assert Example.ChildSchemaWithClass.build!(EX.S)
              |> Map.from_struct()
@@ -212,7 +212,9 @@ defmodule Grax.SchemaTest do
              |> Map.from_struct()
              |> Map.keys()
              |> MapSet.new() ==
-               MapSet.new(~w[__id__ dp1 dp2 dp3 dp4 lp1 lp2 lp3 lp4 f1 f2 f3 f4]a)
+               MapSet.new(
+                 ~w[__id__ __additional_statements__ dp1 dp2 dp3 dp4 lp1 lp2 lp3 lp4 f1 f2 f3 f4]a
+               )
 
       assert Example.ChildOfMany.__properties__() == %{
                dp1: %Grax.Schema.DataProperty{

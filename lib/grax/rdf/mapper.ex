@@ -16,10 +16,13 @@ defmodule Grax.RDF.Mapper do
         opts
       end
 
+    additional_statements =
+      Enum.map(mapping.__additional_statements__, fn {p, o} -> {p, MapSet.to_list(o)} end)
+
     with {:ok, mapping} <- Validator.call(mapping, opts) do
       schema.__properties__()
       |> Enum.reduce_while(
-        {:ok, Description.new(mapping.__id__), Graph.new(opts)},
+        {:ok, Description.new(mapping.__id__, init: additional_statements), Graph.new(opts)},
         fn {property_name, property_schema}, {:ok, description, graph} ->
           case Map.get(mapping, property_name) do
             nil ->

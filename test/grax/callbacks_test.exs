@@ -5,7 +5,9 @@ defmodule Grax.CallbacksTest do
     assert {:ok, %Example.UserWithCallbacks{} = user} =
              Example.UserWithCallbacks.load(example_graph(), EX.User0, test: 42)
 
-    assert user == user0_with_callback()
+    assert user ==
+             user0_with_callback()
+             |> Grax.put_additional_statements(%{RDF.type() => [EX.User, EX.PremiumUser]})
   end
 
   test "on_to_rdf3" do

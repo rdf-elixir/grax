@@ -128,6 +128,7 @@ defmodule Example do
   def post(depth: 0) do
     %Example.Post{
       __id__: IRI.new(EX.Post0),
+      __additional_statements__: %{RDF.type() => MapSet.new([RDF.iri(EX.Post)])},
       title: "Lorem ipsum",
       content: "Lorem ipsum dolor sit amet, …",
       slug: "lorem-ipsum",
@@ -151,6 +152,7 @@ defmodule Example do
   def comment(EX.Comment1, depth: 0) do
     %Example.Comment{
       __id__: IRI.new(EX.Comment1),
+      __additional_statements__: %{RDF.type() => MapSet.new([RDF.iri(EX.Comment)])},
       content: "First",
       about: RDF.iri(EX.Post0),
       author: RDF.iri(EX.User1)
@@ -160,6 +162,7 @@ defmodule Example do
   def comment(EX.Comment2, depth: 0) do
     %Example.Comment{
       __id__: IRI.new(EX.Comment2),
+      __additional_statements__: %{RDF.type() => MapSet.new([RDF.iri(EX.Comment)])},
       content: "Second",
       about: RDF.iri(EX.Post0),
       author: RDF.iri(EX.User2)

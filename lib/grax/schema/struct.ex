@@ -4,7 +4,11 @@ defmodule Grax.Schema.Struct do
   alias Grax.Schema.{Property, DataProperty, LinkProperty, CustomField}
 
   def fields(properties, custom_fields) do
-    [:__id__ | property_fields(properties) ++ custom_fields(custom_fields)]
+    [
+      {:__additional_statements__, %{}},
+      :__id__
+      | property_fields(properties) ++ custom_fields(custom_fields)
+    ]
   end
 
   defp property_fields(properties) do

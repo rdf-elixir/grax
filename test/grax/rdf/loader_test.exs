@@ -285,13 +285,19 @@ defmodule Grax.RDF.LoaderTest do
       assert Example.InverseProperties.load(graph, EX.S) ==
                Example.InverseProperties.build(EX.S,
                  name: "subject",
-                 foo: [Example.user(EX.User0, depth: 0)]
+                 foo: [
+                   Example.user(EX.User0, depth: 0)
+                   |> Grax.put_additional_statements(%{EX.foo() => EX.S})
+                 ]
                )
 
       assert Example.InverseProperties.load(graph, EX.S, depth: 2) ==
                Example.InverseProperties.build(EX.S,
                  name: "subject",
-                 foo: [Example.user(EX.User0, depth: 1)]
+                 foo: [
+                   Example.user(EX.User0, depth: 1)
+                   |> Grax.put_additional_statements(%{EX.foo() => EX.S})
+                 ]
                )
     end
 
@@ -304,7 +310,10 @@ defmodule Grax.RDF.LoaderTest do
 
       assert Example.InverseProperties.load(graph, EX.S) ==
                Example.InverseProperties.build(EX.S,
-                 foo: [Example.user(EX.User0, depth: 0)]
+                 foo: [
+                   Example.user(EX.User0, depth: 0)
+                   |> Grax.put_additional_statements(%{EX.foo() => EX.S})
+                 ]
                )
     end
   end
@@ -354,8 +363,11 @@ defmodule Grax.RDF.LoaderTest do
 
       assert uuid_urn
              |> EX.foo("foo")
-             |> Example.CustomMappingOnCustomFields.load(uuid_urn) ==
-               Example.CustomMappingOnCustomFields.build(uuid_urn, uuid: uuid)
+             |> Example.CustomMappingOnCustomFields.load!(uuid_urn) ==
+               Example.CustomMappingOnCustomFields.build!(uuid_urn,
+                 uuid: uuid,
+                 __additional_statements__: %{EX.foo() => "foo"}
+               )
     end
 
     test "when the mapping function returns an error tuple" do
@@ -364,5 +376,21 @@ defmodule Grax.RDF.LoaderTest do
              |> Example.CustomMappingOnCustomFields.load(EX.S) ==
                {:error, "invalid id"}
     end
+  end
+
+  test "additional statements" do
+    assert example_graph()
+           |> Graph.add(EX.User0 |> EX.p(EX.O))
+           |> Example.User.load(EX.User0) ==
+             {:ok,
+              Example.user(EX.User0, depth: 1)
+              |> Grax.put_additional_statements(%{EX.p() => EX.O})}
+
+    assert example_graph()
+           |> Graph.add(EX.User0 |> EX.p([EX.O1, EX.O2]))
+           |> Example.User.load(EX.User0) ==
+             {:ok,
+              Example.user(EX.User0, depth: 1)
+              |> Grax.put_additional_statements(%{EX.p() => [EX.O1, EX.O2]})}
   end
 end

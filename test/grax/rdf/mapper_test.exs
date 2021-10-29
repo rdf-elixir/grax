@@ -316,4 +316,41 @@ defmodule Grax.RDF.MapperTest do
                 |> RDF.graph()}
     end
   end
+
+  test "additional statements" do
+    assert Example.user(EX.User0, depth: 3)
+           |> Grax.put_additional_statements(%{EX.foo() => EX.Bar, EX.baz() => [42, "bat"]})
+           |> to_rdf() ==
+             {:ok,
+              example_graph()
+              |> Graph.add(EX.User0 |> EX.foo(EX.Bar) |> EX.baz(42, "bat"))}
+
+    assert Example.User.build!(EX.User0,
+             __additional_statements__: %{RDF.type() => EX.User},
+             name: "John Doe",
+             age: 42,
+             email: ~w[jd@example.com john@doe.com],
+             customer_type: :premium_user,
+             canonical_email: "mailto:jd@example.com",
+             posts: [
+               Example.Post.build!(EX.Post0,
+                 __additional_statements__: %{RDF.type() => EX.Post},
+                 title: "Lorem ipsum",
+                 content: "Lorem ipsum dolor sit amet, …",
+                 slug: "lorem-ipsum",
+                 author: RDF.iri(EX.User0)
+               )
+             ]
+           )
+           |> to_rdf() ==
+             {:ok,
+              RDF.graph()
+              |> Graph.add(example_description(:user))
+              |> Graph.add(
+                example_description(:post)
+                |> Description.delete_predicates(EX.comment())
+              )
+              |> Graph.add(EX.User0 |> RDF.type(EX.User))
+              |> Graph.add(EX.Post0 |> RDF.type(EX.Post))}
+  end
 end
