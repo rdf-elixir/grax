@@ -346,7 +346,7 @@ defmodule Grax do
 
   defp build_linked(value, _), do: {:ok, value}
 
-  @spec add_additional_statements(Schema.t(), keyword()) :: Schema.t()
+  @spec add_additional_statements(Schema.t(), map()) :: Schema.t()
   def add_additional_statements(%_{} = mapping, predications) do
     %{
       mapping
@@ -373,7 +373,7 @@ defmodule Grax do
     end)
   end
 
-  @spec put_additional_statements(Schema.t(), keyword()) :: Schema.t()
+  @spec put_additional_statements(Schema.t(), map()) :: Schema.t()
   def put_additional_statements(%_{} = mapping, predications) do
     %{
       mapping
