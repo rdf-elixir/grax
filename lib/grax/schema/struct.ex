@@ -3,9 +3,13 @@ defmodule Grax.Schema.Struct do
 
   alias Grax.Schema.{Property, DataProperty, LinkProperty, CustomField}
 
+  @additional_statements_default %{}
+
+  def additional_statements_default, do: @additional_statements_default
+
   def fields(properties, custom_fields) do
     [
-      {:__additional_statements__, %{}},
+      {:__additional_statements__, @additional_statements_default},
       :__id__
       | property_fields(properties) ++ custom_fields(custom_fields)
     ]

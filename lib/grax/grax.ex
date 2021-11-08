@@ -399,6 +399,11 @@ defmodule Grax do
     end)
   end
 
+  @spec clear_additional_statements(Schema.t()) :: Schema.t()
+  def clear_additional_statements(%_{} = mapping) do
+    %{mapping | __additional_statements__: Schema.Struct.additional_statements_default()}
+  end
+
   @spec validate(Schema.t(), opts :: keyword()) ::
           {:ok, Schema.t()} | {:error, ValidationError.t()}
   def validate(%_{} = mapping, opts \\ []) do

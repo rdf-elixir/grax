@@ -1104,6 +1104,12 @@ defmodule GraxTest do
     end
   end
 
+  test "clear_additional_statements/1" do
+    assert Example.user(EX.User0)
+           |> Grax.put_additional_statements(%{EX.P => EX.O})
+           |> Grax.clear_additional_statements() == Example.user(EX.User0)
+  end
+
   test "preload/2" do
     assert Example.user(EX.User0, depth: 0)
            |> Grax.preload(example_graph()) ==
