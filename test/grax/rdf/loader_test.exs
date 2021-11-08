@@ -378,19 +378,30 @@ defmodule Grax.RDF.LoaderTest do
     end
   end
 
-  test "additional statements" do
-    assert example_graph()
-           |> Graph.add(EX.User0 |> EX.p(EX.O))
-           |> Example.User.load(EX.User0) ==
-             {:ok,
-              Example.user(EX.User0, depth: 1)
-              |> Grax.put_additional_statements(%{EX.p() => EX.O})}
+  describe "additional statements" do
+    test "when additional_statements is enabled (default)" do
+      assert example_graph()
+             |> Graph.add(EX.User0 |> EX.p(EX.O))
+             |> Example.User.load(EX.User0) ==
+               {:ok,
+                Example.user(EX.User0, depth: 1)
+                |> Grax.put_additional_statements(%{EX.p() => EX.O})}
 
-    assert example_graph()
-           |> Graph.add(EX.User0 |> EX.p([EX.O1, EX.O2]))
-           |> Example.User.load(EX.User0) ==
-             {:ok,
-              Example.user(EX.User0, depth: 1)
-              |> Grax.put_additional_statements(%{EX.p() => [EX.O1, EX.O2]})}
+      assert example_graph()
+             |> Graph.add(EX.User0 |> EX.p([EX.O1, EX.O2]))
+             |> Example.User.load(EX.User0) ==
+               {:ok,
+                Example.user(EX.User0, depth: 1)
+                |> Grax.put_additional_statements(%{EX.p() => [EX.O1, EX.O2]})}
+    end
+
+    test "when additional_statements is disabled" do
+      assert EX.S
+             |> EX.foo("foo")
+             |> EX.bar("bar")
+             |> RDF.graph()
+             |> Example.IgnoreAdditionalStatements.load(EX.S) ==
+               Example.IgnoreAdditionalStatements.build(EX.S, foo: "foo")
+    end
   end
 end

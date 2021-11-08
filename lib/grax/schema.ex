@@ -88,23 +88,27 @@ defmodule Grax.Schema do
 
   defmacro schema(class \\ nil, do_block)
 
-  defmacro schema([inherit: parent_schema], do: block) do
-    schema(__CALLER__, nil, List.wrap(parent_schema), block)
-  end
-
   defmacro schema({:<, _, [class, nil]}, do: block) do
-    schema(__CALLER__, class, nil, block)
+    schema(__CALLER__, class, [], block)
   end
 
   defmacro schema({:<, _, [class, parent_schema]}, do: block) do
-    schema(__CALLER__, class, List.wrap(parent_schema), block)
+    schema(__CALLER__, class, [inherit: parent_schema], block)
+  end
+
+  defmacro schema(opts, do: block) when is_list(opts) do
+    {class, opts} = Keyword.pop(opts, :type)
+    schema(__CALLER__, class, opts, block)
   end
 
   defmacro schema(class, do: block) do
-    schema(__CALLER__, class, nil, block)
+    schema(__CALLER__, class, [], block)
   end
 
-  defp schema(caller, class, parent_schema, block) do
+  defp schema(caller, class, opts, block) do
+    parent_schema = if parent_schema = Keyword.get(opts, :inherit), do: List.wrap(parent_schema)
+    load_additional_statements = Keyword.get(opts, :load_additional_statements, true)
+
     prelude =
       quote do
         if line = Module.get_attribute(__MODULE__, :grax_schema_defined) do
@@ -118,6 +122,9 @@ defmodule Grax.Schema do
 
         @grax_schema_class if unquote(class), do: IRI.to_string(unquote(class))
         def __class__(), do: @grax_schema_class
+
+        @load_additional_statements unquote(load_additional_statements)
+        def __load_additional_statements__?(), do: @load_additional_statements
 
         Module.register_attribute(__MODULE__, :rdf_property_acc, accumulate: true)
         Module.register_attribute(__MODULE__, :custom_field_acc, accumulate: true)

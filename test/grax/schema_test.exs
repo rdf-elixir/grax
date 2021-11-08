@@ -323,6 +323,11 @@ defmodule Grax.SchemaTest do
     assert Example.Datatypes.__class__() == nil
   end
 
+  test "__load_additional_statements__?/0" do
+    assert Example.User.__load_additional_statements__?() == true
+    assert Example.IgnoreAdditionalStatements.__load_additional_statements__?() == false
+  end
+
   describe "__id_spec__/0" do
     test "when no id spec set or application configured" do
       assert User.__id_spec__() == nil

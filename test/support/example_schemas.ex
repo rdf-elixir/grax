@@ -535,6 +535,14 @@ defmodule Example do
     def foo(_, _), do: {:ok, :foo}
   end
 
+  defmodule IgnoreAdditionalStatements do
+    use Grax.Schema
+
+    schema type: EX.Class, load_additional_statements: false do
+      property foo: EX.foo()
+    end
+  end
+
   defmodule CustomMapping do
     use Grax.Schema
 

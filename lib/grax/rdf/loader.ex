@@ -40,11 +40,15 @@ defmodule Grax.RDF.Loader do
   end
 
   def load_additional_statements(schema, description, initial) do
-    %{
+    if schema.__load_additional_statements__?() do
+      %{
+        initial
+        | __additional_statements__:
+            additional_statements(schema.__domain_properties__(), description)
+      }
+    else
       initial
-      | __additional_statements__:
-          additional_statements(schema.__domain_properties__(), description)
-    }
+    end
   end
 
   defp additional_statements(properties, description) do
