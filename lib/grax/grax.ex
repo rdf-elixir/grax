@@ -34,11 +34,7 @@ defmodule Grax do
   end
 
   def build(mod, id) do
-    if iri = IRI.new(id) do
-      {:ok, do_build(mod, iri)}
-    else
-      raise ArgumentError, "invalid id: #{inspect(id)}"
-    end
+    {:ok, do_build(mod, IRI.new(id))}
   end
 
   def build(mod, %Id.Schema{} = id_schema, initial) do

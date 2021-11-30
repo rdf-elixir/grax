@@ -1,13 +1,14 @@
 defmodule Grax.Id.Counter.Adapter do
   alias Grax.Id.Counter
 
+  @type name :: atom
   @type value :: non_neg_integer
 
-  @callback value(pid) :: {:ok, value} | {:error, any}
+  @callback value(name) :: {:ok, value} | {:error, any}
 
-  @callback inc(pid) :: {:ok, value} | {:error, any}
+  @callback inc(name) :: {:ok, value} | {:error, any}
 
-  @callback reset(pid, value) :: :ok | {:error, any}
+  @callback reset(name, value) :: :ok | {:error, any}
 
   defmacro __using__(_opts) do
     quote do

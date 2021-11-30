@@ -6,7 +6,7 @@ defmodule Grax.Id.Schema.Extension do
   @callback init(Id.Schema.t(), opts :: keyword()) :: Id.Schema.t()
 
   @callback call(extension :: t, Id.Schema.t(), variables :: map, opts :: keyword()) ::
-              Id.Schema.t()
+              {:ok, Id.Schema.t()} | {:error, any}
 
   defmacro __using__(_opts) do
     quote do
