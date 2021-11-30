@@ -14,6 +14,9 @@ defmodule Grax.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
 
+      # Dialyzer
+      dialyzer: dialyzer(),
+
       # Hex
       package: package(),
       description: description(),
@@ -73,6 +76,14 @@ defmodule Grax.MixProject do
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:excoveralls, "~> 0.14", only: :test},
       {:benchee, "~> 1.0", only: :dev}
+    ]
+  end
+
+  defp dialyzer do
+    [
+      plt_add_apps: [:mix],
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+      ignore_warnings: ".dialyzer_ignore"
     ]
   end
 
