@@ -3,7 +3,7 @@ defmodule Grax.RDF.MapperTest do
 
   alias Grax.ValidationError
 
-  import Grax, only: [to_rdf: 1, to_rdf: 2]
+  import Grax, only: [to_rdf: 1, to_rdf: 2, to_rdf!: 1, to_rdf!: 2]
 
   test "successful mapping" do
     assert Example.User.build!(EX.User0,
@@ -41,6 +41,14 @@ defmodule Grax.RDF.MapperTest do
              ]
            )
            |> to_rdf() == {:ok, example_graph()}
+  end
+
+  test "bang-variant" do
+    assert {:ok, to_rdf!(Example.user(EX.User0))} ==
+             to_rdf(Example.user(EX.User0))
+
+    assert {:ok, to_rdf!(Example.user(EX.User0), name: EX.graph_name())} ==
+             to_rdf(Example.user(EX.User0), name: EX.graph_name())
   end
 
   test "pass-through of graph opts" do

@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - `Grax.Schema`s now have an `__additional_statements__` field, which holds
   additional statements about the resource, which are not mapped to schema 
   fields, but should be mapped back to RDF
+- `Grax.to_rdf!/2` bang variant of `Grax.to_rdf/2` 
 
 
 [Compare v0.3.1...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.1...HEAD)
