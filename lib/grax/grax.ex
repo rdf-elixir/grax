@@ -427,7 +427,7 @@ defmodule Grax do
   end
 
   @spec to_rdf!(Schema.t(), opts :: keyword()) :: Graph.t()
-  def to_rdf!(%schema{} = mapping, opts \\ []) do
+  def to_rdf!(mapping, opts \\ []) do
     case to_rdf(mapping, opts) do
       {:ok, graph} -> graph
       {:error, error} -> raise error
