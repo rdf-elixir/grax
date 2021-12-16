@@ -69,7 +69,7 @@ defmodule Grax.MixProject do
 
   defp deps do
     [
-      {:rdf, ">= 0.9.2"},
+      {:rdf, "~> 0.9.2 or ~> 0.10"},
       {:yuri_template, "~> 1.1"},
       {:elixir_uuid, "~> 1.2"},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
