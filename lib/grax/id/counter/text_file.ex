@@ -1,6 +1,8 @@
 defmodule Grax.Id.Counter.TextFile do
   use Grax.Id.Counter.Adapter
 
+  @io_read_mode if Version.match?(System.version(), "~> 1.13.0"), do: :eof, else: :all
+
   def start_link(name) do
     GenServer.start_link(__MODULE__, name, name: via_process_name(name))
   end
@@ -66,6 +68,7 @@ defmodule Grax.Id.Counter.TextFile do
     end
   end
 
+  defp to_integer(:eof, _), do: {:ok, @default_value}
   defp to_integer("", _), do: {:ok, @default_value}
 
   defp to_integer(string, path) do
@@ -86,7 +89,7 @@ defmodule Grax.Id.Counter.TextFile do
   defp atomic_inc(path) do
     File.open(path, [:read, :write], fn file ->
       file
-      |> IO.read(:all)
+      |> IO.read(@io_read_mode)
       |> to_integer(path)
       |> case do
         {:ok, value} ->
