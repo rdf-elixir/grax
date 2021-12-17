@@ -44,18 +44,8 @@ defmodule Grax.RDF.Mapper do
         end
       )
       |> case do
-        {:ok, description, graph} ->
-          description =
-            if class = schema.__class__() do
-              description |> RDF.type(RDF.iri(class))
-            else
-              description
-            end
-
-          {:ok, Graph.add(graph, description)}
-
-        error ->
-          error
+        {:ok, description, graph} -> {:ok, Graph.add(graph, description)}
+        error -> error
       end
     end
   end
