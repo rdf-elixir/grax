@@ -7,10 +7,10 @@ defmodule Grax do
   """
 
   alias Grax.{Schema, Id, Validator, ValidationError}
-  alias Grax.Schema.{DataProperty, LinkProperty}
+  alias Grax.Schema.{DataProperty, LinkProperty, Struct, AdditionalStatements}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
-  alias RDF.{IRI, BlankNode, Graph, Statement}
+  alias RDF.{IRI, BlankNode, Graph}
 
   import RDF.Utils
   import RDF.Utils.Guards
@@ -344,60 +344,17 @@ defmodule Grax do
 
   @spec add_additional_statements(Schema.t(), map()) :: Schema.t()
   def add_additional_statements(%_{} = mapping, predications) do
-    %{
-      mapping
-      | __additional_statements__:
-          do_add_additional_statements(mapping.__additional_statements__, predications)
-    }
-  end
-
-  defp do_add_additional_statements(additional_statements, predications) do
-    Enum.reduce(predications, additional_statements, fn
-      {predicate, objects}, additional_statements ->
-        coerced_objects =
-          objects
-          |> List.wrap()
-          |> Enum.map(&Statement.coerce_object/1)
-          |> MapSet.new()
-
-        Map.update(
-          additional_statements,
-          Statement.coerce_predicate(predicate),
-          coerced_objects,
-          &MapSet.union(&1, coerced_objects)
-        )
-    end)
+    Struct.update_additional_statements(mapping, &AdditionalStatements.add(&1, predications))
   end
 
   @spec put_additional_statements(Schema.t(), map()) :: Schema.t()
   def put_additional_statements(%_{} = mapping, predications) do
-    %{
-      mapping
-      | __additional_statements__:
-          do_put_additional_statements(mapping.__additional_statements__, predications)
-    }
-  end
-
-  defp do_put_additional_statements(additional_statements, predications) do
-    Enum.reduce(predications, additional_statements, fn
-      {predicate, nil}, additional_statements ->
-        Map.delete(additional_statements, Statement.coerce_predicate(predicate))
-
-      {predicate, objects}, additional_statements ->
-        Map.put(
-          additional_statements,
-          Statement.coerce_predicate(predicate),
-          objects
-          |> List.wrap()
-          |> Enum.map(&Statement.coerce_object/1)
-          |> MapSet.new()
-        )
-    end)
+    Struct.update_additional_statements(mapping, &AdditionalStatements.put(&1, predications))
   end
 
   @spec clear_additional_statements(Schema.t()) :: Schema.t()
   def clear_additional_statements(%_{} = mapping) do
-    %{mapping | __additional_statements__: Schema.Struct.additional_statements_default()}
+    Struct.put_additional_statements(mapping, Schema.Struct.additional_statements_default())
   end
 
   @spec validate(Schema.t(), opts :: keyword()) ::
