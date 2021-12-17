@@ -3,35 +3,47 @@ defmodule Grax.Schema.AdditionalStatements do
 
   alias RDF.Statement
 
-  @default %{}
-  def default, do: @default
+  @empty %{}
+  def empty, do: @empty
+
+  def default(nil), do: @empty
+  def default(class), do: add(@empty, %{RDF.type() => class})
 
   def add(additional_statements, predications) do
     Enum.reduce(predications, additional_statements, fn
       {predicate, objects}, additional_statements ->
-        coerced_objects = normalize_objects(objects)
-
-        Map.update(
-          additional_statements,
-          Statement.coerce_predicate(predicate),
-          coerced_objects,
-          &MapSet.union(&1, coerced_objects)
-        )
+        add(additional_statements, predicate, objects)
     end)
+  end
+
+  def add(additional_statements, predicate, objects) do
+    coerced_objects = normalize_objects(objects)
+
+    Map.update(
+      additional_statements,
+      Statement.coerce_predicate(predicate),
+      coerced_objects,
+      &MapSet.union(&1, coerced_objects)
+    )
   end
 
   def put(additional_statements, predications) do
     Enum.reduce(predications, additional_statements, fn
-      {predicate, nil}, additional_statements ->
-        Map.delete(additional_statements, Statement.coerce_predicate(predicate))
-
       {predicate, objects}, additional_statements ->
-        Map.put(
-          additional_statements,
-          Statement.coerce_predicate(predicate),
-          normalize_objects(objects)
-        )
+        put(additional_statements, predicate, objects)
     end)
+  end
+
+  def put(additional_statements, predicate, nil) do
+    Map.delete(additional_statements, Statement.coerce_predicate(predicate))
+  end
+
+  def put(additional_statements, predicate, objects) do
+    Map.put(
+      additional_statements,
+      Statement.coerce_predicate(predicate),
+      normalize_objects(objects)
+    )
   end
 
   defp normalize_objects(objects) do

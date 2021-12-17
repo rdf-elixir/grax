@@ -2,6 +2,7 @@ defmodule Grax.RDF.Loader do
   @moduledoc false
 
   alias RDF.{Literal, IRI, BlankNode, Graph, Description}
+  alias Grax.Schema.AdditionalStatements
   alias Grax.RDF.Preloader
   alias Grax.InvalidValueError
 
@@ -44,20 +45,21 @@ defmodule Grax.RDF.Loader do
       %{
         initial
         | __additional_statements__:
-            additional_statements(schema.__domain_properties__(), description)
+            additional_statements(schema.__domain_properties__(), description, initial)
       }
     else
       initial
     end
   end
 
-  defp additional_statements(properties, description) do
-    Enum.reduce(description, %{}, fn {_, p, o}, additional_statements ->
-      if p in properties do
-        additional_statements
-      else
-        Map.update(additional_statements, p, MapSet.new([o]), &MapSet.put(&1, o))
-      end
+  defp additional_statements(properties, description, initial) do
+    Enum.reduce(description, initial.__additional_statements__, fn
+      {_, p, o}, additional_statements ->
+        if p in properties do
+          additional_statements
+        else
+          AdditionalStatements.add(additional_statements, p, o)
+        end
     end)
   end
 

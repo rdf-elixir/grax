@@ -87,6 +87,7 @@ defmodule Example do
   def user(EX.User0, depth: 0) do
     %Example.User{
       __id__: IRI.new(EX.User0),
+      __additional_statements__: %{RDF.type() => MapSet.new([RDF.iri(EX.User)])},
       name: "John Doe",
       age: 42,
       email: ~w[jd@example.com john@doe.com],
@@ -100,6 +101,7 @@ defmodule Example do
   def user(EX.User1, depth: 0) do
     %Example.User{
       __id__: IRI.new(EX.User1),
+      __additional_statements__: %{RDF.type() => MapSet.new([RDF.iri(EX.User)])},
       name: "Erika Mustermann",
       email: ["erika@mustermann.de"],
       canonical_email: "mailto:erika@mustermann.de",
@@ -111,6 +113,7 @@ defmodule Example do
   def user(EX.User2, depth: 0) do
     %Example.User{
       __id__: IRI.new(EX.User2),
+      __additional_statements__: %{RDF.type() => MapSet.new([RDF.iri(EX.User)])},
       name: "Max Mustermann",
       email: ["max@mustermann.de"],
       canonical_email: "mailto:max@mustermann.de",

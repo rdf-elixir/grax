@@ -7,7 +7,15 @@ defmodule Grax.Schema do
   Read about schemas in the guide [here](https://rdf-elixir.dev/grax/schemas.html).
   """
 
-  alias Grax.Schema.{Struct, Inheritance, DataProperty, LinkProperty, CustomField}
+  alias Grax.Schema.{
+    Struct,
+    Inheritance,
+    DataProperty,
+    LinkProperty,
+    CustomField,
+    AdditionalStatements
+  }
+
   alias RDF.IRI
 
   @type t() :: struct
@@ -120,8 +128,12 @@ defmodule Grax.Schema do
         @grax_parent_schema unquote(parent_schema)
         def __super__(), do: @grax_parent_schema
 
-        @grax_schema_class if unquote(class), do: IRI.to_string(unquote(class))
-        def __class__(), do: @grax_schema_class
+        @grax_schema_class unquote(class)
+        @grax_schema_class_string if @grax_schema_class, do: IRI.to_string(@grax_schema_class)
+        def __class__(), do: @grax_schema_class_string
+
+        @additional_statements AdditionalStatements.default(unquote(class))
+        def __additional_statements__(), do: @additional_statements
 
         @load_additional_statements unquote(load_additional_statements)
         def __load_additional_statements__?(), do: @load_additional_statements
@@ -154,7 +166,7 @@ defmodule Grax.Schema do
                              Map.new(@custom_field_acc)
                            )
 
-        defstruct Struct.fields(@__properties__, @__custom_fields__)
+        defstruct Struct.fields(@__properties__, @__custom_fields__, @grax_schema_class)
 
         def __properties__, do: @__properties__
 
@@ -233,6 +245,9 @@ defmodule Grax.Schema do
     Module.put_attribute(mod, :rdf_property_acc, {name, property_schema})
   end
 
+  defp property_mapping_destination({:-, _line, [iri_expr]}), do: {:inverse, iri_expr}
+  defp property_mapping_destination(iri_expr), do: iri_expr
+
   @doc false
   def domain_properties(properties) do
     properties
@@ -246,7 +261,4 @@ defmodule Grax.Schema do
     Map.has_key?(schema.__properties__(), field_name) or
       Map.has_key?(schema.__custom_fields__(), field_name)
   end
-
-  defp property_mapping_destination({:-, _line, [iri_expr]}), do: {:inverse, iri_expr}
-  defp property_mapping_destination(iri_expr), do: iri_expr
 end

@@ -4,13 +4,10 @@ defmodule Grax.Schema.Struct do
   alias Grax.Schema.{Property, DataProperty, LinkProperty, CustomField, AdditionalStatements}
 
   @additional_statements_field :__additional_statements__
-  @additional_statements_default AdditionalStatements.default()
 
-  def additional_statements_default, do: @additional_statements_default
-
-  def fields(properties, custom_fields) do
+  def fields(properties, custom_fields, class) do
     [
-      {@additional_statements_field, @additional_statements_default},
+      {@additional_statements_field, AdditionalStatements.default(class)},
       :__id__
       | property_fields(properties) ++ custom_fields(custom_fields)
     ]

@@ -263,7 +263,7 @@ defmodule Grax.RDF.PreloaderTest do
                    Example.Post.build!(EX.Post1,
                      title: "foo",
                      slug: "foo",
-                     __additional_statements__: %{RDF.type() => EX.Other}
+                     __additional_statements__: %{RDF.type() => [EX.Other, EX.Post]}
                    )
                  ]
                )
