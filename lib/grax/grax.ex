@@ -342,6 +342,11 @@ defmodule Grax do
 
   defp build_linked(value, _), do: {:ok, value}
 
+  @spec additional_statements(Schema.t()) :: RDF.Description.t()
+  def additional_statements(%_{} = mapping) do
+    AdditionalStatements.statements(mapping.__additional_statements__, mapping.__id__)
+  end
+
   @spec add_additional_statements(Schema.t(), map()) :: Schema.t()
   def add_additional_statements(%_{} = mapping, predications) do
     Struct.update_additional_statements(mapping, &AdditionalStatements.add(&1, predications))

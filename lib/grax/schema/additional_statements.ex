@@ -52,4 +52,10 @@ defmodule Grax.Schema.AdditionalStatements do
     |> Enum.map(&Statement.coerce_object/1)
     |> MapSet.new()
   end
+
+  def statements(additional_statements, subject) do
+    RDF.description(subject,
+      init: Map.new(additional_statements, fn {p, os} -> {p, MapSet.to_list(os)} end)
+    )
+  end
 end

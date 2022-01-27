@@ -61,6 +61,29 @@ defmodule Grax.AdditionalStatementsTest do
     end
   end
 
+  test "Grax.additional_statements/1" do
+    example =
+      Example.User.build!(EX.User0, %{
+        name: "Foo",
+        email: ["foo@example.com"],
+        password: "secret",
+        posts: Example.post(depth: 0),
+        __additional_statements__: %{
+          EX.P1 => EX.O1,
+          EX.P2 => "foo"
+        }
+      })
+
+    assert Grax.additional_statements(example) ==
+             RDF.description(EX.User0,
+               init: %{
+                 RDF.type() => EX.User,
+                 EX.P1 => EX.O1,
+                 EX.P2 => "foo"
+               }
+             )
+  end
+
   describe "Grax.add_additional_statements/2" do
     test "with RDF terms" do
       user =
