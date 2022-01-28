@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.3.2 - 2022-01-28
 
 ### Added
 
@@ -16,7 +16,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - `Grax.to_rdf!/2` bang variant of `Grax.to_rdf/2` 
 
 
-[Compare v0.3.1...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.1...HEAD)
+[Compare v0.3.1...v0.3.2](https://github.com/rdf-elixir/grax/compare/v0.3.1...v0.3.2)
 
 
 
