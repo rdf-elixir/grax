@@ -121,6 +121,11 @@ See [CONTRIBUTING](CONTRIBUTING.md) for details.
 The development of this project was sponsored by [NetzeBW](https://www.netze-bw.de/) for [NETZlive](https://www.netze-bw.de/unsernetz/netzinnovationen/digitalisierung/netzlive).
 
 
+## Consulting
+
+If you need help with your Elixir and Linked Data projects, just contact [NinjaConcept](https://www.ninjaconcept.com/) via <contact@ninjaconcept.com>.
+
+
 ## License and Copyright
 
 (c) 2020-present Marcel Otto. MIT Licensed, see [LICENSE](LICENSE.md) for details.
