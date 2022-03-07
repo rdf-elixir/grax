@@ -53,9 +53,7 @@ jobs:
       - run: mix compile --warnings-as-errors
         if: ${{ matrix.lint }}
 
-# TODO: enable this again when this issue is fixed: https://github.com/parroty/excoveralls/issues/273
-#      - run: MIX_ENV=test mix coveralls.github
-      - run: mix test
+      - run: MIX_ENV=test mix coveralls.github
 
       - name: Retrieve PLT Cache
         uses: actions/cache@v1
