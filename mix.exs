@@ -69,7 +69,7 @@ defmodule Grax.MixProject do
 
   defp deps do
     [
-      {:rdf, "~> 0.9.2 or ~> 0.10"},
+      rdf_ex_dep(:rdf, "~> 0.9.2 or ~> 0.10"),
       {:yuri_template, "~> 1.1"},
       {:elixir_uuid, "~> 1.2"},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},
@@ -84,6 +84,13 @@ defmodule Grax.MixProject do
       plt_add_apps: [:mix],
       plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
     ]
+  end
+
+  defp rdf_ex_dep(dep, version) do
+    case System.get_env("RDF_EX_PACKAGES_SRC") do
+      "LOCAL" -> {dep, path: "../#{dep}"}
+      _ -> {dep, version}
+    end
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
