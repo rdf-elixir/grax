@@ -53,7 +53,7 @@ defmodule Grax.RDF.Mapper do
       description,
       if(additions, do: Graph.add(graph, additions), else: graph)
       |> Graph.add(
-        Enum.map(values, fn value ->
+        Enum.map(List.wrap(values), fn value ->
           {value, property, description.subject}
         end)
       )
