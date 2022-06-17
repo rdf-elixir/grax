@@ -5,6 +5,17 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+### Fixed
+
+- `to_rdf/2` failed when an inverse property was not a list (#1)
+
+
+[Compare v0.3.2...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.2...HEAD)
+
+
+
 ## v0.3.2 - 2022-01-28
 
 ### Added
