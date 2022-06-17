@@ -255,6 +255,21 @@ defmodule Grax.RDF.MapperTest do
               |> RDF.graph()}
   end
 
+  test "singular inverse properties" do
+    assert Example.SingularInverseProperties.build!(EX.S,
+             name: "subject",
+             foo: Example.user(EX.User0, depth: 0)
+           )
+           |> to_rdf() ==
+             {:ok,
+              [
+                EX.S |> EX.name("subject"),
+                EX.User0 |> EX.foo(EX.S),
+                example_description(:user)
+              ]
+              |> RDF.graph()}
+  end
+
   test "rdf:type for schema class is defined" do
     assert Example.ClassDeclaration.build!(EX.S, name: "foo")
            |> to_rdf() ==

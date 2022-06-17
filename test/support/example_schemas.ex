@@ -391,6 +391,15 @@ defmodule Example do
     end
   end
 
+  defmodule SingularInverseProperties do
+    use Grax.Schema
+
+    schema do
+      property name: EX.name()
+      link foo: -EX.foo(), type: Example.User
+    end
+  end
+
   defmodule HeterogeneousLinks do
     use Grax.Schema
 
