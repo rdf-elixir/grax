@@ -357,6 +357,11 @@ defmodule Grax do
     Struct.update_additional_statements(mapping, &AdditionalStatements.put(&1, predications))
   end
 
+  @spec delete_additional_statements(Schema.t(), map()) :: Schema.t()
+  def delete_additional_statements(%_{} = mapping, predications) do
+    Struct.update_additional_statements(mapping, &AdditionalStatements.delete(&1, predications))
+  end
+
   @spec clear_additional_statements(Schema.t(), opts :: keyword()) :: Schema.t()
   def clear_additional_statements(%schema{} = mapping, opts \\ []) do
     Struct.put_additional_statements(

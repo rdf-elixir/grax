@@ -256,7 +256,7 @@ defmodule Grax.AdditionalStatementsTest do
                }
     end
 
-    test "rdf:type with Grax schema class is untouched" do
+    test "rdf:type with Grax schema class can be overwritten" do
       assert Example.user(EX.User0)
              |> Grax.put_additional_statements(%{RDF.type() => RDF.iri(EX.Foo)}) ==
                %Example.User{
@@ -265,6 +265,57 @@ defmodule Grax.AdditionalStatementsTest do
                      RDF.type() => MapSet.new([RDF.iri(EX.Foo)])
                    }
                }
+    end
+  end
+
+  describe "Grax.delete_additional_statements/2" do
+    test "with a map of predications" do
+      user =
+        Example.user(EX.User0)
+        |> Grax.add_additional_statements(%{
+          RDF.iri(EX.P1) => RDF.iri(EX.O1),
+          EX.p2() => [RDF.iri(EX.O2), RDF.iri(EX.O3)]
+        })
+
+      assert Grax.delete_additional_statements(user, %{
+               EX.p2() => RDF.iri(EX.O2)
+             }) ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
+                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
+                     EX.p2() => MapSet.new([RDF.iri(EX.O3)])
+                   }
+               }
+
+      assert Grax.delete_additional_statements(user, %{
+               EX.p2() => [RDF.iri(EX.O2), RDF.iri(EX.O3)]
+             }) ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__: %{
+                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
+                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)])
+                   }
+               }
+
+      assert Grax.delete_additional_statements(user, %{
+               EX.p3() => RDF.iri(EX.O2)
+             }) ==
+               user
+
+      assert Grax.delete_additional_statements(user, %{
+               EX.P1 => EX.O1,
+               EX.p2() => [EX.O2, EX.O3]
+             }) ==
+               Example.user(EX.User0)
+    end
+
+    test "rdf:type with Grax schema class can be deleted" do
+      assert Example.user(EX.User0)
+             |> Grax.delete_additional_statements(%{RDF.type() => RDF.iri(EX.User)}) ==
+               %Example.User{Example.user(EX.User0) | __additional_statements__: %{}}
     end
   end
 

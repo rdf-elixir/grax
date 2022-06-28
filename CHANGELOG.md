@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ## Unreleased
 
+### Added
+
+- `Grax.delete_additional_statements/2`
+
 ### Fixed
 
 - `to_rdf/2` failed when an inverse property was not a list (#1)

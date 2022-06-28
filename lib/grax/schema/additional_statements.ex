@@ -46,6 +46,29 @@ defmodule Grax.Schema.AdditionalStatements do
     )
   end
 
+  def delete(additional_statements, predications) do
+    Enum.reduce(predications, additional_statements, fn
+      {predicate, objects}, additional_statements ->
+        delete(additional_statements, predicate, objects)
+    end)
+  end
+
+  def delete(additional_statements, predicate, objects) do
+    predicate = Statement.coerce_predicate(predicate)
+
+    if existing_objects = additional_statements[predicate] do
+      new_objects = MapSet.difference(existing_objects, normalize_objects(objects))
+
+      if Enum.empty?(new_objects) do
+        Map.delete(additional_statements, predicate)
+      else
+        Map.put(additional_statements, predicate, new_objects)
+      end
+    else
+      additional_statements
+    end
+  end
+
   defp normalize_objects(objects) do
     objects
     |> List.wrap()
