@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.3.3 - 2022-06-29
 
 ### Added
 
@@ -16,7 +16,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - `to_rdf/2` failed when an inverse property was not a list (#1)
 
 
-[Compare v0.3.2...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.2...HEAD)
+[Compare v0.3.2...v0.3.3](https://github.com/rdf-elixir/grax/compare/v0.3.2...v0.3.3)
 
 
 
