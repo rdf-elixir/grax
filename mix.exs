@@ -72,9 +72,9 @@ defmodule Grax.MixProject do
       rdf_ex_dep(:rdf, "~> 1.0"),
       {:yuri_template, "~> 1.1"},
       {:elixir_uuid, "~> 1.2"},
-      {:dialyxir, "~> 1.1", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.14", only: :test},
+      {:dialyxir, "~> 1.2", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.29", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.15", only: :test},
       {:benchee, "~> 1.0", only: :dev}
     ]
   end
