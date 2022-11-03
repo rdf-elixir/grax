@@ -9,7 +9,7 @@ defmodule Grax.MixProject do
     [
       app: :grax,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
@@ -69,7 +69,7 @@ defmodule Grax.MixProject do
 
   defp deps do
     [
-      rdf_ex_dep(:rdf, "~> 0.9.2 or ~> 0.10"),
+      rdf_ex_dep(:rdf, "~> 1.0"),
       {:yuri_template, "~> 1.1"},
       {:elixir_uuid, "~> 1.2"},
       {:dialyxir, "~> 1.1", only: :dev, runtime: false},

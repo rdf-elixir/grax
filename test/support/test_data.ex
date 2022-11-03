@@ -3,7 +3,7 @@ defmodule Grax.TestData do
   alias Example.NS.EX
 
   @example_user EX.User0
-                |> RDF.type(EX.User, EX.PremiumUser)
+                |> RDF.type([EX.User, EX.PremiumUser])
                 |> EX.name("John Doe")
                 |> EX.age(42)
                 |> EX.email("jd@example.com", "john@doe.com")
@@ -14,7 +14,7 @@ defmodule Grax.TestData do
                 |> EX.title("Lorem ipsum")
                 |> EX.content("Lorem ipsum dolor sit amet, …")
                 |> EX.author(EX.User0)
-                |> EX.comment(EX.Comment1, EX.Comment2)
+                |> EX.comment([EX.Comment1, EX.Comment2])
 
   @example_comments [
     EX.Comment1
