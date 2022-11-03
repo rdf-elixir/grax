@@ -5,6 +5,18 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+### Fixed
+
+- a bug when reading the counter of a `Grax.Id.Counter.TextFile/2` under Elixir 1.14
+
+
+
+[Compare v0.3.3...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.3...HEAD)
+
+
+
 ## v0.3.3 - 2022-06-29
 
 ### Added
