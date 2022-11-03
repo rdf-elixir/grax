@@ -5,15 +5,19 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.3.4 - 2022-11-03
+
+This version is upgrades to RDF.ex 1.0.
+
+Elixir versions < 1.11 are no longer supported
+
 
 ### Fixed
 
 - a bug when reading the counter of a `Grax.Id.Counter.TextFile/2` under Elixir 1.14
 
 
-
-[Compare v0.3.3...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.3...HEAD)
+[Compare v0.3.3...v0.3.4](https://github.com/rdf-elixir/grax/compare/v0.3.3...v0.3.4)
 
 
 
