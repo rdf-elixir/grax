@@ -185,6 +185,13 @@ defmodule Grax.RDF.LoaderTest do
               }} = EX.S |> EX.integer("invalid") |> Example.Datatypes.load(EX.S)
     end
 
+    test "load/2 when a literal is given instead of an URI for a link" do
+      assert {:error, %Grax.RDF.Preloader.Error{}} =
+               example_description(:post)
+               |> Description.put({EX.author(), "Jane Doe"})
+               |> Example.Post.load(EX.Post0)
+    end
+
     test "load!/2 when a type does not match the definition in the schema" do
       assert result =
                %Example.Datatypes{integer: "invalid"} =

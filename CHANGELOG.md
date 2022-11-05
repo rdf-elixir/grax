@@ -5,6 +5,17 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+### Fixed
+
+- raise a proper error when preloading of a link fails because a literal is given
+
+
+[Compare v0.3.4...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.4...HEAD)
+
+
+
 ## v0.3.4 - 2022-11-03
 
 This version is upgrades to RDF.ex 1.0.

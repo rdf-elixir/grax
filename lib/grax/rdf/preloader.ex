@@ -3,6 +3,11 @@ defmodule Grax.RDF.Preloader do
 
   alias Grax.RDF.Loader
   import Grax.RDF.Access
+  import RDF.Guards
+
+  defmodule Error do
+    defexception [:message]
+  end
 
   @default {:depth, 1}
 
@@ -156,6 +161,14 @@ defmodule Grax.RDF.Preloader do
       {:ok, mapped} -> {:ok, Enum.reverse(mapped)}
       error -> error
     end
+  end
+
+  defp map_link(resource, _, property_schema, _graph, _opts)
+       when not is_rdf_resource(resource) do
+    {:error,
+     Error.exception(
+       "unable to preload #{inspect(property_schema.name)} of #{inspect(property_schema.schema)} from value #{inspect(resource)}"
+     )}
   end
 
   defp map_link(resource, {:resource, class_mapping}, property_schema, graph, opts)

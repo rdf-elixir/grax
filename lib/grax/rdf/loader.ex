@@ -82,27 +82,20 @@ defmodule Grax.RDF.Loader do
 
   def add_objects(mapping, property, objects, description, graph, property_schema) do
     case handle(objects, description, graph, property_schema) do
-      {:ok, mapped_objects} ->
-        {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
-
-      {:error, _} = error ->
-        {:halt, error}
+      {:ok, mapped_objects} -> {:cont, {:ok, Map.put(mapping, property, mapped_objects)}}
+      {:error, _} = error -> {:halt, error}
     end
   end
 
   defp init_custom_fields(schema, mapping, graph, description) do
-    schema.__custom_fields__()
-    |> Enum.reduce_while({:ok, mapping}, fn
+    Enum.reduce_while(schema.__custom_fields__(), {:ok, mapping}, fn
       {_, %{from_rdf: nil}}, mapping ->
         {:cont, mapping}
 
       {field, %{from_rdf: {mod, fun}}}, {:ok, mapping} ->
         case apply(mod, fun, [description, graph]) do
-          {:ok, result} ->
-            {:cont, {:ok, Map.put(mapping, field, result)}}
-
-          error ->
-            {:halt, error}
+          {:ok, result} -> {:cont, {:ok, Map.put(mapping, field, result)}}
+          error -> {:halt, error}
         end
     end)
   end
