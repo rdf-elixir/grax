@@ -100,7 +100,7 @@ defmodule Grax.ValidatorTest do
         int: 2_147_483_648,
         long: Decimal.from_float(0.5),
         short: "42",
-        short: 32768,
+        short: 32_768,
         byte: "42",
         byte: 128,
         non_negative_integer: "42",

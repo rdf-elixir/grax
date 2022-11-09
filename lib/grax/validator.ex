@@ -136,6 +136,7 @@ defmodule Grax.Validator do
   defp in_value_space?(value, XSD.Numeric), do: is_number(value)
 
   defp in_value_space?(value, type) do
+    # credo:disable-for-this-file Credo.Check.Refactor.CondStatements
     cond do
       XSD.Numeric.datatype?(type) -> is_number(value) or match?(%Decimal{}, value)
       true -> true

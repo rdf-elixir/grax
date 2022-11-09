@@ -142,20 +142,18 @@ defmodule Grax.Schema.LinkProperty do
   def new(schema, name, iri, opts) do
     {type, cardinality} = Property.type_with_cardinality(name, opts, __MODULE__)
 
-    cond do
-      Keyword.has_key?(opts, :default) ->
-        raise ArgumentError, "the :default option is not supported on links"
-
-      true ->
-        __MODULE__
-        |> Property.init(schema, name, iri, opts)
-        |> struct!(
-          type: type,
-          cardinality: cardinality,
-          preload: opts[:preload],
-          on_type_mismatch: init_on_type_mismatch(opts[:on_type_mismatch])
-        )
+    if Keyword.has_key?(opts, :default) do
+      raise ArgumentError, "the :default option is not supported on links"
     end
+
+    __MODULE__
+    |> Property.init(schema, name, iri, opts)
+    |> struct!(
+      type: type,
+      cardinality: cardinality,
+      preload: opts[:preload],
+      on_type_mismatch: init_on_type_mismatch(opts[:on_type_mismatch])
+    )
   end
 
   @valid_on_type_mismatch_values ~w[ignore error]a

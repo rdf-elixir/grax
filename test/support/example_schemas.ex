@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.ModuleDoc
 defmodule Example do
   alias Example.NS.EX
   alias RDF.{IRI, Description, Graph}

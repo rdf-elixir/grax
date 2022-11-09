@@ -26,18 +26,20 @@ defmodule Grax.Id.Schema do
       raise ArgumentError, "no :schema or :selector provided on Grax.Id.Schema"
     end
 
-    with {:ok, template} <- init_template(template) do
-      %__MODULE__{
-        namespace: namespace,
-        template: template,
-        schema: schema,
-        counter: counter_tuple(namespace, opts),
-        var_mapping: Keyword.get(opts, :var_mapping),
-        selector: selector
-      }
-      |> Extension.init(Keyword.get(opts, :extensions), opts)
-    else
-      {:error, error} -> raise error
+    case init_template(template) do
+      {:ok, template} ->
+        %__MODULE__{
+          namespace: namespace,
+          template: template,
+          schema: schema,
+          counter: counter_tuple(namespace, opts),
+          var_mapping: Keyword.get(opts, :var_mapping),
+          selector: selector
+        }
+        |> Extension.init(Keyword.get(opts, :extensions), opts)
+
+      {:error, error} ->
+        raise error
     end
   end
 

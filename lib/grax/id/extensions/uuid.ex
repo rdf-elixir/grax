@@ -137,7 +137,7 @@ defmodule Grax.Id.UUID do
   end
 
   defp init_name_params(%{version: version} = uuid_schema, _id_schema, opts) do
-    if Keyword.has_key?(opts, :uuid_namespace) or Keyword.has_key?(opts, :uuid_namespace) do
+    if Keyword.has_key?(opts, :uuid_namespace) do
       raise(ArgumentError, "uuid version #{version} doesn't support name arguments")
     else
       uuid_schema

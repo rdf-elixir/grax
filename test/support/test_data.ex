@@ -1,4 +1,8 @@
 defmodule Grax.TestData do
+  @moduledoc """
+  Example data for the tests.
+  """
+
   alias RDF.Graph
   alias Example.NS.EX
 

@@ -1,6 +1,7 @@
 defmodule Grax.ConfigTest do
   use Grax.TestCase
 
+  # credo:disable-for-next-line Credo.Check.Warning.ApplicationConfigInModuleAttribute
   @original_config Map.new([:grax, :example_app], &{&1, Application.get_all_env(&1)})
 
   setup %{config: config} do

@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.ModuleDoc
 defmodule Example.IdSpecs do
   alias Example.{User, Post, Comment}
   alias Grax.Id

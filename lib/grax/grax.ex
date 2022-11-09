@@ -108,9 +108,8 @@ defmodule Grax do
     validate? = Keyword.get(opts, :validate, false)
     opts = Keyword.put_new(opts, :validate, validate?)
 
-    with {:ok, mapping} <- do_load(mod, id, graph, validate?, opts) do
-      mapping
-    else
+    case do_load(mod, id, graph, validate?, opts) do
+      {:ok, mapping} -> mapping
       {:error, error} -> raise error
     end
   end
@@ -201,19 +200,17 @@ defmodule Grax do
 
   def put(%schema{} = mapping, property, value) do
     if Schema.has_field?(schema, property) do
-      cond do
-        property_schema = schema.__property__(property) ->
-          validation =
-            case property_schema.__struct__ do
-              DataProperty -> :check_property
-              LinkProperty -> :check_link
-            end
+      if property_schema = schema.__property__(property) do
+        validation =
+          case property_schema.__struct__ do
+            DataProperty -> :check_property
+            LinkProperty -> :check_link
+          end
 
-          do_put_property(validation, mapping, property, value, property_schema)
-
+        do_put_property(validation, mapping, property, value, property_schema)
+      else
         # it's a simple, unmapped field
-        true ->
-          {:ok, struct!(mapping, [{property, value}])}
+        {:ok, struct!(mapping, [{property, value}])}
       end
     else
       {:error, Schema.InvalidProperty.exception(property: property)}
