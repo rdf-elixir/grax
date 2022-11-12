@@ -13,6 +13,7 @@ defmodule Grax.MixProject do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
+      aliases: aliases(),
 
       # Dialyzer
       dialyzer: dialyzer(),
@@ -33,6 +34,7 @@ defmodule Grax.MixProject do
       # ExCoveralls
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
+        check: :test,
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
@@ -80,6 +82,13 @@ defmodule Grax.MixProject do
     ]
   end
 
+  defp rdf_ex_dep(dep, version) do
+    case System.get_env("RDF_EX_PACKAGES_SRC") do
+      "LOCAL" -> {dep, path: "../#{dep}"}
+      _ -> {dep, version}
+    end
+  end
+
   defp dialyzer do
     [
       plt_add_apps: [:mix],
@@ -87,11 +96,18 @@ defmodule Grax.MixProject do
     ]
   end
 
-  defp rdf_ex_dep(dep, version) do
-    case System.get_env("RDF_EX_PACKAGES_SRC") do
-      "LOCAL" -> {dep, path: "../#{dep}"}
-      _ -> {dep, version}
-    end
+  defp aliases do
+    [
+      check: [
+        "clean",
+        "deps.unlock --check-unused",
+        "compile --all-warnings --warnings-as-errors",
+        "format --check-formatted",
+        "deps.unlock --check-unused",
+        "test --warnings-as-errors",
+        "credo"
+      ]
+    ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
