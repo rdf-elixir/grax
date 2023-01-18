@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.3.5 - 2023-01-18
 
 ### Fixed
 
@@ -16,7 +16,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - raise a proper error when preloading of a link fails because a literal is given
 
 
-[Compare v0.3.4...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.4...HEAD)
+[Compare v0.3.4...v0.3.5](https://github.com/rdf-elixir/grax/compare/v0.3.4...v0.3.5)
 
 
 
