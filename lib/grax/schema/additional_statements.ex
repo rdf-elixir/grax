@@ -69,6 +69,9 @@ defmodule Grax.Schema.AdditionalStatements do
     end
   end
 
+  defp normalize_objects(%MapSet{} = objects),
+    do: objects |> MapSet.to_list() |> normalize_objects()
+
   defp normalize_objects(objects) do
     objects
     |> List.wrap()

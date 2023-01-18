@@ -256,6 +256,17 @@ defmodule Grax.AdditionalStatementsTest do
                }
     end
 
+    test "with values in a MapSet (e.g. when the additional statements come from another schema)" do
+      user =
+        Example.user(EX.User0)
+        |> Grax.put_additional_statements(%{
+          EX.P1 => EX.O1,
+          EX.P2 => EX.O2
+        })
+
+      assert Grax.put_additional_statements(user, user.__additional_statements__) == user
+    end
+
     test "rdf:type with Grax schema class can be overwritten" do
       assert Example.user(EX.User0)
              |> Grax.put_additional_statements(%{RDF.type() => RDF.iri(EX.Foo)}) ==

@@ -9,6 +9,10 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Fixed
 
+- additional statements with objects in MapSets weren't handled properly, which
+  is critical in particular, because the objects in additional statements are kept
+  in MapSets internally, which meant additional statements from one schema couldn't
+  be passed to another schema
 - raise a proper error when preloading of a link fails because a literal is given
 
 
