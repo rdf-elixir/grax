@@ -9,6 +9,12 @@ defmodule Grax.Schema.AdditionalStatements do
   def default(nil), do: @empty
   def default(class), do: add(@empty, %{RDF.type() => class})
 
+  def get(additional_statements, property) do
+    if values = Map.get(additional_statements, property) do
+      MapSet.to_list(values)
+    end
+  end
+
   def add(additional_statements, predications) do
     Enum.reduce(predications, additional_statements, fn
       {predicate, objects}, additional_statements ->

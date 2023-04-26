@@ -89,6 +89,12 @@ defmodule Grax.Schema do
               __MODULE__.t()
       def load!(graph, id, opts \\ []), do: Grax.load!(__MODULE__, id, graph, opts)
 
+      @spec from(Grax.Schema.t()) :: {:ok, __MODULE__.t()} | {:error, any}
+      def from(value), do: Grax.Schema.Mapping.from(value, __MODULE__)
+
+      @spec from!(Grax.Schema.t()) :: __MODULE__.t()
+      def from!(value), do: Grax.Schema.Mapping.from!(value, __MODULE__)
+
       Module.delete_attribute(__MODULE__, :rdf_property_acc)
       Module.delete_attribute(__MODULE__, :custom_field_acc)
     end
@@ -261,4 +267,17 @@ defmodule Grax.Schema do
     Map.has_key?(schema.__properties__(), field_name) or
       Map.has_key?(schema.__custom_fields__(), field_name)
   end
+
+  @doc """
+  Checks if the given value is a `Grax.Schema` struct.
+  """
+  @spec struct?(any) :: boolean
+  def struct?(%mod{__id__: _, __additional_statements__: _}) do
+    case Code.ensure_compiled(mod) do
+      {:module, mod} -> function_exported?(mod, :__properties__, 1)
+      _ -> false
+    end
+  end
+
+  def struct?(_), do: false
 end

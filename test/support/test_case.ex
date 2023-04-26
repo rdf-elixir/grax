@@ -7,7 +7,7 @@ defmodule Grax.TestCase do
     quote do
       alias RDF.{Dataset, Graph, Description, IRI, XSD, PrefixMap}
       alias RDF.NS.{RDFS, OWL}
-      alias Example.NS.EX
+      alias Example.NS.{EX, FOAF}
 
       import unquote(__MODULE__)
       import Grax.TestData
@@ -15,6 +15,7 @@ defmodule Grax.TestCase do
       import RDF.Sigils
 
       @compile {:no_warn_undefined, Example.NS.EX}
+      @compile {:no_warn_undefined, Example.NS.FOAF}
     end
   end
 end
