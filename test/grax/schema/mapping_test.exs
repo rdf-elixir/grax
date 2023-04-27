@@ -29,11 +29,19 @@ defmodule Grax.Schema.MappingTest do
     end
   end
 
+  @additional_user_statements [
+    {RDF.type(), [EX.User, EX.PremiumUser]},
+    {EX.age(), 42},
+    {EX.email(), ["jd@example.com", "john@doe.com"]},
+    {EX.post(), EX.Post0}
+  ]
+
   test "maps all properties from the other schema struct" do
     user = Example.user(EX.User0, depth: 1)
 
-    assert Person.from(user) ==
-             Person.build(EX.User0, name: user.name)
+    assert Person.from!(user) ==
+             Person.build!(EX.User0, name: user.name)
+             |> Grax.add_additional_statements(@additional_user_statements)
   end
 
   test "maps fields from the other schema struct" do
@@ -41,8 +49,9 @@ defmodule Grax.Schema.MappingTest do
       Example.user(EX.User0, depth: 1)
       |> Grax.put!(:password, "secret")
 
-    assert Person.from(user) ==
-             Person.build(EX.User0, name: user.name, password: "secret", test: :some)
+    assert Person.from!(user) ==
+             Person.build!(EX.User0, name: user.name, password: "secret", test: :some)
+             |> Grax.add_additional_statements(@additional_user_statements)
   end
 
   test "maps values from additional_statements" do
@@ -51,8 +60,9 @@ defmodule Grax.Schema.MappingTest do
       |> FOAF.mbox("foo@bar.com")
       |> Example.User.load!(EX.User0)
 
-    assert Person.from(user) ==
-             Person.build(EX.User0, name: user.name, mbox: "foo@bar.com")
+    assert Person.from!(user) ==
+             Person.build!(EX.User0, name: user.name, mbox: "foo@bar.com")
+             |> Grax.add_additional_statements(@additional_user_statements)
   end
 
   test "values are selected by property iri, not by name" do
@@ -69,8 +79,9 @@ defmodule Grax.Schema.MappingTest do
 
     user = Example.user(EX.User0, depth: 1)
 
-    assert UserWithOtherProperties.from(user) ==
-             UserWithOtherProperties.build(EX.User0, foo: user.name)
+    assert UserWithOtherProperties.from!(user) ==
+             UserWithOtherProperties.build!(EX.User0, foo: user.name)
+             |> Grax.add_additional_statements(@additional_user_statements)
   end
 
   test "with non-Grax schema struct input values" do
@@ -95,8 +106,13 @@ defmodule Grax.Schema.MappingTest do
         Example.user(EX.User0, depth: 1)
         |> Grax.put!(email: "john@doe.com")
 
-      assert UserWithSingleEmail.from(user) ==
-               UserWithSingleEmail.build(EX.User0, mail: hd(user.email))
+      assert UserWithSingleEmail.from!(user) ==
+               UserWithSingleEmail.build!(EX.User0, mail: hd(user.email))
+               |> Grax.add_additional_statements(@additional_user_statements)
+               |> Grax.delete_additional_statements([
+                 {EX.email(), ["jd@example.com", "john@doe.com"]}
+               ])
+               |> Grax.add_additional_statements([{EX.name(), "John Doe"}])
     end
 
     test "single values are mapped to a list, when required" do
@@ -112,27 +128,27 @@ defmodule Grax.Schema.MappingTest do
 
       user = Example.user(EX.User0, depth: 1)
 
-      assert UserWithMultipleNames.from(user) ==
-               UserWithMultipleNames.build(EX.User0, names: [user.name])
+      assert UserWithMultipleNames.from!(user) ==
+               UserWithMultipleNames.build!(EX.User0, names: [user.name])
+               |> Grax.add_additional_statements(@additional_user_statements)
     end
   end
 
   test "links are mapped to an iri, when required" do
     user = Example.user(EX.User0, depth: 0)
 
-    assert UserWithIris.from(user) ==
-             UserWithIris.build(EX.User0, posts: user.posts)
+    assert UserWithIris.from!(user) ==
+             UserWithIris.build!(EX.User0, posts: user.posts)
+             |> Grax.add_additional_statements(@additional_user_statements)
+             |> Grax.add_additional_statements([{EX.name(), "John Doe"}])
+             |> Grax.delete_additional_statements([{EX.post(), ~I<http://example.com/Post0>}])
 
     user_with_links = Example.user(EX.User0, depth: 1)
 
-    assert UserWithIris.from(user_with_links) ==
-             UserWithIris.build(EX.User0, posts: user.posts)
-  end
-
-  test "iris are mapped to a flat link, when required" do
-    user_with_iris = UserWithIris.build!(EX.User0, posts: [RDF.iri(EX.Post0)])
-
-    assert Example.User.from!(user_with_iris) ==
-             Example.User.build!(EX.User0, posts: [RDF.iri(EX.Post0)])
+    assert UserWithIris.from!(user_with_links) ==
+             UserWithIris.build!(EX.User0, posts: user.posts)
+             |> Grax.add_additional_statements(@additional_user_statements)
+             |> Grax.add_additional_statements([{EX.name(), "John Doe"}])
+             |> Grax.delete_additional_statements([{EX.post(), ~I<http://example.com/Post0>}])
   end
 end
