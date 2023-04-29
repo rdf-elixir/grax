@@ -28,26 +28,28 @@ defmodule Grax.RDF.Access do
   end
 
   def filtered_objects(graph, description, property_schema) do
-    case LinkProperty.value_type(property_schema) do
-      %{} = class_mapping when not is_struct(class_mapping) ->
-        graph
-        |> objects(description, property_schema.iri)
-        |> Enum.reduce_while({:ok, []}, fn object, {:ok, objects} ->
-          description = description(graph, object)
+    if objects = objects(graph, description, property_schema.iri) do
+      case LinkProperty.value_type(property_schema) do
+        %{} = class_mapping when not is_struct(class_mapping) ->
+          Enum.reduce_while(objects, {:ok, []}, fn object, {:ok, objects} ->
+            description = description(graph, object)
 
-          case determine_schema(
-                 description[RDF.type()],
-                 class_mapping,
-                 property_schema.on_type_mismatch
-               ) do
-            {:ok, nil} -> {:cont, {:ok, objects}}
-            {:ok, _} -> {:cont, {:ok, [object | objects]}}
-            {:error, _} = error -> {:halt, error}
-          end
-        end)
+            case determine_schema(
+                   description[RDF.type()],
+                   class_mapping,
+                   property_schema.on_type_mismatch
+                 ) do
+              {:ok, nil} -> {:cont, {:ok, objects}}
+              {:ok, _} -> {:cont, {:ok, [object | objects]}}
+              {:error, _} = error -> {:halt, error}
+            end
+          end)
 
-      _ ->
-        {:ok, objects(graph, description, property_schema.iri)}
+        _ ->
+          {:ok, objects}
+      end
+    else
+      {:ok, nil}
     end
   end
 

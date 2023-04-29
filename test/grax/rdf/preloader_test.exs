@@ -343,6 +343,28 @@ defmodule Grax.RDF.PreloaderTest do
                   resource_types: [RDF.iri(EX.Comment), RDF.iri(EX.Post)]
                 )}
     end
+
+    test "when no values present" do
+      assert RDF.graph([EX.A |> EX.name("nothing")])
+             |> Example.HeterogeneousLinks.load(EX.A) ==
+               Example.HeterogeneousLinks.build(EX.A, name: "nothing")
+    end
+
+    test "when no values present in a nested schema struct with heterogeneous links" do
+      defmodule NestedHeterogeneousLinks do
+        use Grax.Schema
+
+        schema do
+          link foo: EX.foo(), type: Example.HeterogeneousLinks
+        end
+      end
+
+      assert RDF.graph([EX.A |> EX.foo(EX.B)])
+             |> NestedHeterogeneousLinks.load(EX.A) ==
+               NestedHeterogeneousLinks.build(EX.A,
+                 foo: Example.HeterogeneousLinks.build!(RDF.iri(EX.B))
+               )
+    end
   end
 
   test "depth preloading" do

@@ -12,6 +12,11 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - Grax schema mapping functions `from/1` and `from!/1` on Grax schema modules,
   which allows to map one schema struct to another
 
+### Fixed
+
+- a bug when preloading a nested schema with heterogeneous links without values
+
+
 [Compare v0.3.5...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.5...HEAD)
 
 
