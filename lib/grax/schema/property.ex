@@ -185,7 +185,7 @@ defmodule Grax.Schema.LinkProperty do
   defp do_value_type({:resource, type}), do: type
   defp do_value_type(_), do: nil
 
-  def heterogeneous_type?(schema) do
+  def polymorphic_type?(schema) do
     value_type = value_type(schema)
     is_map(value_type) and not is_struct(value_type)
   end

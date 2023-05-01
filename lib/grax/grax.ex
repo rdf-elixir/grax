@@ -329,7 +329,7 @@ defmodule Grax do
 
         %{} = class_mapping when not is_struct(class_mapping) ->
           raise ArgumentError,
-                "unable to determine value type of heterogeneous property #{inspect(property_schema)}"
+                "unable to determine value type of polymorphic property #{inspect(property_schema)}"
 
         resource_type ->
           resource_type.build(value)

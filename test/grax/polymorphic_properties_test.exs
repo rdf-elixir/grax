@@ -1,9 +1,9 @@
-defmodule Grax.HeterogeneousPropertiesTest do
+defmodule Grax.PolymorphicPropertiesTest do
   use Grax.TestCase
 
   alias Grax.InvalidResourceTypeError
 
-  defmodule HeterogeneousLinks do
+  defmodule PolymorphicLinks do
     use Grax.Schema
 
     schema do
@@ -33,14 +33,14 @@ defmodule Grax.HeterogeneousPropertiesTest do
 
   describe "put/3" do
     test "a RDF.IRI on a link property" do
-      assert HeterogeneousLinks.build!(EX.Foo)
+      assert PolymorphicLinks.build!(EX.Foo)
              |> Grax.put(
                one: EX.bar(),
                strict_one: EX.bar(),
                many: [EX.baz1(), EX.baz2()]
              ) ==
                {:ok,
-                %HeterogeneousLinks{
+                %PolymorphicLinks{
                   __id__: IRI.new(EX.Foo),
                   one: EX.bar(),
                   strict_one: EX.bar(),
@@ -49,14 +49,14 @@ defmodule Grax.HeterogeneousPropertiesTest do
     end
 
     test "a RDF.BlankNode on a link property" do
-      assert HeterogeneousLinks.build!(EX.Foo)
+      assert PolymorphicLinks.build!(EX.Foo)
              |> Grax.put(
                one: RDF.bnode("bar"),
                strict_one: RDF.bnode("bar"),
                many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
              ) ==
                {:ok,
-                %HeterogeneousLinks{
+                %PolymorphicLinks{
                   __id__: IRI.new(EX.Foo),
                   one: RDF.bnode("bar"),
                   strict_one: RDF.bnode("bar"),
@@ -65,14 +65,14 @@ defmodule Grax.HeterogeneousPropertiesTest do
     end
 
     test "a vocabulary namespace term on a link property" do
-      assert HeterogeneousLinks.build!(EX.Foo)
+      assert PolymorphicLinks.build!(EX.Foo)
              |> Grax.put(
                one: EX.Bar,
                strict_one: EX.Bar,
                many: [EX.baz(), EX.Baz1, EX.Baz2]
              ) ==
                {:ok,
-                %HeterogeneousLinks{
+                %PolymorphicLinks{
                   __id__: IRI.new(EX.Foo),
                   one: IRI.new(EX.Bar),
                   strict_one: IRI.new(EX.Bar),
@@ -80,9 +80,9 @@ defmodule Grax.HeterogeneousPropertiesTest do
                 }}
     end
 
-    test "with a map for a heterogeneous property" do
+    test "with a map for a polymorphic property" do
       assert_raise ArgumentError, fn ->
-        HeterogeneousLinks.build!(EX.Foo)
+        PolymorphicLinks.build!(EX.Foo)
         |> Grax.put(:one, %{title: "foo"})
       end
     end
@@ -94,8 +94,8 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.A |> EX.one(EX.Post1) |> EX.strictOne(EX.Post1),
                EX.Post1 |> RDF.type(EX.Post) |> EX.title("foo")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one:
                    Example.Post.build!(EX.Post1,
                      title: "foo",
@@ -115,8 +115,8 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.A |> EX.one(EX.Comment1) |> EX.strictOne(EX.Comment1),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one:
                    Example.Comment.build!(EX.Comment1,
                      content: "foo",
@@ -134,8 +134,8 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.A |> EX.many(EX.Comment1),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: [
@@ -152,8 +152,8 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.A |> EX.many(EX.Post1),
                EX.Post1 |> EX.title("foo")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: [Example.Post.build!(EX.Post1, title: "foo", slug: "foo")]
@@ -164,8 +164,8 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.Post1 |> RDF.type(EX.Other) |> EX.title("foo"),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: [
@@ -186,8 +186,8 @@ defmodule Grax.HeterogeneousPropertiesTest do
       assert RDF.graph([
                EX.A |> EX.one(EX.Something)
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: []
@@ -198,8 +198,8 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.Something1 |> EX.foo("foo"),
                EX.Something2 |> RDF.type(EX.Other) |> EX.bar("bar")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: []
@@ -212,8 +212,8 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.Something1 |> EX.foo("foo"),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("bar")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one:
                    Example.Comment.build!(EX.Comment1,
                      content: "bar",
@@ -229,7 +229,7 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.A |> EX.strictOne(EX.Post1),
                EX.Post1 |> EX.title("foo")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
+             |> PolymorphicLinks.load(EX.A) ==
                {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: [])}
     end
 
@@ -238,7 +238,7 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.A |> EX.one(EX.Post1),
                EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
+             |> PolymorphicLinks.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
                   type: :multiple_matches,
@@ -249,7 +249,7 @@ defmodule Grax.HeterogeneousPropertiesTest do
                EX.A |> EX.strictOne(EX.Post1),
                EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
              ])
-             |> HeterogeneousLinks.load(EX.A) ==
+             |> PolymorphicLinks.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
                   type: :multiple_matches,
@@ -259,23 +259,23 @@ defmodule Grax.HeterogeneousPropertiesTest do
 
     test "when no values present" do
       assert RDF.graph([EX.A |> EX.name("nothing")])
-             |> HeterogeneousLinks.load(EX.A) ==
-               HeterogeneousLinks.build(EX.A, name: "nothing")
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A, name: "nothing")
     end
 
-    test "when no values present in a nested schema struct with heterogeneous links" do
-      defmodule NestedHeterogeneousLinks do
+    test "when no values present in a nested schema struct with polymorphic links" do
+      defmodule NestedPolymorphicLinks do
         use Grax.Schema
 
         schema do
-          link foo: EX.foo(), type: HeterogeneousLinks
+          link foo: EX.foo(), type: PolymorphicLinks
         end
       end
 
       assert RDF.graph([EX.A |> EX.foo(EX.B)])
-             |> NestedHeterogeneousLinks.load(EX.A) ==
-               NestedHeterogeneousLinks.build(EX.A,
-                 foo: HeterogeneousLinks.build!(RDF.iri(EX.B))
+             |> NestedPolymorphicLinks.load(EX.A) ==
+               NestedPolymorphicLinks.build(EX.A,
+                 foo: PolymorphicLinks.build!(RDF.iri(EX.B))
                )
     end
   end
