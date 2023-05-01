@@ -25,12 +25,4 @@ defmodule Grax.Schema.Struct do
       {name, %CustomField{default: default}} -> {name, default}
     end)
   end
-
-  def put_additional_statements(mapping, additional_statements) do
-    Map.put(mapping, @additional_statements_field, additional_statements)
-  end
-
-  def update_additional_statements(mapping, fun) do
-    Map.update!(mapping, @additional_statements_field, fun)
-  end
 end

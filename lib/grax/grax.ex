@@ -7,10 +7,10 @@ defmodule Grax do
   """
 
   alias Grax.{Schema, Id, Validator, ValidationError}
-  alias Grax.Schema.{DataProperty, LinkProperty, Struct, AdditionalStatements}
+  alias Grax.Schema.{DataProperty, LinkProperty, AdditionalStatements}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
-  alias RDF.{IRI, BlankNode, Graph}
+  alias RDF.{IRI, BlankNode, Graph, Description, Statement}
 
   import RDF.Utils
   import RDF.Utils.Guards
@@ -341,33 +341,46 @@ defmodule Grax do
 
   @spec additional_statements(Schema.t()) :: RDF.Description.t()
   def additional_statements(%_{} = mapping) do
-    AdditionalStatements.statements(mapping.__additional_statements__, mapping.__id__)
+    AdditionalStatements.description(mapping)
   end
 
-  @spec add_additional_statements(Schema.t(), map()) :: Schema.t()
+  @spec add_additional_statements(Schema.t(), Description.input()) :: Schema.t()
   def add_additional_statements(%_{} = mapping, predications) do
-    Struct.update_additional_statements(mapping, &AdditionalStatements.add(&1, predications))
+    AdditionalStatements.update(mapping, &Description.add(&1, predications))
   end
 
-  @spec put_additional_statements(Schema.t(), map()) :: Schema.t()
+  @spec put_additional_statements(Schema.t(), Description.input()) :: Schema.t()
+  def put_additional_statements(
+        %_{__id__: id} = mapping,
+        %Description{subject: subject} = description
+      )
+      when id != subject do
+    AdditionalStatements.update(
+      mapping,
+      &Description.put(&1, Description.change_subject(description, id))
+    )
+  end
+
   def put_additional_statements(%_{} = mapping, predications) do
-    Struct.update_additional_statements(mapping, &AdditionalStatements.put(&1, predications))
+    AdditionalStatements.update(mapping, &Description.put(&1, predications))
   end
 
-  @spec delete_additional_statements(Schema.t(), map()) :: Schema.t()
+  @spec delete_additional_statements(Schema.t(), Description.input()) :: Schema.t()
   def delete_additional_statements(%_{} = mapping, predications) do
-    Struct.update_additional_statements(mapping, &AdditionalStatements.delete(&1, predications))
+    AdditionalStatements.update(mapping, &Description.delete(&1, predications))
+  end
+
+  @spec delete_additional_predicates(
+          Schema.t(),
+          Statement.coercible_predicate() | [Statement.coercible_predicate()]
+        ) :: Schema.t()
+  def delete_additional_predicates(%_{} = mapping, properties) do
+    AdditionalStatements.update(mapping, &Description.delete_predicates(&1, properties))
   end
 
   @spec clear_additional_statements(Schema.t(), opts :: keyword()) :: Schema.t()
-  def clear_additional_statements(%schema{} = mapping, opts \\ []) do
-    Struct.put_additional_statements(
-      mapping,
-      if(Keyword.get(opts, :clear_schema_class, false),
-        do: AdditionalStatements.empty(),
-        else: schema.__additional_statements__()
-      )
-    )
+  def clear_additional_statements(%_{} = mapping, opts \\ []) do
+    AdditionalStatements.clear(mapping, opts)
   end
 
   @spec validate(Schema.t(), opts :: keyword()) ::

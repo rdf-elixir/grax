@@ -11,6 +11,23 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 - Grax schema mapping functions `from/1` and `from!/1` on Grax schema modules,
   which allows to map one schema struct to another
+- `Grax.delete_additional_predicates/2` to delete all additional statements
+
+### Changed
+
+- The internal representation of the `__additional_statements__` field of Grax 
+  schema structs was changed to use now the same format as the internal
+  `predications` field of `RDF.Description`s. This allows various optimizations 
+  and a richer API for accessing the additional statements, e.g. all the 
+  functions to update the additional statements like `Grax.add_additional_statements/2`
+  now can handle the multitude of inputs as the respective `RDF.Description`
+  counterpart. Unfortunately, this brings two additional breaking changes:
+  - You no longer can pass the contents of the `__additional_statements__` 
+    field of one Grax schema as the additional statements to another one.
+    You should instead pass the result of `Grax.additional_statements/1` now.
+  - You no longer can use `nil` values on a property with `Grax.put_additional_statements/2`
+    to remove statements with this property. You must use the new 
+    `Grax.delete_additional_predicates/2` function for this now.
 
 ### Fixed
 

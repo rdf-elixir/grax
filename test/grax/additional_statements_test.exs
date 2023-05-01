@@ -1,6 +1,8 @@
 defmodule Grax.AdditionalStatementsTest do
   use Grax.TestCase
 
+  alias Grax.Schema.AdditionalStatements
+
   describe "Grax.build/2" do
     test "with __additional_statements__ map" do
       assert Example.User.build(EX.User0, %{
@@ -16,11 +18,12 @@ defmodule Grax.AdditionalStatementsTest do
                {:ok,
                 %Example.User{
                   __id__: IRI.new(EX.User0),
-                  __additional_statements__: %{
-                    RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                    RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
-                    RDF.iri(EX.P2) => MapSet.new([~L"foo"])
-                  },
+                  __additional_statements__:
+                    AdditionalStatements.new(%{
+                      RDF.type() => [RDF.iri(EX.User)],
+                      EX.P1 => [RDF.iri(EX.O1)],
+                      EX.P2 => [~L"foo"]
+                    }),
                   name: "Foo",
                   email: ["foo@example.com"],
                   password: "secret",
@@ -43,11 +46,12 @@ defmodule Grax.AdditionalStatementsTest do
              }) ==
                %Example.User{
                  __id__: IRI.new(EX.User0),
-                 __additional_statements__: %{
-                   RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                   RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
-                   RDF.iri(EX.P2) => MapSet.new([~L"foo"])
-                 },
+                 __additional_statements__:
+                   AdditionalStatements.new(%{
+                     RDF.type() => RDF.iri(EX.User),
+                     EX.P1 => RDF.iri(EX.O1),
+                     EX.P2 => ~L"foo"
+                   }),
                  name: "Foo",
                  email: ["foo@example.com"],
                  password: "secret",
@@ -57,7 +61,7 @@ defmodule Grax.AdditionalStatementsTest do
 
     test "additional rdf:type statement for schema class is defined" do
       assert Example.ClassDeclaration.build!(EX.S, name: "foo").__additional_statements__ ==
-               %{RDF.type() => MapSet.new([RDF.iri(EX.Class)])}
+               AdditionalStatements.new(%{RDF.type() => EX.Class})
     end
   end
 
@@ -96,11 +100,12 @@ defmodule Grax.AdditionalStatementsTest do
       assert user ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     EX.p1() => MapSet.new([RDF.iri(EX.O1)]),
-                     EX.p2() => MapSet.new([RDF.iri(EX.O2)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => RDF.iri(EX.User),
+                       EX.p1() => RDF.iri(EX.O1),
+                       EX.p2() => RDF.iri(EX.O2)
+                     })
                }
 
       assert user
@@ -110,12 +115,13 @@ defmodule Grax.AdditionalStatementsTest do
              }) ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     EX.p1() => MapSet.new([RDF.iri(EX.O1), ~L"O1"]),
-                     EX.p2() => MapSet.new([RDF.iri(EX.O2)]),
-                     EX.p3() => MapSet.new([RDF.iri(EX.O3)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => [RDF.iri(EX.User)],
+                       EX.p1() => [RDF.iri(EX.O1), ~L"O1"],
+                       EX.p2() => [RDF.iri(EX.O2)],
+                       EX.p3() => [RDF.iri(EX.O3)]
+                     })
                }
     end
 
@@ -130,11 +136,12 @@ defmodule Grax.AdditionalStatementsTest do
       assert user ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
-                     RDF.iri(EX.P2) => MapSet.new([RDF.iri(EX.O2)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => [RDF.iri(EX.User)],
+                       RDF.iri(EX.P1) => [RDF.iri(EX.O1)],
+                       RDF.iri(EX.P2) => [RDF.iri(EX.O2)]
+                     })
                }
 
       assert user
@@ -144,12 +151,13 @@ defmodule Grax.AdditionalStatementsTest do
              }) ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1), ~L"O1"]),
-                     RDF.iri(EX.P2) => MapSet.new([RDF.iri(EX.O2)]),
-                     RDF.iri(EX.P3) => MapSet.new([RDF.XSD.integer(1)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => [RDF.iri(EX.User)],
+                       RDF.iri(EX.P1) => [RDF.iri(EX.O1), ~L"O1"],
+                       RDF.iri(EX.P2) => [RDF.iri(EX.O2)],
+                       RDF.iri(EX.P3) => [RDF.XSD.integer(1)]
+                     })
                }
     end
 
@@ -158,9 +166,8 @@ defmodule Grax.AdditionalStatementsTest do
              |> Grax.add_additional_statements(%{RDF.type() => RDF.iri(EX.Foo)}) ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User), RDF.iri(EX.Foo)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{RDF.type() => [RDF.iri(EX.User), RDF.iri(EX.Foo)]})
                }
     end
   end
@@ -170,18 +177,19 @@ defmodule Grax.AdditionalStatementsTest do
       user =
         Example.user(EX.User0)
         |> Grax.put_additional_statements(%{
-          EX.p1() => RDF.iri(EX.O1),
-          EX.p2() => RDF.iri(EX.O2)
+          EX.p1() => EX.O1,
+          EX.p2() => EX.O2
         })
 
       assert user ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     EX.p1() => MapSet.new([RDF.iri(EX.O1)]),
-                     EX.p2() => MapSet.new([RDF.iri(EX.O2)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => RDF.iri(EX.User),
+                       EX.p1() => RDF.iri(EX.O1),
+                       EX.p2() => RDF.iri(EX.O2)
+                     })
                }
 
       assert user
@@ -191,12 +199,13 @@ defmodule Grax.AdditionalStatementsTest do
              }) ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     EX.p1() => MapSet.new([~L"O1"]),
-                     EX.p2() => MapSet.new([RDF.iri(EX.O2)]),
-                     EX.p3() => MapSet.new([RDF.iri(EX.O3)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => [RDF.iri(EX.User)],
+                       EX.p1() => [~L"O1"],
+                       EX.p2() => [RDF.iri(EX.O2)],
+                       EX.p3() => [RDF.iri(EX.O3)]
+                     })
                }
     end
 
@@ -211,11 +220,12 @@ defmodule Grax.AdditionalStatementsTest do
       assert user ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
-                     RDF.iri(EX.P2) => MapSet.new([RDF.iri(EX.O2)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => RDF.iri(EX.User),
+                       RDF.iri(EX.P1) => RDF.iri(EX.O1),
+                       RDF.iri(EX.P2) => RDF.iri(EX.O2)
+                     })
                }
 
       assert user
@@ -225,46 +235,34 @@ defmodule Grax.AdditionalStatementsTest do
              }) ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     RDF.iri(EX.P1) => MapSet.new([~L"O1"]),
-                     RDF.iri(EX.P2) => MapSet.new([RDF.iri(EX.O2)]),
-                     RDF.iri(EX.P3) => MapSet.new([RDF.XSD.integer(1)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => RDF.iri(EX.User),
+                       RDF.iri(EX.P1) => ~L"O1",
+                       RDF.iri(EX.P2) => RDF.iri(EX.O2),
+                       RDF.iri(EX.P3) => RDF.XSD.integer(1)
+                     })
                }
     end
 
-    test "with nil as a value, the property gets deleted from the additional_statements" do
-      user =
-        Example.user(EX.User0)
-        |> Grax.put_additional_statements(%{
-          EX.P1 => EX.O1,
-          EX.P2 => EX.O2
-        })
-
-      assert user
+    test "with additional statements from another schema" do
+      assert Example.user(EX.User0)
              |> Grax.put_additional_statements(%{
-               EX.P1 => nil,
-               EX.P2 => 2
-             }) ==
-               %Example.User{
-                 Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     RDF.iri(EX.P2) => MapSet.new([RDF.XSD.integer(2)])
-                   }
-               }
-    end
-
-    test "with values in a MapSet (e.g. when the additional statements come from another schema)" do
-      user =
-        Example.user(EX.User0)
-        |> Grax.put_additional_statements(%{
-          EX.P1 => EX.O1,
-          EX.P2 => EX.O2
-        })
-
-      assert Grax.put_additional_statements(user, user.__additional_statements__) == user
+               EX.P1 => EX.O1,
+               EX.P2 => EX.O2
+             })
+             |> Grax.put_additional_statements(
+               Example.user(EX.User1)
+               |> Grax.put_additional_statements(%{
+                 EX.P2 => EX.O3
+               })
+               |> Grax.additional_statements()
+             ) ==
+               Example.user(EX.User0)
+               |> Grax.put_additional_statements(%{
+                 EX.P1 => EX.O1,
+                 EX.P2 => EX.O3
+               })
     end
 
     test "rdf:type with Grax schema class can be overwritten" do
@@ -272,9 +270,7 @@ defmodule Grax.AdditionalStatementsTest do
              |> Grax.put_additional_statements(%{RDF.type() => RDF.iri(EX.Foo)}) ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.Foo)])
-                   }
+                 | __additional_statements__: AdditionalStatements.new(%{RDF.type() => EX.Foo})
                }
     end
   end
@@ -293,11 +289,12 @@ defmodule Grax.AdditionalStatementsTest do
              }) ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)]),
-                     EX.p2() => MapSet.new([RDF.iri(EX.O3)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => [RDF.iri(EX.User)],
+                       EX.P1 => [RDF.iri(EX.O1)],
+                       EX.p2() => [RDF.iri(EX.O3)]
+                     })
                }
 
       assert Grax.delete_additional_statements(user, %{
@@ -305,10 +302,11 @@ defmodule Grax.AdditionalStatementsTest do
              }) ==
                %Example.User{
                  Example.user(EX.User0)
-                 | __additional_statements__: %{
-                     RDF.type() => MapSet.new([RDF.iri(EX.User)]),
-                     RDF.iri(EX.P1) => MapSet.new([RDF.iri(EX.O1)])
-                   }
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => [RDF.iri(EX.User)],
+                       RDF.iri(EX.P1) => [RDF.iri(EX.O1)]
+                     })
                }
 
       assert Grax.delete_additional_statements(user, %{
@@ -326,6 +324,39 @@ defmodule Grax.AdditionalStatementsTest do
     test "rdf:type with Grax schema class can be deleted" do
       assert Example.user(EX.User0)
              |> Grax.delete_additional_statements(%{RDF.type() => RDF.iri(EX.User)}) ==
+               %Example.User{Example.user(EX.User0) | __additional_statements__: %{}}
+    end
+  end
+
+  describe "Grax.delete_additional_predicates/2" do
+    test "with properties" do
+      user =
+        Example.user(EX.User0)
+        |> Grax.add_additional_statements(%{
+          RDF.iri(EX.P1) => RDF.iri(EX.O1),
+          EX.p2() => [RDF.iri(EX.O2), RDF.iri(EX.O3)]
+        })
+
+      assert Grax.delete_additional_predicates(user, EX.p2()) ==
+               %Example.User{
+                 Example.user(EX.User0)
+                 | __additional_statements__:
+                     AdditionalStatements.new(%{
+                       RDF.type() => [RDF.iri(EX.User)],
+                       EX.P1 => [RDF.iri(EX.O1)]
+                     })
+               }
+
+      assert Grax.delete_additional_predicates(user, EX.p3()) ==
+               user
+
+      assert Grax.delete_additional_predicates(user, [EX.P1, EX.p2()]) ==
+               Example.user(EX.User0)
+    end
+
+    test "rdf:type with Grax schema class can be deleted" do
+      assert Example.user(EX.User0)
+             |> Grax.delete_additional_predicates(RDF.type()) ==
                %Example.User{Example.user(EX.User0) | __additional_statements__: %{}}
     end
   end

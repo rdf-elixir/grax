@@ -1,93 +1,61 @@
 defmodule Grax.Schema.AdditionalStatements do
   @moduledoc false
 
-  alias RDF.Statement
+  alias RDF.Description
+
+  @pseudo_subject RDF.bnode("<pseudo_subject>")
 
   @empty %{}
   def empty, do: @empty
 
   def default(nil), do: @empty
-  def default(class), do: add(@empty, %{RDF.type() => class})
+  def default(class), do: new({RDF.type(), class})
 
-  def get(additional_statements, property) do
-    if values = Map.get(additional_statements, property) do
-      MapSet.to_list(values)
-    end
+  def new(predications) do
+    RDF.description(@pseudo_subject, init: predications).predications
   end
 
-  def add(additional_statements, predications) do
-    Enum.reduce(predications, additional_statements, fn
-      {predicate, objects}, additional_statements ->
-        add(additional_statements, predicate, objects)
-    end)
+  def description(%{__id__: subject, __additional_statements__: additional_statements}) do
+    %Description{
+      subject: subject,
+      predications: additional_statements
+    }
   end
 
-  def add(additional_statements, predicate, objects) do
-    coerced_objects = normalize_objects(objects)
-
-    Map.update(
-      additional_statements,
-      Statement.coerce_predicate(predicate),
-      coerced_objects,
-      &MapSet.union(&1, coerced_objects)
-    )
+  def clear(%schema{} = mapping, opts) do
+    %{
+      mapping
+      | __additional_statements__:
+          if(Keyword.get(opts, :clear_schema_class, false),
+            do: empty(),
+            else: schema.__additional_statements__()
+          )
+    }
   end
 
-  def put(additional_statements, predications) do
-    Enum.reduce(predications, additional_statements, fn
-      {predicate, objects}, additional_statements ->
-        put(additional_statements, predicate, objects)
-    end)
+  def get(mapping, property) do
+    mapping
+    |> description()
+    |> Description.get(property)
   end
 
-  def put(additional_statements, predicate, nil) do
-    Map.delete(additional_statements, Statement.coerce_predicate(predicate))
+  def update(mapping, fun) do
+    %{mapping | __additional_statements__: fun.(description(mapping)).predications}
   end
 
-  def put(additional_statements, predicate, objects) do
-    Map.put(
-      additional_statements,
-      Statement.coerce_predicate(predicate),
-      normalize_objects(objects)
-    )
-  end
+  def add_filtered_description(mapping, statements, rejected_properties) do
+    description = description(mapping)
 
-  def delete(additional_statements, predications) do
-    Enum.reduce(predications, additional_statements, fn
-      {predicate, objects}, additional_statements ->
-        delete(additional_statements, predicate, objects)
-    end)
-  end
+    updated =
+      Enum.reduce(statements, description, fn
+        {_, p, o}, description ->
+          if p in rejected_properties do
+            description
+          else
+            Description.add(description, {p, o})
+          end
+      end)
 
-  def delete(additional_statements, predicate, objects) do
-    predicate = Statement.coerce_predicate(predicate)
-
-    if existing_objects = additional_statements[predicate] do
-      new_objects = MapSet.difference(existing_objects, normalize_objects(objects))
-
-      if Enum.empty?(new_objects) do
-        Map.delete(additional_statements, predicate)
-      else
-        Map.put(additional_statements, predicate, new_objects)
-      end
-    else
-      additional_statements
-    end
-  end
-
-  defp normalize_objects(%MapSet{} = objects),
-    do: objects |> MapSet.to_list() |> normalize_objects()
-
-  defp normalize_objects(objects) do
-    objects
-    |> List.wrap()
-    |> Enum.map(&Statement.coerce_object/1)
-    |> MapSet.new()
-  end
-
-  def statements(additional_statements, subject) do
-    RDF.description(subject,
-      init: Map.new(additional_statements, fn {p, os} -> {p, MapSet.to_list(os)} end)
-    )
+    %{mapping | __additional_statements__: updated.predications}
   end
 end

@@ -42,25 +42,14 @@ defmodule Grax.RDF.Loader do
 
   def load_additional_statements(schema, description, initial) do
     if schema.__load_additional_statements__?() do
-      %{
-        initial
-        | __additional_statements__:
-            additional_statements(schema.__domain_properties__(), description, initial)
-      }
+      AdditionalStatements.add_filtered_description(
+        initial,
+        description,
+        schema.__domain_properties__()
+      )
     else
       initial
     end
-  end
-
-  defp additional_statements(properties, description, initial) do
-    Enum.reduce(description, initial.__additional_statements__, fn
-      {_, p, o}, additional_statements ->
-        if p in properties do
-          additional_statements
-        else
-          AdditionalStatements.add(additional_statements, p, o)
-        end
-    end)
   end
 
   def load_properties(property_schemas, initial, graph, description) do
