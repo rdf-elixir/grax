@@ -402,34 +402,6 @@ defmodule Example do
     end
   end
 
-  defmodule HeterogeneousLinks do
-    use Grax.Schema
-
-    schema do
-      property name: EX.name()
-
-      link one: EX.one(),
-           type: %{
-             EX.Post => Example.Post,
-             EX.Comment => Example.Comment
-           }
-
-      link strict_one: EX.strictOne(),
-           type: %{
-             EX.Post => Example.Post,
-             EX.Comment => Example.Comment
-           },
-           on_type_mismatch: :error
-
-      link many: EX.many(),
-           type:
-             list_of(%{
-               nil => Example.Post,
-               EX.Comment => Example.Comment
-             })
-    end
-  end
-
   defmodule ClassDeclaration do
     use Grax.Schema
 

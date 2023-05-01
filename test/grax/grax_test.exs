@@ -519,20 +519,6 @@ defmodule GraxTest do
                   __id__: IRI.new(EX.User0),
                   posts: [IRI.new(EX.Foo), IRI.new(EX.Bar)]
                 }}
-
-      assert Example.HeterogeneousLinks.build!(EX.Foo)
-             |> Grax.put(
-               one: EX.bar(),
-               strict_one: EX.bar(),
-               many: [EX.baz1(), EX.baz2()]
-             ) ==
-               {:ok,
-                %Example.HeterogeneousLinks{
-                  __id__: IRI.new(EX.Foo),
-                  one: EX.bar(),
-                  strict_one: EX.bar(),
-                  many: [EX.baz1(), EX.baz2()]
-                }}
     end
 
     test "a RDF.BlankNode on a link property" do
@@ -554,20 +540,6 @@ defmodule GraxTest do
                     RDF.bnode("baz")
                   ]
                 }}
-
-      assert Example.HeterogeneousLinks.build!(EX.Foo)
-             |> Grax.put(
-               one: RDF.bnode("bar"),
-               strict_one: RDF.bnode("bar"),
-               many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
-             ) ==
-               {:ok,
-                %Example.HeterogeneousLinks{
-                  __id__: IRI.new(EX.Foo),
-                  one: RDF.bnode("bar"),
-                  strict_one: RDF.bnode("bar"),
-                  many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
-                }}
     end
 
     test "a vocabulary namespace term on a link property" do
@@ -585,20 +557,6 @@ defmodule GraxTest do
                 %Example.User{
                   __id__: IRI.new(EX.User0),
                   posts: [IRI.new(EX.Foo), IRI.new(EX.Bar)]
-                }}
-
-      assert Example.HeterogeneousLinks.build!(EX.Foo)
-             |> Grax.put(
-               one: EX.Bar,
-               strict_one: EX.Bar,
-               many: [EX.baz(), EX.Baz1, EX.Baz2]
-             ) ==
-               {:ok,
-                %Example.HeterogeneousLinks{
-                  __id__: IRI.new(EX.Foo),
-                  one: IRI.new(EX.Bar),
-                  strict_one: IRI.new(EX.Bar),
-                  many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
                 }}
     end
 
@@ -647,13 +605,6 @@ defmodule GraxTest do
       assert Example.User.build!(EX.User0)
              |> Grax.put(:posts, [%{title: "foo"}]) ==
                {:error, "no id schema found"}
-    end
-
-    test "with a map for a heterogeneous property" do
-      assert_raise ArgumentError, fn ->
-        Example.HeterogeneousLinks.build!(EX.Foo)
-        |> Grax.put(:one, %{title: "foo"})
-      end
     end
 
     test "with a link property and a wrong Grax.Schema struct" do
