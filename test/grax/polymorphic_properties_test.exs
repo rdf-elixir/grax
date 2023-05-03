@@ -31,23 +31,6 @@ defmodule Grax.PolymorphicPropertiesTest do
     end
   end
 
-  defmodule PolymorphicLinkWithInheritance do
-    use Grax.Schema
-
-    schema do
-      property name: EX.name()
-
-      link linked: EX.linked(),
-           type: %{
-             EX.ParentSchema => Example.ParentSchema,
-             EX.ChildSchema => Example.ChildSchema,
-             EX.ChildSchemaWithClass => Example.ChildSchemaWithClass,
-             EX.ChildOfMany => Example.ChildOfMany
-           },
-           on_type_mismatch: :error
-    end
-  end
-
   describe "put/3" do
     test "a RDF.IRI on a link property" do
       assert PolymorphicLinks.build!(EX.Foo)
@@ -106,6 +89,8 @@ defmodule Grax.PolymorphicPropertiesTest do
   end
 
   describe "preloading" do
+    # for inheritance related preloading see Grax.Schema.InheritanceTest
+
     test "when a class matches" do
       assert RDF.graph([
                EX.A |> EX.one(EX.Post1) |> EX.strictOne(EX.Post1),
@@ -248,62 +233,6 @@ defmodule Grax.PolymorphicPropertiesTest do
              ])
              |> PolymorphicLinks.load(EX.A) ==
                {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: [])}
-    end
-
-    test "when multiple classes are matching which are related via inheritance" do
-      assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
-               EX.B |> RDF.type([EX.ParentSchema, EX.ChildSchema])
-             ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
-               PolymorphicLinkWithInheritance.build(EX.A,
-                 linked:
-                   Example.ChildSchema.build!(EX.B,
-                     __additional_statements__: %{RDF.type() => [EX.ParentSchema, EX.ChildSchema]},
-                     f2: :foo
-                   )
-               )
-
-      assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
-               EX.B
-               |> RDF.type([
-                 EX.ParentSchema,
-                 EX.ChildSchemaWithClass,
-                 EX.ChildOfMany
-               ])
-             ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
-               PolymorphicLinkWithInheritance.build(EX.A,
-                 linked:
-                   Example.ChildOfMany.build!(EX.B,
-                     __additional_statements__: %{
-                       RDF.type() => [
-                         EX.SubClass,
-                         EX.ParentSchema,
-                         EX.ChildSchemaWithClass,
-                         EX.ChildOfMany
-                       ]
-                     }
-                   )
-               )
-
-      assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
-               EX.B
-               |> RDF.type([
-                 EX.ParentSchema,
-                 EX.ChildSchema,
-                 EX.ChildSchemaWithClass,
-                 EX.ChildOfMany
-               ])
-             ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
-               {:error,
-                InvalidResourceTypeError.exception(
-                  type: :multiple_matches,
-                  resource_types: [Example.ChildSchema, Example.ChildOfMany]
-                )}
     end
 
     test "when multiple independent classes are matching" do
