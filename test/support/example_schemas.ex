@@ -508,7 +508,11 @@ defmodule Example do
   defmodule ChildOfMany do
     use Grax.Schema
 
-    schema EX.Class < [Example.ParentSchema, Example.AnotherParentSchema] do
+    schema EX.SubClass < [
+             Example.ParentSchema,
+             Example.AnotherParentSchema,
+             Example.ChildSchemaWithClass
+           ] do
       property dp2: EX.dp23()
       property dp4: EX.dp4()
 

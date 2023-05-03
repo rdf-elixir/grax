@@ -2,6 +2,7 @@ defmodule Grax.RDF.Preloader do
   @moduledoc false
 
   alias Grax.RDF.Loader
+  alias Grax.Schema.Property
   import Grax.RDF.Access
   import RDF.Guards
 
@@ -171,16 +172,17 @@ defmodule Grax.RDF.Preloader do
      )}
   end
 
-  defp map_link(resource, {:resource, class_mapping}, property_schema, graph, opts)
-       when is_map(class_mapping) do
+  defp map_link(
+         resource,
+         {:resource, %Property.Polymorphic{types: class_mapping}},
+         property_schema,
+         graph,
+         opts
+       ) do
     description = description(graph, resource)
 
     with {:ok, schema} when not is_nil(schema) <-
-           determine_schema(
-             description[RDF.type()],
-             class_mapping,
-             property_schema.on_type_mismatch
-           ) do
+           Property.Polymorphic.determine_schema(description, class_mapping, property_schema) do
       schema.load(graph, resource, Keyword.put(opts, :description, description))
     end
   end

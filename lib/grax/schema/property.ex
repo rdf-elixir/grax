@@ -169,12 +169,9 @@ defmodule Grax.Schema.LinkProperty do
   def initial_value_type(nil), do: {:error, "type missing"}
 
   def initial_value_type(class_mapping) when is_map(class_mapping) do
-    {:ok,
-     {:resource,
-      Map.new(class_mapping, fn
-        {nil, schema} -> {nil, schema}
-        {class, schema} -> {RDF.iri(class), schema}
-      end)}}
+    with {:ok, polymorphic} <- Property.Polymorphic.new(class_mapping) do
+      {:ok, {:resource, polymorphic}}
+    end
   end
 
   def initial_value_type(schema), do: {:ok, {:resource, schema}}
@@ -186,7 +183,6 @@ defmodule Grax.Schema.LinkProperty do
   defp do_value_type(_), do: nil
 
   def polymorphic_type?(schema) do
-    value_type = value_type(schema)
-    is_map(value_type) and not is_struct(value_type)
+    match?(%Property.Polymorphic{}, value_type(schema))
   end
 end

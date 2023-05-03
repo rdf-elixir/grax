@@ -1,6 +1,19 @@
 defmodule Grax.Schema.Inheritance do
   @moduledoc false
 
+  def paths(schema) do
+    if super_classes = schema.__super__() do
+      Enum.flat_map(super_classes, fn super_class ->
+        case paths(super_class) do
+          [] -> [[super_class]]
+          paths -> Enum.map(paths, &[super_class | &1])
+        end
+      end)
+    else
+      []
+    end
+  end
+
   def inherit_properties(_, nil, properties), do: properties
 
   def inherit_properties(child_schema, parent_schema, properties) do

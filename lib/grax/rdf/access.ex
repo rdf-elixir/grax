@@ -7,7 +7,7 @@ defmodule Grax.RDF.Access do
 
   alias RDF.{Description, Graph, Query}
   alias Grax.Schema.LinkProperty
-  alias Grax.InvalidResourceTypeError
+  alias Grax.Schema.Property.Polymorphic
 
   # TODO: this function becomes unnecessary when we depend on RDF.ex >= 0.12 as that's the default behaviour of Graph.description now
   # Dialyzer raises a warning with RDF.ex 0.12, since the fallback will never be used, but we need
@@ -30,15 +30,12 @@ defmodule Grax.RDF.Access do
   def filtered_objects(graph, description, property_schema) do
     if objects = objects(graph, description, property_schema.iri) do
       case LinkProperty.value_type(property_schema) do
-        %{} = class_mapping when not is_struct(class_mapping) ->
+        %Polymorphic{types: class_mapping} ->
           Enum.reduce_while(objects, {:ok, []}, fn object, {:ok, objects} ->
-            description = description(graph, object)
-
-            case determine_schema(
-                   description[RDF.type()],
-                   class_mapping,
-                   property_schema.on_type_mismatch
-                 ) do
+            graph
+            |> description(object)
+            |> Polymorphic.determine_schema(class_mapping, property_schema)
+            |> case do
               {:ok, nil} -> {:cont, {:ok, objects}}
               {:ok, _} -> {:cont, {:ok, [object | objects]}}
               {:error, _} = error -> {:halt, error}
@@ -60,39 +57,5 @@ defmodule Grax.RDF.Access do
       [] -> nil
       results -> Enum.map(results, &Map.fetch!(&1, :object))
     end
-  end
-
-  def determine_schema(types, class_mapping, on_type_mismatch) do
-    types
-    |> List.wrap()
-    |> Enum.reduce([], fn class, candidates ->
-      case class_mapping[class] do
-        nil -> candidates
-        schema -> [schema | candidates]
-      end
-    end)
-    |> do_determine_schema(types, class_mapping, on_type_mismatch)
-  end
-
-  defp do_determine_schema([schema], _, _, _), do: {:ok, schema}
-
-  defp do_determine_schema([], types, class_mapping, on_type_mismatch) do
-    case class_mapping[nil] do
-      nil ->
-        case on_type_mismatch do
-          :ignore ->
-            {:ok, nil}
-
-          :error ->
-            {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: types)}
-        end
-
-      schema ->
-        {:ok, schema}
-    end
-  end
-
-  defp do_determine_schema(_, types, _, _) do
-    {:error, InvalidResourceTypeError.exception(type: :multiple_matches, resource_types: types)}
   end
 end

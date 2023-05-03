@@ -313,7 +313,13 @@ defmodule Grax.SchemaTest do
   test "__super__/0" do
     assert Example.ChildSchema.__super__() == [Example.ParentSchema]
     assert Example.ChildSchemaWithClass.__super__() == [Example.ParentSchema]
-    assert Example.ChildOfMany.__super__() == [Example.ParentSchema, Example.AnotherParentSchema]
+
+    assert Example.ChildOfMany.__super__() == [
+             Example.ParentSchema,
+             Example.AnotherParentSchema,
+             Example.ChildSchemaWithClass
+           ]
+
     assert Example.ParentSchema.__super__() == nil
   end
 
