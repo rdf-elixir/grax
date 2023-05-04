@@ -15,6 +15,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - Preloading of polymorphic links whose schemas are in an inheritance 
   relationship are resolved to the most specific class and no longer result in 
   an `:multiple_matches` when the resource is typed also with the broader classes.
+- `Grax.Schema.schema?/1` and `Grax.Schema.struct?/1` to determine whether a given
+  module or struct is a Grax schema resp. Grax schema struct
 
 ### Changed
 

@@ -18,6 +18,8 @@ defmodule Grax.Schema do
 
   alias RDF.IRI
 
+  import RDF.Utils.Guards
+
   @type t() :: struct
 
   defmacro __using__(opts) do
@@ -272,12 +274,18 @@ defmodule Grax.Schema do
   Checks if the given value is a `Grax.Schema` struct.
   """
   @spec struct?(any) :: boolean
-  def struct?(%mod{__id__: _, __additional_statements__: _}) do
+  def struct?(%mod{__id__: _, __additional_statements__: _}), do: schema?(mod)
+  def struct?(_), do: false
+
+  @doc """
+  Checks if the given module is a `Grax.Schema`.
+  """
+  def schema?(mod) when maybe_module(mod) do
     case Code.ensure_compiled(mod) do
       {:module, mod} -> function_exported?(mod, :__properties__, 1)
       _ -> false
     end
   end
 
-  def struct?(_), do: false
+  def schema?(_), do: false
 end
