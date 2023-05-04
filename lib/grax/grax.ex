@@ -7,7 +7,7 @@ defmodule Grax do
   """
 
   alias Grax.{Schema, Id, Validator, ValidationError}
-  alias Grax.Schema.{DataProperty, LinkProperty, AdditionalStatements}
+  alias Grax.Schema.{Property, DataProperty, LinkProperty, AdditionalStatements}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph, Description, Statement}
@@ -327,7 +327,7 @@ defmodule Grax do
           raise ArgumentError,
                 "unable to determine value type of property #{inspect(property_schema)}"
 
-        %{} = class_mapping when not is_struct(class_mapping) ->
+        %Property.Polymorphic{} ->
           raise ArgumentError,
                 "unable to determine value type of polymorphic property #{inspect(property_schema)}"
 

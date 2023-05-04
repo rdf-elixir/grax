@@ -7,14 +7,32 @@ defmodule Grax.Schema.Property.Polymorphic do
   alias Grax.InvalidResourceTypeError
 
   def new(class_mapping) do
-    {:ok,
-     %__MODULE__{
-       types:
-         Map.new(class_mapping, fn
-           {nil, schema} -> {nil, schema}
-           {class, schema} -> {RDF.iri(class), schema}
-         end)
-     }}
+    {:ok, %__MODULE__{types: normalize_class_mapping(class_mapping)}}
+  end
+
+  defp normalize_class_mapping(class_mapping) do
+    Map.new(class_mapping, fn
+      {nil, schema} ->
+        {nil, schema}
+
+      {class, schema} ->
+        {RDF.iri(class), schema}
+
+      schema when is_atom(schema) ->
+        cond do
+          not Grax.Schema.schema?(schema) ->
+            raise "invalid polymorphic type definition: #{inspect(schema)}"
+
+          class = schema.__class__() ->
+            {RDF.iri(class), schema}
+
+          true ->
+            raise "invalid polymorphic type definition: #{inspect(schema)} does not specify a class"
+        end
+
+      invalid ->
+        raise "invalid polymorphic type definition: #{inspect(invalid)}"
+    end)
   end
 
   def determine_schema(description, class_mapping, property_schema) do

@@ -8,9 +8,9 @@
 [![Quality Checks](https://github.com/rdf-elixir/grax/actions/workflows/elixir-quality-checks.yml/badge.svg)](https://github.com/rdf-elixir/grax/actions/workflows/elixir-quality-checks.yml)
 
 
-A light-weight graph data mapper which maps RDF graph data from [RDF.ex] data structures to schema-conform Elixir structs.
+A light-weight graph data mapper which maps RDF graph data from [RDF.ex] data structures to schema-conform Elixir structs and vice versa.
 
-For a guide and more information about Grax and it's related projects, go to <https://rdf-elixir.dev/grax/>.
+For a guide and more information about Grax, and it's related projects, go to <https://rdf-elixir.dev/grax/>.
 
 
 ## Usage
@@ -110,8 +110,8 @@ user
 ## Future Work
 
 - I18n support (localization with language-tagged string literals)
-- Storage adapters (eg. accessing SPARQL endpoints directly and support for non-RDF-based graph databases)
-- RDFS support (eg. for class-based query builders)
+- Storage adapters (e.g. accessing SPARQL endpoints directly and support for non-RDF-based graph databases)
+- RDFS support (e.g. for class-based query builders)
 - More preloading strategies (eg. pattern- and path-based preloading)
 
 

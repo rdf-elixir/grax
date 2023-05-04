@@ -168,7 +168,7 @@ defmodule Grax.Schema.LinkProperty do
 
   def initial_value_type(nil), do: {:error, "type missing"}
 
-  def initial_value_type(class_mapping) when is_map(class_mapping) do
+  def initial_value_type(class_mapping) when is_map(class_mapping) or is_list(class_mapping) do
     with {:ok, polymorphic} <- Property.Polymorphic.new(class_mapping) do
       {:ok, {:resource, polymorphic}}
     end

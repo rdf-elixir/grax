@@ -31,6 +31,33 @@ defmodule Grax.PolymorphicPropertiesTest do
     end
   end
 
+  defmodule PolymorphicLinksShortForm do
+    use Grax.Schema
+
+    schema do
+      property name: EX.name()
+
+      link link: EX.link(), type: [Example.Post, Example.Comment]
+      link inverse_link: -EX.inverseLink(), type: [Example.Post, Example.Comment]
+    end
+  end
+
+  test "using the short-form when no class is defined leads to a proper error" do
+    assert_raise RuntimeError,
+                 "invalid polymorphic type definition: Example.Untyped does not specify a class",
+                 fn ->
+                   defmodule PolymorphicLinksShortFormFailure do
+                     use Grax.Schema
+
+                     schema do
+                       property name: EX.name()
+
+                       link link: EX.link(), type: [Example.Untyped, Example.Datatypes]
+                     end
+                   end
+                 end
+  end
+
   describe "put/3" do
     test "a RDF.IRI on a link property" do
       assert PolymorphicLinks.build!(EX.Foo)
@@ -80,11 +107,29 @@ defmodule Grax.PolymorphicPropertiesTest do
                 }}
     end
 
+    test "a Grax schema struct of the proper type" do
+      assert PolymorphicLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.Bar,
+               strict_one: EX.Bar,
+               many: [EX.baz(), EX.Baz1, EX.Baz2]
+             ) ==
+               {:ok,
+                %PolymorphicLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: IRI.new(EX.Bar),
+                  strict_one: IRI.new(EX.Bar),
+                  many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
+                }}
+    end
+
     test "with a map for a polymorphic property" do
-      assert_raise ArgumentError, fn ->
-        PolymorphicLinks.build!(EX.Foo)
-        |> Grax.put(:one, %{title: "foo"})
-      end
+      assert_raise ArgumentError,
+                   ~r/unable to determine value type of polymorphic property/,
+                   fn ->
+                     PolymorphicLinks.build!(EX.Foo)
+                     |> Grax.put(:one, %{title: "foo"})
+                   end
     end
   end
 
@@ -141,6 +186,41 @@ defmodule Grax.PolymorphicPropertiesTest do
                  one: nil,
                  strict_one: nil,
                  many: [
+                   Example.Comment.build!(EX.Comment1,
+                     content: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Comment}
+                   )
+                 ]
+               )
+    end
+
+    test "polymorphic links on inverses" do
+      assert RDF.graph([
+               EX.Comment1
+               |> RDF.type(EX.Comment)
+               |> EX.inverseLink(EX.A)
+             ])
+             |> PolymorphicLinksShortForm.load(EX.A) ==
+               PolymorphicLinksShortForm.build(EX.A,
+                 inverse_link: [
+                   Example.Comment.build!(EX.Comment1,
+                     __additional_statements__: %{
+                       RDF.type() => EX.Comment,
+                       EX.inverseLink() => EX.A
+                     }
+                   )
+                 ]
+               )
+    end
+
+    test "polymorphic link defined in short-form" do
+      assert RDF.graph([
+               EX.A |> EX.link(EX.Comment1),
+               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
+             ])
+             |> PolymorphicLinksShortForm.load(EX.A) ==
+               PolymorphicLinksShortForm.build(EX.A,
+                 link: [
                    Example.Comment.build!(EX.Comment1,
                      content: "foo",
                      __additional_statements__: %{RDF.type() => EX.Comment}
