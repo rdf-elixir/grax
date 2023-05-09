@@ -20,6 +20,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   with a class declaration.
 - `Grax.Schema.schema?/1` and `Grax.Schema.struct?/1` to determine whether a given
   module or struct is a Grax schema resp. Grax schema struct
+- `Grax.schema/1` to get the schema(s) of a given class IRI
 
 ### Changed
 

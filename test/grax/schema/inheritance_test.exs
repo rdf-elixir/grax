@@ -4,81 +4,14 @@ defmodule Grax.Schema.InheritanceTest do
   alias Grax.Schema.Inheritance
   alias Grax.InvalidResourceTypeError
 
-  alias Example.User
-
-  defmodule ParentSchema do
-    use Grax.Schema
-
-    schema do
-      property dp1: EX.dp1(), from_rdf: :upcase
-      property dp2: EX.dp2()
-
-      field :f1, default: :foo
-      field :f2
-
-      link lp1: EX.lp1(), type: User
-      link lp2: EX.lp2(), type: User
-    end
-
-    def upcase([foo], _, _), do: {:ok, foo |> to_string |> String.upcase()}
-  end
-
-  defmodule ChildSchema do
-    use Grax.Schema
-
-    schema inherit: ParentSchema do
-      property dp2: EX.dp22()
-      property dp3: EX.dp3()
-
-      field :f2, from_rdf: :foo
-      field :f3
-
-      link lp2: EX.lp22(), type: User
-      link lp3: EX.lp3(), type: User
-    end
-
-    def foo(_, _), do: {:ok, :foo}
-  end
-
-  defmodule ChildSchemaWithClass do
-    use Grax.Schema
-
-    schema EX.Class < ParentSchema do
-    end
-  end
-
-  defmodule AnotherParentSchema do
-    use Grax.Schema
-
-    schema do
-      property dp1: EX.dp1(), from_rdf: {ParentSchema, :upcase}
-      property dp2: EX.dp22()
-      property dp3: EX.dp3()
-
-      field :f1
-      field :f2
-      field :f3
-
-      link lp1: EX.lp1(), type: User
-      link lp3: EX.lp3(), type: User
-    end
-  end
-
-  defmodule ChildOfMany do
-    use Grax.Schema
-
-    schema EX.SubClass < [ParentSchema, AnotherParentSchema, ChildSchemaWithClass] do
-      property dp2: EX.dp23()
-      property dp4: EX.dp4()
-
-      field :f1
-      field :f4
-
-      link lp4: EX.lp4(), type: User
-    end
-
-    def foo(_, _), do: {:ok, :foo}
-  end
+  alias Example.{
+    User,
+    ParentSchema,
+    AnotherParentSchema,
+    ChildSchema,
+    ChildSchemaWithClass,
+    ChildOfMany
+  }
 
   defmodule PolymorphicLinkWithInheritance do
     use Grax.Schema
@@ -111,7 +44,7 @@ defmodule Grax.Schema.InheritanceTest do
   end
 
   test "__class__/0" do
-    assert ChildSchemaWithClass.__class__() == IRI.to_string(EX.Class)
+    assert ChildSchemaWithClass.__class__() == IRI.to_string(EX.Child2)
   end
 
   describe "field inheritance" do

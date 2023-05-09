@@ -6,6 +6,7 @@ defmodule Grax.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      Grax.Schema.Registry,
       Grax.Id.Counter.Supervisor,
       {Registry, keys: :unique, name: Grax.Id.Counter.registry()}
     ]

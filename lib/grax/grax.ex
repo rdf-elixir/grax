@@ -7,7 +7,7 @@ defmodule Grax do
   """
 
   alias Grax.{Schema, Id, Validator, ValidationError}
-  alias Grax.Schema.{Property, DataProperty, LinkProperty, AdditionalStatements}
+  alias Grax.Schema.{Registry, Property, DataProperty, LinkProperty, AdditionalStatements}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph, Description, Statement}
@@ -415,5 +415,12 @@ defmodule Grax do
       {:ok, graph} -> graph
       {:error, error} -> raise error
     end
+  end
+
+  @spec schema(IRI.coercible()) :: module | [module] | nil
+  def schema(iri) do
+    iri
+    |> RDF.iri()
+    |> Registry.schema()
   end
 end

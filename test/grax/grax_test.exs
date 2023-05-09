@@ -992,4 +992,13 @@ defmodule GraxTest do
     comment = Example.Comment.build!(EX.comment(), content: "Test")
     assert comment |> Grax.to_rdf!() |> Example.Comment.load!(EX.comment()) == comment
   end
+
+  test "schema/1" do
+    assert Grax.schema(EX.Post) == Example.Post
+
+    assert EX.User
+           |> RDF.iri()
+           |> Grax.schema()
+           |> Enum.sort() == Enum.sort([Example.User, Example.UserWithCallbacks])
+  end
 end
