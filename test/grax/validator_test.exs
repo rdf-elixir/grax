@@ -325,7 +325,7 @@ defmodule Grax.ValidatorTest do
         TypeError,
         &[
           value: &1,
-          type: Example.Post.__property__(&2).type
+          type: Example.Post.__property__(&2).type |> elem(1)
         ]
       )
 

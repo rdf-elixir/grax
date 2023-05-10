@@ -123,6 +123,21 @@ defmodule Grax.PolymorphicPropertiesTest do
                 }}
     end
 
+    test "a Grax schema struct with a wrong type on a strict link" do
+      assert PolymorphicLinks.build!(EX.Foo)
+             |> Grax.put(:strict_one, Example.User.build!(EX.Bar)) ==
+               {:error,
+                TypeError.exception(
+                  value: Example.User.build!(EX.Bar),
+                  type: %Grax.Schema.Property.Polymorphic{
+                    types: %{
+                      RDF.iri(EX.Comment) => Example.Comment,
+                      RDF.iri(EX.Post) => Example.Post
+                    }
+                  }
+                )}
+    end
+
     test "with a map for a polymorphic property" do
       assert_raise ArgumentError,
                    ~r/unable to determine value type of polymorphic property/,

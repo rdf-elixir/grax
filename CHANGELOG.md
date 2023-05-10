@@ -42,7 +42,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Fixed
 
-- a bug when preloading a nested schema with heterogeneous links without values
+- a bug when preloading a nested schema with polymorphic links without values
+- polymorphic links weren't validated properly
 
 
 [Compare v0.3.5...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.5...HEAD)

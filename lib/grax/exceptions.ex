@@ -38,7 +38,12 @@ defmodule Grax.Schema.TypeError do
   defexception [:message, :type, :value]
 
   def exception(opts) do
-    type = Keyword.fetch!(opts, :type)
+    type =
+      case Keyword.fetch!(opts, :type) do
+        {:resource, type} -> type
+        type -> type
+      end
+
     value = Keyword.fetch!(opts, :value)
     msg = opts[:message] || "value #{inspect(value)} does not match type #{inspect(type)}"
     %__MODULE__{message: msg, type: type, value: value}

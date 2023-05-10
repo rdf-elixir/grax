@@ -2,7 +2,7 @@ defmodule Grax.Validator do
   @moduledoc false
 
   alias Grax.{ValidationError, InvalidIdError}
-  alias Grax.Schema.{TypeError, CardinalityError}
+  alias Grax.Schema.{Property, TypeError, CardinalityError}
   alias RDF.{IRI, BlankNode, Literal, XSD}
 
   import ValidationError, only: [add_error: 3]
@@ -159,22 +159,26 @@ defmodule Grax.Validator do
     Enum.reduce(values, validation, &check_resource_type(&2, link, &1, type, opts))
   end
 
-  defp check_resource_type(validation, link, %type{} = value, {:resource, type}, opts) do
-    case call(value, opts) do
-      {:ok, _} -> validation
-      {:error, nested_validation} -> add_error(validation, link, nested_validation)
-    end
-  end
-
-  defp check_resource_type(validation, link, %_type{} = value, {:resource, class_mapping}, opts)
-       when is_map(class_mapping) do
-    case call(value, opts) do
-      {:ok, _} -> validation
-      {:error, nested_validation} -> add_error(validation, link, nested_validation)
+  defp check_resource_type(validation, link, %type{} = value, {:resource, base_type}, opts) do
+    if resource_type_matches?(type, base_type) do
+      case call(value, opts) do
+        {:ok, _} -> validation
+        {:error, nested_validation} -> add_error(validation, link, nested_validation)
+      end
+    else
+      add_error(validation, link, TypeError.exception(value: value, type: base_type))
     end
   end
 
   defp check_resource_type(validation, link, value, type, _opts) do
     add_error(validation, link, TypeError.exception(value: value, type: type))
+  end
+
+  defp resource_type_matches?(schema, %Property.Polymorphic{types: class_mapping}) do
+    schema in Map.values(class_mapping)
+  end
+
+  defp resource_type_matches?(schema, resource_type) do
+    schema == resource_type
   end
 end

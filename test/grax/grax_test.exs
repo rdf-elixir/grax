@@ -74,7 +74,7 @@ defmodule GraxTest do
                     posts:
                       TypeError.exception(
                         value: Example.User.build!(EX.Bar),
-                        type: {:resource, Example.Post}
+                        type: Example.Post
                       ),
                     foo: InvalidProperty.exception(property: :foo),
                     age: TypeError.exception(value: "secret", type: XSD.Integer)
@@ -613,7 +613,7 @@ defmodule GraxTest do
                {:error,
                 TypeError.exception(
                   value: Example.User.build!(EX.Bar),
-                  type: {:resource, Example.SelfLinked}
+                  type: Example.SelfLinked
                 )}
     end
 
@@ -795,7 +795,7 @@ defmodule GraxTest do
                     posts:
                       TypeError.exception(
                         value: Example.User.build!(EX.Bar),
-                        type: {:resource, Example.Post}
+                        type: Example.Post
                       ),
                     foo: InvalidProperty.exception(property: :foo),
                     age: TypeError.exception(value: "secret", type: XSD.Integer)
