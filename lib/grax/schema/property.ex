@@ -138,7 +138,7 @@ defmodule Grax.Schema.LinkProperty do
   alias Grax.Schema.Property
   alias Grax.Schema.LinkProperty.Union
 
-  defstruct Property.shared_attrs() ++ [:preload, :on_type_mismatch]
+  defstruct Property.shared_attrs() ++ [:preload, :polymorphic, :on_type_mismatch]
 
   def new(schema, name, iri, opts) do
     {type, cardinality} = Property.type_with_cardinality(name, opts, __MODULE__)
@@ -152,6 +152,7 @@ defmodule Grax.Schema.LinkProperty do
     |> struct!(
       type: type,
       cardinality: cardinality,
+      polymorphic: Keyword.get(opts, :polymorphic, true),
       preload: opts[:preload],
       on_type_mismatch: init_on_type_mismatch(opts[:on_type_mismatch])
     )

@@ -4,6 +4,8 @@ defmodule Grax.Schema.Inheritance do
   alias Grax.Schema.Registry
   alias Grax.InvalidResourceTypeError
 
+  alias RDF.Description
+
   def inherit_properties(_, nil, properties), do: properties
 
   def inherit_properties(child_schema, parent_schema, properties) do
@@ -64,7 +66,7 @@ defmodule Grax.Schema.Inheritance do
   end
 
   def determine_schema(schema, description, property_schema) do
-    types = RDF.Description.get(description, RDF.type(), [])
+    types = Description.get(description, RDF.type(), [])
 
     types
     |> Enum.flat_map(&(&1 |> Registry.schema() |> List.wrap()))
@@ -114,6 +116,18 @@ defmodule Grax.Schema.Inheritance do
 
   def inherited_schema?(schema, root_schema) do
     inherited_schema?(schema.__super__(), root_schema)
+  end
+
+  def matches_rdf_types?(%Description{} = description, schema) do
+    description
+    |> RDF.Description.get(RDF.type(), [])
+    |> matches_rdf_types?(schema)
+  end
+
+  def matches_rdf_types?(rdf_types, schema) do
+    rdf_types
+    |> Enum.flat_map(&(&1 |> Registry.schema() |> List.wrap()))
+    |> Enum.any?(&inherited_schema?(&1, schema))
   end
 
   def paths(schema) do

@@ -693,4 +693,17 @@ defmodule Example do
       link many: EX.many(), type: list_of(Example.ParentSchema)
     end
   end
+
+  defmodule NonPolymorphicLink do
+    use Grax.Schema
+
+    schema do
+      link link: EX.link(), type: Example.ParentSchema, polymorphic: false
+
+      link strict_link: EX.strictLink(),
+           type: Example.ParentSchema,
+           polymorphic: false,
+           on_type_mismatch: :error
+    end
+  end
 end

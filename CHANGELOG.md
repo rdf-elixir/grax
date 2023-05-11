@@ -12,7 +12,9 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - Grax schema mapping functions `from/1` and `from!/1` on Grax schema modules,
   which allows to map one schema struct to another
 - Preloading of links now has become polymorphic, i.e. the most specific 
-  inherited schema matching one of the types of a linked resource is used
+  inherited schema matching one of the types of a linked resource is used;
+  opting-out to the previous behaviour is possible by setting the 
+  `:polymorphic` option to `false` on a `link` definition
 - Preloading of union links whose schemas are in an inheritance relationship
   are resolved to the most specific class and no longer result in an
   `:multiple_matches` when the resource is typed also with the broader classes.
@@ -46,6 +48,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 - a bug when preloading a nested schema with union links without values
 - union links weren't validated properly
+- `:on_type_mismatch` option of link properties wasn't always respected
 
 
 [Compare v0.3.5...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.5...HEAD)

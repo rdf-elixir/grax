@@ -4,6 +4,7 @@ defmodule Grax.RDF.Preloader do
   alias Grax.RDF.Loader
   alias Grax.Schema.Inheritance
   alias Grax.Schema.LinkProperty.Union
+  alias Grax.InvalidResourceTypeError
 
   import Grax.RDF.Access
   import RDF.Guards
@@ -180,6 +181,26 @@ defmodule Grax.RDF.Preloader do
     with {:ok, schema} when not is_nil(schema) <-
            Union.determine_schema(description, class_mapping, property_schema) do
       schema.load(graph, resource, Keyword.put(opts, :description, description))
+    end
+  end
+
+  defp map_link(resource, {:resource, schema}, %{polymorphic: false} = link_schema, graph, opts) do
+    case link_schema.on_type_mismatch do
+      :ignore ->
+        schema.load(graph, resource, opts)
+
+      :error ->
+        description = description(graph, resource)
+
+        if Inheritance.matches_rdf_types?(description, schema) do
+          schema.load(graph, resource, Keyword.put(opts, :description, description))
+        else
+          {:error,
+           InvalidResourceTypeError.exception(
+             type: :no_match,
+             resource_types: description[RDF.type()]
+           )}
+        end
     end
   end
 

@@ -57,7 +57,7 @@ defmodule Grax.Validator do
 
     validation
     |> check_cardinality(link, value, type, link_schema.cardinality)
-    |> check_resource_type(link, value, type, opts)
+    |> check_resource_type(link, value, type, link_schema, opts)
   end
 
   defp check_cardinality(validation, property, values, {:list_set, _}, cardinality)
@@ -147,21 +147,29 @@ defmodule Grax.Validator do
     end
   end
 
-  defp check_resource_type(validation, _, %IRI{}, {:resource, _}, _), do: validation
-  defp check_resource_type(validation, _, %BlankNode{}, {:resource, _}, _), do: validation
-  defp check_resource_type(validation, _, nil, _, _), do: validation
-  defp check_resource_type(validation, _, [], _, _), do: validation
+  defp check_resource_type(validation, _, %IRI{}, {:resource, _}, _, _), do: validation
+  defp check_resource_type(validation, _, %BlankNode{}, {:resource, _}, _, _), do: validation
+  defp check_resource_type(validation, _, nil, _, _, _), do: validation
+  defp check_resource_type(validation, _, [], _, _, _), do: validation
 
-  defp check_resource_type(validation, link, values, {:list_set, type}, opts) do
-    check_resource_type(validation, link, values, type, opts)
+  defp check_resource_type(validation, link, values, {:list_set, type}, link_schema, opts) do
+    check_resource_type(validation, link, values, type, link_schema, opts)
   end
 
-  defp check_resource_type(validation, link, values, type, opts) when is_list(values) do
-    Enum.reduce(values, validation, &check_resource_type(&2, link, &1, type, opts))
+  defp check_resource_type(validation, link, values, type, link_schema, opts)
+       when is_list(values) do
+    Enum.reduce(values, validation, &check_resource_type(&2, link, &1, type, link_schema, opts))
   end
 
-  defp check_resource_type(validation, link, %type{} = value, {:resource, base_type}, opts) do
-    if resource_type_matches?(type, base_type) do
+  defp check_resource_type(
+         validation,
+         link,
+         %type{} = value,
+         {:resource, base_type},
+         link_schema,
+         opts
+       ) do
+    if resource_type_matches?(type, base_type, link_schema) do
       case call(value, opts) do
         {:ok, _} -> validation
         {:error, nested_validation} -> add_error(validation, link, nested_validation)
@@ -171,15 +179,19 @@ defmodule Grax.Validator do
     end
   end
 
-  defp check_resource_type(validation, link, value, type, _opts) do
+  defp check_resource_type(validation, link, value, type, _link_schema, _opts) do
     add_error(validation, link, TypeError.exception(value: value, type: type))
   end
 
-  defp resource_type_matches?(schema, %Union{types: class_mapping}) do
+  defp resource_type_matches?(schema, %Union{types: class_mapping}, _) do
     schema in Map.values(class_mapping)
   end
 
-  defp resource_type_matches?(schema, resource_type) do
-    Inheritance.inherited_schema?(schema, resource_type)
+  defp resource_type_matches?(schema, resource_type, link_schema) do
+    if link_schema.polymorphic do
+      Inheritance.inherited_schema?(schema, resource_type)
+    else
+      schema == resource_type
+    end
   end
 end
