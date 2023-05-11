@@ -1,10 +1,11 @@
-defmodule Grax.PolymorphicPropertiesTest do
+defmodule Grax.Schema.LinkProperty.UnionTest do
   use Grax.TestCase
 
+  alias Grax.Schema.LinkProperty.Union
   alias Grax.InvalidResourceTypeError
   alias Grax.Schema.TypeError
 
-  defmodule PolymorphicLinks do
+  defmodule UnionLinks do
     use Grax.Schema
 
     schema do
@@ -32,7 +33,7 @@ defmodule Grax.PolymorphicPropertiesTest do
     end
   end
 
-  defmodule PolymorphicLinkWithInheritance do
+  defmodule UnionLinkWithInheritance do
     use Grax.Schema
 
     schema do
@@ -49,7 +50,7 @@ defmodule Grax.PolymorphicPropertiesTest do
     end
   end
 
-  defmodule PolymorphicLinksShortForm do
+  defmodule UnionLinksShortForm do
     use Grax.Schema
 
     schema do
@@ -62,9 +63,9 @@ defmodule Grax.PolymorphicPropertiesTest do
 
   test "using the short-form when no class is defined leads to a proper error" do
     assert_raise RuntimeError,
-                 "invalid polymorphic type definition: Example.Untyped does not specify a class",
+                 "invalid union type definition: Example.Untyped does not specify a class",
                  fn ->
-                   defmodule PolymorphicLinksShortFormFailure do
+                   defmodule UnionLinksShortFormFailure do
                      use Grax.Schema
 
                      schema do
@@ -78,14 +79,14 @@ defmodule Grax.PolymorphicPropertiesTest do
 
   describe "put/3" do
     test "a RDF.IRI on a link property" do
-      assert PolymorphicLinks.build!(EX.Foo)
+      assert UnionLinks.build!(EX.Foo)
              |> Grax.put(
                one: EX.bar(),
                strict_one: EX.bar(),
                many: [EX.baz1(), EX.baz2()]
              ) ==
                {:ok,
-                %PolymorphicLinks{
+                %UnionLinks{
                   __id__: IRI.new(EX.Foo),
                   one: EX.bar(),
                   strict_one: EX.bar(),
@@ -94,14 +95,14 @@ defmodule Grax.PolymorphicPropertiesTest do
     end
 
     test "a RDF.BlankNode on a link property" do
-      assert PolymorphicLinks.build!(EX.Foo)
+      assert UnionLinks.build!(EX.Foo)
              |> Grax.put(
                one: RDF.bnode("bar"),
                strict_one: RDF.bnode("bar"),
                many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
              ) ==
                {:ok,
-                %PolymorphicLinks{
+                %UnionLinks{
                   __id__: IRI.new(EX.Foo),
                   one: RDF.bnode("bar"),
                   strict_one: RDF.bnode("bar"),
@@ -110,14 +111,14 @@ defmodule Grax.PolymorphicPropertiesTest do
     end
 
     test "a vocabulary namespace term on a link property" do
-      assert PolymorphicLinks.build!(EX.Foo)
+      assert UnionLinks.build!(EX.Foo)
              |> Grax.put(
                one: EX.Bar,
                strict_one: EX.Bar,
                many: [EX.baz(), EX.Baz1, EX.Baz2]
              ) ==
                {:ok,
-                %PolymorphicLinks{
+                %UnionLinks{
                   __id__: IRI.new(EX.Foo),
                   one: IRI.new(EX.Bar),
                   strict_one: IRI.new(EX.Bar),
@@ -126,14 +127,14 @@ defmodule Grax.PolymorphicPropertiesTest do
     end
 
     test "a Grax schema struct of the proper type" do
-      assert PolymorphicLinks.build!(EX.Foo)
+      assert UnionLinks.build!(EX.Foo)
              |> Grax.put(
                one: EX.Bar,
                strict_one: EX.Bar,
                many: [EX.baz(), EX.Baz1, EX.Baz2]
              ) ==
                {:ok,
-                %PolymorphicLinks{
+                %UnionLinks{
                   __id__: IRI.new(EX.Foo),
                   one: IRI.new(EX.Bar),
                   strict_one: IRI.new(EX.Bar),
@@ -142,12 +143,12 @@ defmodule Grax.PolymorphicPropertiesTest do
     end
 
     test "a Grax schema struct with a wrong type on a strict link" do
-      assert PolymorphicLinks.build!(EX.Foo)
+      assert UnionLinks.build!(EX.Foo)
              |> Grax.put(:strict_one, Example.User.build!(EX.Bar)) ==
                {:error,
                 TypeError.exception(
                   value: Example.User.build!(EX.Bar),
-                  type: %Grax.Schema.Property.Polymorphic{
+                  type: %Union{
                     types: %{
                       RDF.iri(EX.Comment) => Example.Comment,
                       RDF.iri(EX.Post) => Example.Post
@@ -156,11 +157,11 @@ defmodule Grax.PolymorphicPropertiesTest do
                 )}
     end
 
-    test "with a map for a polymorphic property" do
+    test "with a map for a union link property" do
       assert_raise ArgumentError,
-                   ~r/unable to determine value type of polymorphic property/,
+                   ~r/unable to determine value type of union link property/,
                    fn ->
-                     PolymorphicLinks.build!(EX.Foo)
+                     UnionLinks.build!(EX.Foo)
                      |> Grax.put(:one, %{title: "foo"})
                    end
     end
@@ -172,8 +173,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.A |> EX.one(EX.Post1) |> EX.strictOne(EX.Post1),
                EX.Post1 |> RDF.type(EX.Post) |> EX.title("foo")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A,
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A,
                  one:
                    Example.Post.build!(EX.Post1,
                      title: "foo",
@@ -193,8 +194,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.A |> EX.one(EX.Comment1) |> EX.strictOne(EX.Comment1),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A,
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A,
                  one:
                    Example.Comment.build!(EX.Comment1,
                      content: "foo",
@@ -212,8 +213,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.A |> EX.many(EX.Comment1),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A,
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: [
@@ -225,14 +226,14 @@ defmodule Grax.PolymorphicPropertiesTest do
                )
     end
 
-    test "polymorphic links on inverses" do
+    test "union links on inverses" do
       assert RDF.graph([
                EX.Comment1
                |> RDF.type(EX.Comment)
                |> EX.inverseLink(EX.A)
              ])
-             |> PolymorphicLinksShortForm.load(EX.A) ==
-               PolymorphicLinksShortForm.build(EX.A,
+             |> UnionLinksShortForm.load(EX.A) ==
+               UnionLinksShortForm.build(EX.A,
                  inverse_link: [
                    Example.Comment.build!(EX.Comment1,
                      __additional_statements__: %{
@@ -244,13 +245,13 @@ defmodule Grax.PolymorphicPropertiesTest do
                )
     end
 
-    test "polymorphic link defined in short-form" do
+    test "union link defined in short-form" do
       assert RDF.graph([
                EX.A |> EX.link(EX.Comment1),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> PolymorphicLinksShortForm.load(EX.A) ==
-               PolymorphicLinksShortForm.build(EX.A,
+             |> UnionLinksShortForm.load(EX.A) ==
+               UnionLinksShortForm.build(EX.A,
                  link: [
                    Example.Comment.build!(EX.Comment1,
                      content: "foo",
@@ -265,8 +266,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.A |> EX.many(EX.Post1),
                EX.Post1 |> EX.title("foo")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A,
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: [Example.Post.build!(EX.Post1, title: "foo", slug: "foo")]
@@ -277,8 +278,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.Post1 |> RDF.type(EX.Other) |> EX.title("foo"),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A,
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: [
@@ -299,8 +300,8 @@ defmodule Grax.PolymorphicPropertiesTest do
       assert RDF.graph([
                EX.A |> EX.one(EX.Something)
              ])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A,
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: []
@@ -311,8 +312,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.Something1 |> EX.foo("foo"),
                EX.Something2 |> RDF.type(EX.Other) |> EX.bar("bar")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A,
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: []
@@ -325,8 +326,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.Something1 |> EX.foo("foo"),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("bar")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A,
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A,
                  one:
                    Example.Comment.build!(EX.Comment1,
                      content: "bar",
@@ -342,7 +343,7 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.A |> EX.strictOne(EX.Post1),
                EX.Post1 |> EX.title("foo")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
+             |> UnionLinks.load(EX.A) ==
                {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: [])}
     end
 
@@ -351,8 +352,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.A |> EX.linked(EX.B),
                EX.B |> RDF.type([EX.ParentSchema, EX.ChildSchema])
              ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
-               PolymorphicLinkWithInheritance.build(EX.A,
+             |> UnionLinkWithInheritance.load(EX.A) ==
+               UnionLinkWithInheritance.build(EX.A,
                  linked:
                    Example.ChildSchema.build!(EX.B,
                      __additional_statements__: %{RDF.type() => [EX.ParentSchema, EX.ChildSchema]},
@@ -369,8 +370,8 @@ defmodule Grax.PolymorphicPropertiesTest do
                  EX.ChildOfMany
                ])
              ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
-               PolymorphicLinkWithInheritance.build(EX.A,
+             |> UnionLinkWithInheritance.load(EX.A) ==
+               UnionLinkWithInheritance.build(EX.A,
                  linked:
                    Example.ChildOfMany.build!(EX.B,
                      __additional_statements__: %{
@@ -394,7 +395,7 @@ defmodule Grax.PolymorphicPropertiesTest do
                  EX.ChildOfMany
                ])
              ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
+             |> UnionLinkWithInheritance.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
                   type: :multiple_matches,
@@ -407,7 +408,7 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.A |> EX.one(EX.Post1),
                EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
+             |> UnionLinks.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
                   type: :multiple_matches,
@@ -418,7 +419,7 @@ defmodule Grax.PolymorphicPropertiesTest do
                EX.A |> EX.strictOne(EX.Post1),
                EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
              ])
-             |> PolymorphicLinks.load(EX.A) ==
+             |> UnionLinks.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
                   type: :multiple_matches,
@@ -428,23 +429,23 @@ defmodule Grax.PolymorphicPropertiesTest do
 
     test "when no values present" do
       assert RDF.graph([EX.A |> EX.name("nothing")])
-             |> PolymorphicLinks.load(EX.A) ==
-               PolymorphicLinks.build(EX.A, name: "nothing")
+             |> UnionLinks.load(EX.A) ==
+               UnionLinks.build(EX.A, name: "nothing")
     end
 
-    test "when no values present in a nested schema struct with polymorphic links" do
-      defmodule NestedPolymorphicLinks do
+    test "when no values present in a nested schema struct with union links" do
+      defmodule NestedUnionLinks do
         use Grax.Schema
 
         schema do
-          link foo: EX.foo(), type: PolymorphicLinks
+          link foo: EX.foo(), type: UnionLinks
         end
       end
 
       assert RDF.graph([EX.A |> EX.foo(EX.B)])
-             |> NestedPolymorphicLinks.load(EX.A) ==
-               NestedPolymorphicLinks.build(EX.A,
-                 foo: PolymorphicLinks.build!(RDF.iri(EX.B))
+             |> NestedUnionLinks.load(EX.A) ==
+               NestedUnionLinks.build(EX.A,
+                 foo: UnionLinks.build!(RDF.iri(EX.B))
                )
     end
   end

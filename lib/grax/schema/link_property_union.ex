@@ -1,4 +1,4 @@
-defmodule Grax.Schema.Property.Polymorphic do
+defmodule Grax.Schema.LinkProperty.Union do
   @moduledoc false
 
   defstruct [:types]
@@ -21,17 +21,17 @@ defmodule Grax.Schema.Property.Polymorphic do
       schema when is_atom(schema) ->
         cond do
           not Grax.Schema.schema?(schema) ->
-            raise "invalid polymorphic type definition: #{inspect(schema)}"
+            raise "invalid union type definition: #{inspect(schema)}"
 
           class = schema.__class__() ->
             {RDF.iri(class), schema}
 
           true ->
-            raise "invalid polymorphic type definition: #{inspect(schema)} does not specify a class"
+            raise "invalid union type definition: #{inspect(schema)} does not specify a class"
         end
 
       invalid ->
-        raise "invalid polymorphic type definition: #{inspect(invalid)}"
+        raise "invalid union type definition: #{inspect(invalid)}"
     end)
   end
 

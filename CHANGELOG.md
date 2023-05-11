@@ -13,9 +13,9 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   which allows to map one schema struct to another
 - Preloading of links now has become polymorphic, i.e. the most specific 
   inherited schema matching one of the types of a linked resource is used
-- Preloading of polymorphic links whose schemas are in an inheritance
-  relationship are resolved to the most specific class and no longer result in
-  an `:multiple_matches` when the resource is typed also with the broader classes.
+- Preloading of union links whose schemas are in an inheritance relationship
+  are resolved to the most specific class and no longer result in an
+  `:multiple_matches` when the resource is typed also with the broader classes.
 - The class mapping can now also be provided as a list of `{class_iri, schema}`
   tuples or just Grax schemas, for those which are associated with a class IRI
   with a class declaration.
@@ -39,13 +39,13 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   - You no longer can use `nil` values on a property with `Grax.put_additional_statements/2`
     to remove statements with this property. You must use the new 
     `Grax.delete_additional_predicates/2` function for this now.
-- "heterogeneous link properties" are now called "polymorphic link properties"
+- "heterogeneous link properties" are now called "union link properties"
   (since this name didn't appear in the code, this change only affects the documentation)
 
 ### Fixed
 
-- a bug when preloading a nested schema with polymorphic links without values
-- polymorphic links weren't validated properly
+- a bug when preloading a nested schema with union links without values
+- union links weren't validated properly
 
 
 [Compare v0.3.5...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.5...HEAD)

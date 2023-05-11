@@ -136,6 +136,7 @@ defmodule Grax.Schema.LinkProperty do
   @moduledoc false
 
   alias Grax.Schema.Property
+  alias Grax.Schema.LinkProperty.Union
 
   defstruct Property.shared_attrs() ++ [:preload, :on_type_mismatch]
 
@@ -169,8 +170,8 @@ defmodule Grax.Schema.LinkProperty do
   def initial_value_type(nil), do: {:error, "type missing"}
 
   def initial_value_type(class_mapping) when is_map(class_mapping) or is_list(class_mapping) do
-    with {:ok, polymorphic} <- Property.Polymorphic.new(class_mapping) do
-      {:ok, {:resource, polymorphic}}
+    with {:ok, union} <- Union.new(class_mapping) do
+      {:ok, {:resource, union}}
     end
   end
 
@@ -182,7 +183,7 @@ defmodule Grax.Schema.LinkProperty do
   defp do_value_type({:resource, type}), do: type
   defp do_value_type(_), do: nil
 
-  def polymorphic_type?(schema) do
-    match?(%Property.Polymorphic{}, value_type(schema))
+  def union_type?(schema) do
+    match?(%Union{}, value_type(schema))
   end
 end

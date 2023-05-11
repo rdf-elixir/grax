@@ -7,7 +7,7 @@ defmodule Grax do
   """
 
   alias Grax.{Schema, Id, Validator, ValidationError}
-  alias Grax.Schema.{Registry, Property, DataProperty, LinkProperty, AdditionalStatements}
+  alias Grax.Schema.{Registry, DataProperty, LinkProperty, AdditionalStatements}
   alias Grax.RDF.{Loader, Preloader, Mapper}
 
   alias RDF.{IRI, BlankNode, Graph, Description, Statement}
@@ -327,9 +327,9 @@ defmodule Grax do
           raise ArgumentError,
                 "unable to determine value type of property #{inspect(property_schema)}"
 
-        %Property.Polymorphic{} ->
+        %LinkProperty.Union{} ->
           raise ArgumentError,
-                "unable to determine value type of polymorphic property #{inspect(property_schema)}"
+                "unable to determine value type of union link property #{inspect(property_schema)}"
 
         resource_type ->
           resource_type.build(value)

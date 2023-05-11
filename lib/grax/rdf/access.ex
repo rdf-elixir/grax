@@ -7,7 +7,7 @@ defmodule Grax.RDF.Access do
 
   alias RDF.{Description, Graph, Query}
   alias Grax.Schema.LinkProperty
-  alias Grax.Schema.Property.Polymorphic
+  alias Grax.Schema.LinkProperty.Union
 
   # TODO: this function becomes unnecessary when we depend on RDF.ex >= 0.12 as that's the default behaviour of Graph.description now
   # Dialyzer raises a warning with RDF.ex 0.12, since the fallback will never be used, but we need
@@ -30,11 +30,11 @@ defmodule Grax.RDF.Access do
   def filtered_objects(graph, description, property_schema) do
     if objects = objects(graph, description, property_schema.iri) do
       case LinkProperty.value_type(property_schema) do
-        %Polymorphic{types: class_mapping} ->
+        %Union{types: class_mapping} ->
           Enum.reduce_while(objects, {:ok, []}, fn object, {:ok, objects} ->
             graph
             |> description(object)
-            |> Polymorphic.determine_schema(class_mapping, property_schema)
+            |> Union.determine_schema(class_mapping, property_schema)
             |> case do
               {:ok, nil} -> {:cont, {:ok, objects}}
               {:ok, _} -> {:cont, {:ok, [object | objects]}}

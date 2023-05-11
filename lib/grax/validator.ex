@@ -2,7 +2,8 @@ defmodule Grax.Validator do
   @moduledoc false
 
   alias Grax.{ValidationError, InvalidIdError}
-  alias Grax.Schema.{Inheritance, Property, TypeError, CardinalityError}
+  alias Grax.Schema.{Inheritance, TypeError, CardinalityError}
+  alias Grax.Schema.LinkProperty.Union
   alias RDF.{IRI, BlankNode, Literal, XSD}
 
   import ValidationError, only: [add_error: 3]
@@ -174,7 +175,7 @@ defmodule Grax.Validator do
     add_error(validation, link, TypeError.exception(value: value, type: type))
   end
 
-  defp resource_type_matches?(schema, %Property.Polymorphic{types: class_mapping}) do
+  defp resource_type_matches?(schema, %Union{types: class_mapping}) do
     schema in Map.values(class_mapping)
   end
 
