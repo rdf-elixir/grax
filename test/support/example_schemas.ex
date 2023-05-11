@@ -384,6 +384,22 @@ defmodule Example do
     end
   end
 
+  defmodule ZeroDepthLinkPreloading do
+    use Grax.Schema
+
+    schema do
+      link zero: EX.zero(), type: Example.User, depth: 0
+    end
+  end
+
+  defmodule ZeroDepthPreloading do
+    use Grax.Schema, depth: 0
+
+    schema do
+      link user: EX.user(), type: Example.User
+    end
+  end
+
   defmodule InverseProperties do
     use Grax.Schema
 

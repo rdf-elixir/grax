@@ -360,6 +360,26 @@ defmodule Grax.RDF.PreloaderTest do
                )
     end
 
+    test "zero depth preloading" do
+      assert RDF.graph([
+               EX.A |> EX.zero(EX.User0),
+               example_description(:user)
+             ])
+             |> Example.ZeroDepthLinkPreloading.load(EX.A) ==
+               Example.ZeroDepthLinkPreloading.build(EX.A,
+                 zero: RDF.iri(EX.User0)
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.user(EX.User0),
+               example_description(:user)
+             ])
+             |> Example.ZeroDepthPreloading.load(EX.A) ==
+               Example.ZeroDepthPreloading.build(EX.A,
+                 user: RDF.iri(EX.User0)
+               )
+    end
+
     test "manual preload control" do
       assert Example.User.load(example_graph(), EX.User0, depth: 1) ==
                {:ok, Example.user(EX.User0, depth: 1)}
