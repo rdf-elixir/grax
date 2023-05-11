@@ -2,7 +2,7 @@ defmodule Grax.Validator do
   @moduledoc false
 
   alias Grax.{ValidationError, InvalidIdError}
-  alias Grax.Schema.{Property, TypeError, CardinalityError}
+  alias Grax.Schema.{Inheritance, Property, TypeError, CardinalityError}
   alias RDF.{IRI, BlankNode, Literal, XSD}
 
   import ValidationError, only: [add_error: 3]
@@ -179,6 +179,6 @@ defmodule Grax.Validator do
   end
 
   defp resource_type_matches?(schema, resource_type) do
-    schema == resource_type
+    Inheritance.inherited_schema?(schema, resource_type)
   end
 end

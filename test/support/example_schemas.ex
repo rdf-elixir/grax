@@ -645,6 +645,7 @@ defmodule Example do
     use Grax.Schema
 
     schema EX.Child2 < ParentSchema do
+      property dp4: EX.dp4()
     end
   end
 
@@ -679,5 +680,17 @@ defmodule Example do
     end
 
     def foo(_, _), do: {:ok, :foo}
+  end
+
+  defmodule LinksWithInheritedSchemas do
+    use Grax.Schema
+
+    schema do
+      property name: EX.name()
+
+      link one: EX.one(), type: Example.ParentSchema
+      link strict_one: EX.strictOne(), type: Example.AnotherParentSchema, on_type_mismatch: :error
+      link many: EX.many(), type: list_of(Example.ParentSchema)
+    end
   end
 end

@@ -11,7 +11,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 - Grax schema mapping functions `from/1` and `from!/1` on Grax schema modules,
   which allows to map one schema struct to another
-- `Grax.delete_additional_predicates/2` to delete all additional statements
+- Preloading of links now has become polymorphic, i.e. the most specific 
+  inherited schema matching one of the types of a linked resource is used
 - Preloading of polymorphic links whose schemas are in an inheritance
   relationship are resolved to the most specific class and no longer result in
   an `:multiple_matches` when the resource is typed also with the broader classes.
@@ -21,6 +22,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - `Grax.Schema.schema?/1` and `Grax.Schema.struct?/1` to determine whether a given
   module or struct is a Grax schema resp. Grax schema struct
 - `Grax.schema/1` to get the schema(s) of a given class IRI
+- `Grax.delete_additional_predicates/2` to delete all additional statements
 
 ### Changed
 

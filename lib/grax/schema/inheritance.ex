@@ -1,18 +1,8 @@
 defmodule Grax.Schema.Inheritance do
   @moduledoc false
 
-  def paths(schema) do
-    if super_classes = schema.__super__() do
-      Enum.flat_map(super_classes, fn super_class ->
-        case paths(super_class) do
-          [] -> [[super_class]]
-          paths -> Enum.map(paths, &[super_class | &1])
-        end
-      end)
-    else
-      []
-    end
-  end
+  alias Grax.Schema.Registry
+  alias Grax.InvalidResourceTypeError
 
   def inherit_properties(_, nil, properties), do: properties
 
@@ -71,5 +61,94 @@ defmodule Grax.Schema.Inheritance do
           end
       end)
     end)
+  end
+
+  def determine_schema(schema, description, property_schema) do
+    types = RDF.Description.get(description, RDF.type(), [])
+
+    types
+    |> Enum.flat_map(&(&1 |> Registry.schema() |> List.wrap()))
+    |> Enum.filter(&inherited_schema?(&1, schema))
+    |> case do
+      [result_schema] ->
+        {:ok, result_schema}
+
+      [] ->
+        case property_schema.on_type_mismatch do
+          :ignore ->
+            {:ok, schema}
+
+          :error ->
+            {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: types)}
+        end
+
+      multiple ->
+        paths = Enum.flat_map(multiple, &paths_to(&1, schema))
+
+        multiple
+        |> Enum.reject(fn candidate -> Enum.any?(paths, &(candidate in &1)) end)
+        |> case do
+          [result] ->
+            {:ok, result}
+
+          [] ->
+            raise "Oops, something went fundamentally wrong. Please report this at https://github.com/rdf-elixir/grax/issues"
+
+          remaining ->
+            {:error,
+             InvalidResourceTypeError.exception(
+               type: :multiple_matches,
+               resource_types: remaining
+             )}
+        end
+    end
+  end
+
+  def inherited_schema?(schema, root)
+  def inherited_schema?(schema, schema), do: true
+  def inherited_schema?(nil, _), do: false
+
+  def inherited_schema?(schemas, root_schema) when is_list(schemas) do
+    Enum.any?(schemas, &inherited_schema?(&1, root_schema))
+  end
+
+  def inherited_schema?(schema, root_schema) do
+    inherited_schema?(schema.__super__(), root_schema)
+  end
+
+  def paths(schema) do
+    if parent_schemas = schema.__super__() do
+      Enum.flat_map(parent_schemas, fn parent_schema ->
+        case paths(parent_schema) do
+          [] -> [[parent_schema]]
+          paths -> Enum.map(paths, &[parent_schema | &1])
+        end
+      end)
+    else
+      []
+    end
+  end
+
+  def paths_to(root, root), do: []
+
+  def paths_to(schema, root) do
+    parent_schemas = schema.__super__()
+
+    cond do
+      parent_schemas ->
+        Enum.flat_map(parent_schemas, fn parent_schema ->
+          case paths_to(parent_schema, root) do
+            nil -> []
+            [] -> [[parent_schema]]
+            paths -> Enum.map(paths, &[parent_schema | &1])
+          end
+        end)
+
+      schema != root ->
+        nil
+
+      true ->
+        []
+    end
   end
 end

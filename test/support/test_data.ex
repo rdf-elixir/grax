@@ -43,7 +43,7 @@ defmodule Grax.TestData do
     |> EX.name("Max Mustermann")
     |> EX.email("max@mustermann.de")
   ]
-  #
+
   @example_graph Graph.new(
                    [@example_user, @example_post] ++ @example_comments ++ @example_comment_authors
                  )

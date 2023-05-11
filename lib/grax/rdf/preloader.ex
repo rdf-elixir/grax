@@ -2,7 +2,7 @@ defmodule Grax.RDF.Preloader do
   @moduledoc false
 
   alias Grax.RDF.Loader
-  alias Grax.Schema.Property
+  alias Grax.Schema.{Property, Inheritance}
   import Grax.RDF.Access
   import RDF.Guards
 
@@ -187,7 +187,11 @@ defmodule Grax.RDF.Preloader do
     end
   end
 
-  defp map_link(resource, {:resource, schema}, _property_schema, graph, opts) do
-    schema.load(graph, resource, opts)
+  defp map_link(resource, {:resource, schema}, property_schema, graph, opts) do
+    description = description(graph, resource)
+
+    with {:ok, schema} <- Inheritance.determine_schema(schema, description, property_schema) do
+      schema.load(graph, resource, Keyword.put(opts, :description, description))
+    end
   end
 end

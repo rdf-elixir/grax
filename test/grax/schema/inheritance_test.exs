@@ -10,25 +10,9 @@ defmodule Grax.Schema.InheritanceTest do
     AnotherParentSchema,
     ChildSchema,
     ChildSchemaWithClass,
-    ChildOfMany
+    ChildOfMany,
+    LinksWithInheritedSchemas
   }
-
-  defmodule PolymorphicLinkWithInheritance do
-    use Grax.Schema
-
-    schema do
-      property name: EX.name()
-
-      link linked: EX.linked(),
-           type: %{
-             EX.ParentSchema => ParentSchema,
-             EX.ChildSchema => ChildSchema,
-             EX.ChildSchemaWithClass => ChildSchemaWithClass,
-             EX.ChildOfMany => ChildOfMany
-           },
-           on_type_mismatch: :error
-    end
-  end
 
   test "__super__/0" do
     assert ChildSchema.__super__() == [ParentSchema]
@@ -63,6 +47,7 @@ defmodule Grax.Schema.InheritanceTest do
                |> Map.from_struct()
                |> Map.keys()
                |> MapSet.new()
+               |> MapSet.put(:dp4)
     end
 
     test "properties are inherited" do
@@ -218,60 +203,145 @@ defmodule Grax.Schema.InheritanceTest do
     end
   end
 
+  describe "put/3" do
+    test "with an inherited schema" do
+      assert LinksWithInheritedSchemas.build!(EX.A)
+             |> Grax.put(:one, ChildSchemaWithClass.build!(EX.B, dp4: 42)) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 one: ChildSchemaWithClass.build!(EX.B, dp4: 42)
+               )
+
+      assert LinksWithInheritedSchemas.build!(EX.A)
+             |> Grax.put(:strict_one, ChildOfMany.build!(EX.B)) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 strict_one: ChildOfMany.build!(EX.B)
+               )
+
+      assert LinksWithInheritedSchemas.build!(EX.A)
+             |> Grax.put(:many, [
+               ChildSchemaWithClass.build!(EX.B),
+               ChildOfMany.build!(EX.C)
+             ]) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 many: [
+                   ChildSchemaWithClass.build!(EX.B),
+                   ChildOfMany.build!(EX.C)
+                 ]
+               )
+    end
+  end
+
   describe "preloading" do
-    test "when multiple classes are matching which are related via inheritance" do
+    test "when an inherited schema exist and its class is used" do
       assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
-               EX.B |> RDF.type([EX.ParentSchema, EX.ChildSchema])
+               EX.A |> EX.one(EX.B),
+               EX.B |> RDF.type([EX.Child2]) |> EX.dp4(42)
              ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
-               PolymorphicLinkWithInheritance.build(EX.A,
-                 linked:
-                   ChildSchema.build!(EX.B,
-                     __additional_statements__: %{RDF.type() => [EX.ParentSchema, EX.ChildSchema]},
-                     f2: :foo
-                   )
+             |> LinksWithInheritedSchemas.load(EX.A) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 one: ChildSchemaWithClass.build!(EX.B, dp4: 42)
                )
 
       assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
-               EX.B
-               |> RDF.type([
-                 EX.ParentSchema,
-                 EX.ChildSchemaWithClass,
-                 EX.ChildOfMany
-               ])
+               EX.A |> EX.one(EX.B),
+               EX.B |> RDF.type([EX.SubClass])
              ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
-               PolymorphicLinkWithInheritance.build(EX.A,
-                 linked:
-                   ChildOfMany.build!(EX.B,
-                     __additional_statements__: %{
-                       RDF.type() => [
-                         EX.SubClass,
-                         EX.ParentSchema,
-                         EX.ChildSchemaWithClass,
-                         EX.ChildOfMany
-                       ]
-                     }
-                   )
+             |> LinksWithInheritedSchemas.load(EX.A) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 one: ChildOfMany.build!(EX.B)
                )
 
       assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
-               EX.B
-               |> RDF.type([
-                 EX.ParentSchema,
-                 EX.ChildSchema,
-                 EX.ChildSchemaWithClass,
-                 EX.ChildOfMany
-               ])
+               EX.A |> EX.strictOne(EX.B),
+               EX.B |> RDF.type([EX.SubClass])
              ])
-             |> PolymorphicLinkWithInheritance.load(EX.A) ==
+             |> LinksWithInheritedSchemas.load(EX.A) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 strict_one: ChildOfMany.build!(EX.B)
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.many([EX.B, EX.C]),
+               EX.B |> RDF.type([EX.Child2]),
+               EX.C |> RDF.type([EX.SubClass])
+             ])
+             |> LinksWithInheritedSchemas.load(EX.A) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 many: [
+                   ChildSchemaWithClass.build!(EX.B),
+                   ChildOfMany.build!(EX.C)
+                 ]
+               )
+    end
+
+    test "when an inherited schema exist and its class is used along with the class of the parent schema" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.B),
+               EX.B |> RDF.type([EX.Parent, EX.Child2])
+             ])
+             |> LinksWithInheritedSchemas.load(EX.A) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 one:
+                   ChildSchemaWithClass.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.Parent, EX.Child2]}
+                   )
+               )
+
+      [
+        [EX.Parent, EX.SubClass],
+        [EX.Parent2, EX.SubClass],
+        [EX.Parent, EX.Parent2, EX.SubClass],
+        [EX.Child2, EX.SubClass],
+        [EX.Parent, EX.Parent2, EX.Child2, EX.SubClass]
+      ]
+      |> Enum.each(fn types ->
+        assert RDF.graph([
+                 EX.A |> EX.strictOne(EX.B),
+                 EX.B |> RDF.type(types)
+               ])
+               |> LinksWithInheritedSchemas.load(EX.A) ==
+                 LinksWithInheritedSchemas.build(EX.A,
+                   strict_one:
+                     ChildOfMany.build!(EX.B,
+                       __additional_statements__: %{RDF.type() => types}
+                     )
+                 )
+      end)
+    end
+
+    test "when no type of the linked resource matches the link resource type and on_type_mismatch: :ignore (default)" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.B),
+               EX.B |> RDF.type(EX.Unknown)
+             ])
+             |> LinksWithInheritedSchemas.load(EX.A) ==
+               LinksWithInheritedSchemas.build(EX.A,
+                 one:
+                   ParentSchema.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.Parent, EX.Unknown]}
+                   )
+               )
+
+      assert [
+               example_description(:user),
+               example_description(:post)
+               |> Description.delete_predicates(RDF.type())
+             ]
+             |> Graph.new()
+             |> Example.User.load(EX.User0) ==
+               {:ok, Example.user(EX.User0, depth: 1)}
+    end
+
+    test "when no type of the linked resource matches the link resource type and on_type_mismatch: :error" do
+      assert RDF.graph([
+               EX.A |> EX.strictOne(EX.B),
+               EX.B |> RDF.type(EX.Unknown)
+             ])
+             |> LinksWithInheritedSchemas.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
-                  type: :multiple_matches,
-                  resource_types: [ChildSchema, ChildOfMany]
+                  type: :no_match,
+                  resource_types: [RDF.iri(EX.Unknown)]
                 )}
     end
   end
@@ -287,5 +357,19 @@ defmodule Grax.Schema.InheritanceTest do
              [AnotherParentSchema],
              [ChildSchemaWithClass, ParentSchema]
            ]
+  end
+
+  test "inherited_schema?/2" do
+    assert Inheritance.inherited_schema?(ParentSchema, ParentSchema)
+    assert Inheritance.inherited_schema?(ChildSchema, ParentSchema)
+    assert Inheritance.inherited_schema?(ChildSchemaWithClass, ParentSchema)
+    assert Inheritance.inherited_schema?(ChildOfMany, ParentSchema)
+    assert Inheritance.inherited_schema?(ChildOfMany, AnotherParentSchema)
+    assert Inheritance.inherited_schema?(ChildOfMany, ChildSchemaWithClass)
+
+    refute Inheritance.inherited_schema?(User, ParentSchema)
+    refute Inheritance.inherited_schema?(ChildSchema, User)
+    refute Inheritance.inherited_schema?(ChildOfMany, User)
+    refute Inheritance.inherited_schema?(AnotherParentSchema, ParentSchema)
   end
 end
