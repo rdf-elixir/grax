@@ -2,302 +2,473 @@ defmodule Grax.RDF.PreloaderTest do
   use Grax.TestCase
 
   alias Grax.RDF.Preloader
+  alias Grax.ValidationError
 
-  test "link to itself without circle" do
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.next(EX.B),
-             EX.B |> EX.name("b") |> EX.next(EX.C),
-             EX.C |> EX.name("c")
-           ])
-           |> Example.SelfLinked.load(EX.A) ==
-             Example.SelfLinked.build(EX.A,
-               name: "a",
-               next: Example.SelfLinked.build!(EX.B, name: "b", next: RDF.iri(EX.C))
-             )
-  end
-
-  test "link via blank node" do
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.next(~B"b"),
-             ~B"b" |> EX.name("b") |> EX.next(~B"c"),
-             ~B"c" |> EX.name("c")
-           ])
-           |> Example.SelfLinked.load(EX.A) ==
-             Example.SelfLinked.build(EX.A,
-               name: "a",
-               next: Example.SelfLinked.build!(~B"b", name: "b", next: ~B"c")
-             )
-
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.next(~B"b"),
-             ~B"b" |> EX.name("b") |> EX.next(~B"c"),
-             ~B"c" |> EX.name("c")
-           ])
-           |> Example.SelfLinked.load(EX.A, depth: 3) ==
-             Example.SelfLinked.build(EX.A,
-               name: "a",
-               next:
-                 Example.SelfLinked.build!(~B"b",
-                   name: "b",
-                   next: Example.SelfLinked.build!(~B"c", name: "c")
-                 )
-             )
-  end
-
-  test "direct link to itself" do
-    assert RDF.graph([EX.A |> EX.name("a") |> EX.next(EX.A)])
-           |> Example.SelfLinked.load(EX.A) ==
-             Example.SelfLinked.build(EX.A, name: "a", next: RDF.iri(EX.A))
-  end
-
-  test "link to itself with circle" do
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.link1(EX.B),
-             EX.B |> EX.name("b") |> EX.link1(EX.C),
-             EX.C |> EX.name("c") |> EX.link1(EX.A)
-           ])
-           |> Example.Circle.load(EX.A) ==
-             Example.Circle.build(EX.A,
-               name: "a",
-               link2: [],
-               link1: [
-                 Example.Circle.build!(EX.B,
-                   name: "b",
-                   link2: [],
-                   link1: [
-                     Example.Circle.build!(EX.C, name: "c", link1: RDF.iri(EX.A))
-                   ]
-                 )
-               ]
-             )
-  end
-
-  test "indirect circle" do
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.link1(EX.B, EX.C),
-             EX.B |> EX.name("b") |> EX.link1(EX.D),
-             EX.C |> EX.name("c") |> EX.link1(EX.E),
-             EX.D |> EX.name("d") |> EX.link1(EX.C),
-             EX.E |> EX.name("e") |> EX.link1(EX.B)
-           ])
-           |> Example.Circle.load(EX.A) ==
-             Example.Circle.build(EX.A,
-               name: "a",
-               link2: [],
-               link1: [
-                 Example.Circle.build!(EX.B,
-                   name: "b",
-                   link2: [],
-                   link1: [
-                     Example.Circle.build!(EX.D,
-                       name: "d",
-                       link2: [],
-                       link1: [
-                         Example.Circle.build!(EX.C,
-                           name: "c",
-                           link2: [],
-                           link1: [Example.Circle.build!(EX.E, name: "e", link1: RDF.iri(EX.B))]
-                         )
-                       ]
-                     )
-                   ]
-                 ),
-                 Example.Circle.build!(EX.C,
-                   name: "c",
-                   link2: [],
-                   link1: [
-                     Example.Circle.build!(EX.E,
-                       name: "e",
-                       link2: [],
-                       link1: [
-                         Example.Circle.build!(EX.B,
-                           name: "b",
-                           link2: [],
-                           link1: [Example.Circle.build!(EX.D, name: "d", link1: RDF.iri(EX.C))]
-                         )
-                       ]
-                     )
-                   ]
-                 )
-               ]
-             )
-  end
-
-  test "indirect circle over different properties" do
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.link1(EX.B, EX.C),
-             EX.B |> EX.name("b") |> EX.link1(EX.D),
-             EX.C |> EX.name("c") |> EX.link1(EX.E),
-             EX.D |> EX.name("d") |> EX.link2(EX.C),
-             EX.E |> EX.name("e") |> EX.link2(EX.B)
-           ])
-           |> Example.Circle.load(EX.A) ==
-             Example.Circle.build(EX.A,
-               name: "a",
-               link2: [],
-               link1: [
-                 Example.Circle.build!(EX.B,
-                   name: "b",
-                   link2: [],
-                   link1: [
-                     Example.Circle.build!(EX.D,
-                       name: "d",
-                       link1: [],
-                       link2: [
-                         Example.Circle.build!(EX.C,
-                           name: "c",
-                           link2: [],
-                           link1: [Example.Circle.build!(EX.E, name: "e", link2: RDF.iri(EX.B))]
-                         )
-                       ]
-                     )
-                   ]
-                 ),
-                 Example.Circle.build!(EX.C,
-                   name: "c",
-                   link2: [],
-                   link1: [
-                     Example.Circle.build!(EX.E,
-                       name: "e",
-                       link1: [],
-                       link2: [
-                         Example.Circle.build!(EX.B,
-                           name: "b",
-                           link2: [],
-                           link1: [Example.Circle.build!(EX.D, name: "d", link2: RDF.iri(EX.C))]
-                         )
-                       ]
-                     )
-                   ]
-                 )
-               ]
-             )
-  end
-
-  test "depth preloading" do
-    assert RDF.graph([
-             EX.A |> EX.next(EX.B),
-             EX.B |> EX.next(EX.C),
-             EX.C |> EX.next(EX.D),
-             EX.D |> EX.name("d")
-           ])
-           |> Example.DepthPreloading.load(EX.A) ==
-             Example.DepthPreloading.build(EX.A,
-               next:
-                 Example.DepthPreloading.build!(EX.B,
-                   next: Example.DepthPreloading.build!(EX.C, next: RDF.iri(EX.D))
-                 )
-             )
-  end
-
-  test "manual preload control" do
-    assert Example.User.load(example_graph(), EX.User0, depth: 1) ==
+  test "Grax.preload/2" do
+    assert Example.user(EX.User0, depth: 0)
+           |> Grax.preload(example_graph()) ==
              {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert Example.User.load(example_graph(), EX.User0, depth: 2) ==
-             {:ok, Example.user(EX.User0, depth: 2)}
+    graph =
+      RDF.graph([
+        EX.A |> EX.next(EX.B),
+        EX.B |> EX.next(EX.C),
+        EX.C |> EX.next(EX.D),
+        EX.D |> EX.name("d")
+      ])
 
-    assert Example.User.load(example_graph(), EX.User0, depth: 3) ==
-             {:ok, Example.user(EX.User0, depth: 3)}
+    assert Example.DepthPreloading.build!(EX.A)
+           |> Grax.preload(graph) ==
+             Example.DepthPreloading.load(graph, EX.A)
+
+    assert Example.AddDepthPreloading.build!(EX.A)
+           |> Grax.preload(graph) ==
+             Example.AddDepthPreloading.load(graph, EX.A)
   end
 
-  test "with preload opt no circle check is performed" do
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.link1(EX.B),
-             EX.B |> EX.name("b") |> EX.link1(EX.C),
-             EX.C |> EX.name("c") |> EX.link1(EX.A)
-           ])
-           |> Example.Circle.load(EX.A, depth: 4) ==
-             Example.Circle.build(EX.A,
-               name: "a",
-               link2: [],
-               link1: [
-                 Example.Circle.build!(EX.B,
-                   name: "b",
-                   link2: [],
-                   link1: [
-                     Example.Circle.build!(EX.C,
-                       name: "c",
-                       link2: [],
-                       link1: [
-                         Example.Circle.build!(EX.A,
-                           name: "a",
-                           link2: [],
-                           link1: [
-                             Example.Circle.build!(EX.B, name: "b", link1: RDF.iri(EX.C))
-                           ]
-                         )
-                       ]
-                     )
-                   ]
-                 )
-               ]
-             )
+  describe "Grax.preload/3" do
+    test "without errors" do
+      assert Example.user(EX.User0, depth: 0)
+             |> Grax.preload(example_graph(), depth: 1) ==
+               {:ok, Example.user(EX.User0, depth: 1)}
 
-    assert RDF.graph([
-             EX.A |> EX.name("a") |> EX.link1(EX.B, EX.C),
-             EX.B |> EX.name("b") |> EX.link1(EX.D),
-             EX.C |> EX.name("c") |> EX.link1(EX.E),
-             EX.D |> EX.name("d") |> EX.link1(EX.C),
-             EX.E |> EX.name("e") |> EX.link1(EX.B)
-           ])
-           |> Example.Circle.load(EX.A, depth: 5) ==
-             Example.Circle.build(EX.A,
-               name: "a",
-               link2: [],
-               link1: [
-                 Example.Circle.build!(EX.B,
-                   name: "b",
-                   link2: [],
-                   link1: [
-                     Example.Circle.build!(EX.D,
-                       name: "d",
-                       link2: [],
-                       link1: [
-                         Example.Circle.build!(EX.C,
-                           name: "c",
-                           link2: [],
-                           link1: [
-                             Example.Circle.build!(EX.E,
-                               name: "e",
-                               link2: [],
-                               link1: [
-                                 Example.Circle.build!(EX.B, name: "b", link1: RDF.iri(EX.D))
-                               ]
-                             )
-                           ]
-                         )
-                       ]
-                     )
-                   ]
-                 ),
-                 Example.Circle.build!(EX.C,
-                   name: "c",
-                   link2: [],
-                   link1: [
-                     Example.Circle.build!(EX.E,
-                       name: "e",
-                       link2: [],
-                       link1: [
-                         Example.Circle.build!(EX.B,
-                           name: "b",
-                           link2: [],
-                           link1: [
-                             Example.Circle.build!(EX.D,
-                               name: "d",
-                               link2: [],
-                               link1: [
-                                 Example.Circle.build!(EX.C, name: "c", link1: RDF.iri(EX.E))
-                               ]
-                             )
-                           ]
-                         )
-                       ]
-                     )
-                   ]
-                 )
-               ]
-             )
+      assert Example.user(EX.User0, depth: 1)
+             |> Grax.preload(example_graph(), depth: 1) ==
+               {:ok, Example.user(EX.User0, depth: 1)}
+
+      assert Example.user(EX.User0, depth: 0)
+             |> Grax.preload(example_graph(), depth: 2) ==
+               {:ok, Example.user(EX.User0, depth: 2)}
+
+      assert Example.user(EX.User0, depth: 1)
+             |> Grax.preload(example_graph(), depth: 2) ==
+               {:ok, Example.user(EX.User0, depth: 2)}
+    end
+
+    test "with validation errors" do
+      graph_with_error = example_graph() |> Graph.add({EX.Post0, EX.title(), "Other"})
+
+      assert {:error, %ValidationError{}} =
+               Example.user(EX.User0, depth: 0)
+               |> Grax.preload(graph_with_error, depth: 1)
+    end
+  end
+
+  test "Grax.preload!/2" do
+    assert Example.user(EX.User0, depth: 0)
+           |> Grax.preload!(example_graph()) ==
+             Example.user(EX.User0, depth: 1)
+
+    graph =
+      RDF.graph([
+        EX.A |> EX.next(EX.B),
+        EX.B |> EX.next(EX.C),
+        EX.C |> EX.next(EX.D),
+        EX.D |> EX.name("d")
+      ])
+
+    assert Example.DepthPreloading.build!(EX.A)
+           |> Grax.preload!(graph) ==
+             Example.DepthPreloading.load!(graph, EX.A)
+
+    assert Example.AddDepthPreloading.build!(EX.A)
+           |> Grax.preload!(graph) ==
+             Example.AddDepthPreloading.load!(graph, EX.A)
+  end
+
+  describe "Grax.preload!/3" do
+    test "without errors" do
+      assert Example.user(EX.User0, depth: 0)
+             |> Grax.preload!(example_graph(), depth: 1) ==
+               Example.user(EX.User0, depth: 1)
+    end
+
+    test "with validation errors" do
+      graph_with_error = example_graph() |> Graph.add({EX.Post0, EX.title(), "Other"})
+
+      post = Example.post(depth: 0)
+
+      assert Example.user(EX.User0, depth: 0)
+             |> Grax.preload!(graph_with_error) ==
+               Example.user(EX.User0, depth: 1)
+               |> Grax.put!(:posts, [Grax.put!(post, :title, [post.title, "Other"])])
+    end
+  end
+
+  describe "Grax.preloaded?/1" do
+    test "when one of the link properties is not preloaded" do
+      refute Example.user(EX.User0, depth: 0) |> Grax.preloaded?()
+      refute Example.post(depth: 0) |> Grax.preloaded?()
+    end
+
+    test "when all of the link properties are preloaded" do
+      assert Example.user(EX.User0, depth: 1) |> Grax.preloaded?()
+      assert Example.post(depth: 1) |> Grax.preloaded?()
+    end
+  end
+
+  describe "Grax.preloaded?/2" do
+    test "with preloaded link properties" do
+      assert Example.user(EX.User0, depth: 1) |> Grax.preloaded?(:posts)
+      assert Example.user(EX.User0, depth: 1) |> Grax.preloaded?(:comments)
+      assert Example.post(depth: 1) |> Grax.preloaded?(:author)
+      assert Example.post(depth: 1) |> Grax.preloaded?(:comments)
+    end
+
+    test "with the link has not preloaded values" do
+      refute Example.user(EX.User0, depth: 0) |> Grax.preloaded?(:posts)
+      refute Example.post(depth: 0) |> Grax.preloaded?(:author)
+      refute Example.post(depth: 0) |> Grax.preloaded?(:comments)
+    end
+
+    test "with the link does not have values" do
+      assert Example.user(EX.User0, depth: 0) |> Grax.preloaded?(:comments)
+    end
+
+    test "with data properties" do
+      assert Example.user(EX.User0, depth: 0) |> Grax.preloaded?(:name)
+      assert Example.post(depth: 0) |> Grax.preloaded?(:title)
+    end
+
+    test "with non-existing properties" do
+      assert_raise ArgumentError, fn ->
+        Example.post(depth: 0) |> Grax.preloaded?(:not_existing)
+      end
+    end
+  end
+
+  describe "implicit preloading via load" do
+    test "when no description of the linked resource exists" do
+      assert example_description(:user)
+             |> Example.User.load(EX.User0) ==
+               {:ok,
+                Example.user(EX.User0, depth: 1)
+                |> Map.put(:posts, [Example.Post.build!(EX.Post0)])}
+    end
+
+    test "load/2 when the nested description doesn't match the nested schema" do
+      assert {:error, %ValidationError{}} =
+               example_graph()
+               |> Graph.add({EX.Post0, EX.title(), "Other"})
+               |> Example.User.load(EX.User0)
+    end
+
+    test "load!/2 when the nested description doesn't match the nested schema" do
+      assert %Example.User{} =
+               user =
+               example_graph()
+               |> Graph.add({EX.Post0, EX.title(), "Other"})
+               |> Example.User.load!(EX.User0)
+
+      refute Grax.valid?(user)
+      assert hd(user.posts).title == [Example.post().title, "Other"]
+
+      assert %Example.User{} =
+               user =
+               example_graph()
+               |> Graph.put({EX.Post0, EX.title(), 42})
+               |> Example.User.load!(EX.User0)
+
+      refute Grax.valid?(user)
+      assert hd(user.posts).title == 42
+    end
+
+    test "link to itself without circle" do
+      assert RDF.graph([
+               EX.A |> EX.name("a") |> EX.next(EX.B),
+               EX.B |> EX.name("b") |> EX.next(EX.C),
+               EX.C |> EX.name("c")
+             ])
+             |> Example.SelfLinked.load(EX.A) ==
+               Example.SelfLinked.build(EX.A,
+                 name: "a",
+                 next: Example.SelfLinked.build!(EX.B, name: "b", next: RDF.iri(EX.C))
+               )
+    end
+
+    test "link via blank node" do
+      assert RDF.graph([
+               EX.A |> EX.name("a") |> EX.next(~B"b"),
+               ~B"b" |> EX.name("b") |> EX.next(~B"c"),
+               ~B"c" |> EX.name("c")
+             ])
+             |> Example.SelfLinked.load(EX.A) ==
+               Example.SelfLinked.build(EX.A,
+                 name: "a",
+                 next: Example.SelfLinked.build!(~B"b", name: "b", next: ~B"c")
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.name("a") |> EX.next(~B"b"),
+               ~B"b" |> EX.name("b") |> EX.next(~B"c"),
+               ~B"c" |> EX.name("c")
+             ])
+             |> Example.SelfLinked.load(EX.A, depth: 3) ==
+               Example.SelfLinked.build(EX.A,
+                 name: "a",
+                 next:
+                   Example.SelfLinked.build!(~B"b",
+                     name: "b",
+                     next: Example.SelfLinked.build!(~B"c", name: "c")
+                   )
+               )
+    end
+
+    test "direct link to itself" do
+      assert RDF.graph([EX.A |> EX.name("a") |> EX.next(EX.A)])
+             |> Example.SelfLinked.load(EX.A) ==
+               Example.SelfLinked.build(EX.A, name: "a", next: RDF.iri(EX.A))
+    end
+
+    test "link to itself with circle" do
+      assert RDF.graph([
+               EX.A |> EX.name("a") |> EX.link1(EX.B),
+               EX.B |> EX.name("b") |> EX.link1(EX.C),
+               EX.C |> EX.name("c") |> EX.link1(EX.A)
+             ])
+             |> Example.Circle.load(EX.A) ==
+               Example.Circle.build(EX.A,
+                 name: "a",
+                 link2: [],
+                 link1: [
+                   Example.Circle.build!(EX.B,
+                     name: "b",
+                     link2: [],
+                     link1: [
+                       Example.Circle.build!(EX.C, name: "c", link1: RDF.iri(EX.A))
+                     ]
+                   )
+                 ]
+               )
+    end
+
+    test "indirect circle" do
+      assert RDF.graph([
+               EX.A |> EX.name("a") |> EX.link1(EX.B, EX.C),
+               EX.B |> EX.name("b") |> EX.link1(EX.D),
+               EX.C |> EX.name("c") |> EX.link1(EX.E),
+               EX.D |> EX.name("d") |> EX.link1(EX.C),
+               EX.E |> EX.name("e") |> EX.link1(EX.B)
+             ])
+             |> Example.Circle.load(EX.A) ==
+               Example.Circle.build(EX.A,
+                 name: "a",
+                 link2: [],
+                 link1: [
+                   Example.Circle.build!(EX.B,
+                     name: "b",
+                     link2: [],
+                     link1: [
+                       Example.Circle.build!(EX.D,
+                         name: "d",
+                         link2: [],
+                         link1: [
+                           Example.Circle.build!(EX.C,
+                             name: "c",
+                             link2: [],
+                             link1: [Example.Circle.build!(EX.E, name: "e", link1: RDF.iri(EX.B))]
+                           )
+                         ]
+                       )
+                     ]
+                   ),
+                   Example.Circle.build!(EX.C,
+                     name: "c",
+                     link2: [],
+                     link1: [
+                       Example.Circle.build!(EX.E,
+                         name: "e",
+                         link2: [],
+                         link1: [
+                           Example.Circle.build!(EX.B,
+                             name: "b",
+                             link2: [],
+                             link1: [Example.Circle.build!(EX.D, name: "d", link1: RDF.iri(EX.C))]
+                           )
+                         ]
+                       )
+                     ]
+                   )
+                 ]
+               )
+    end
+
+    test "indirect circle over different properties" do
+      assert RDF.graph([
+               EX.A |> EX.name("a") |> EX.link1(EX.B, EX.C),
+               EX.B |> EX.name("b") |> EX.link1(EX.D),
+               EX.C |> EX.name("c") |> EX.link1(EX.E),
+               EX.D |> EX.name("d") |> EX.link2(EX.C),
+               EX.E |> EX.name("e") |> EX.link2(EX.B)
+             ])
+             |> Example.Circle.load(EX.A) ==
+               Example.Circle.build(EX.A,
+                 name: "a",
+                 link2: [],
+                 link1: [
+                   Example.Circle.build!(EX.B,
+                     name: "b",
+                     link2: [],
+                     link1: [
+                       Example.Circle.build!(EX.D,
+                         name: "d",
+                         link1: [],
+                         link2: [
+                           Example.Circle.build!(EX.C,
+                             name: "c",
+                             link2: [],
+                             link1: [Example.Circle.build!(EX.E, name: "e", link2: RDF.iri(EX.B))]
+                           )
+                         ]
+                       )
+                     ]
+                   ),
+                   Example.Circle.build!(EX.C,
+                     name: "c",
+                     link2: [],
+                     link1: [
+                       Example.Circle.build!(EX.E,
+                         name: "e",
+                         link1: [],
+                         link2: [
+                           Example.Circle.build!(EX.B,
+                             name: "b",
+                             link2: [],
+                             link1: [Example.Circle.build!(EX.D, name: "d", link2: RDF.iri(EX.C))]
+                           )
+                         ]
+                       )
+                     ]
+                   )
+                 ]
+               )
+    end
+
+    test "depth preloading" do
+      assert RDF.graph([
+               EX.A |> EX.next(EX.B),
+               EX.B |> EX.next(EX.C),
+               EX.C |> EX.next(EX.D),
+               EX.D |> EX.name("d")
+             ])
+             |> Example.DepthPreloading.load(EX.A) ==
+               Example.DepthPreloading.build(EX.A,
+                 next:
+                   Example.DepthPreloading.build!(EX.B,
+                     next: Example.DepthPreloading.build!(EX.C, next: RDF.iri(EX.D))
+                   )
+               )
+    end
+
+    test "manual preload control" do
+      assert Example.User.load(example_graph(), EX.User0, depth: 1) ==
+               {:ok, Example.user(EX.User0, depth: 1)}
+
+      assert Example.User.load(example_graph(), EX.User0, depth: 2) ==
+               {:ok, Example.user(EX.User0, depth: 2)}
+
+      assert Example.User.load(example_graph(), EX.User0, depth: 3) ==
+               {:ok, Example.user(EX.User0, depth: 3)}
+    end
+
+    test "with preload opt no circle check is performed" do
+      assert RDF.graph([
+               EX.A |> EX.name("a") |> EX.link1(EX.B),
+               EX.B |> EX.name("b") |> EX.link1(EX.C),
+               EX.C |> EX.name("c") |> EX.link1(EX.A)
+             ])
+             |> Example.Circle.load(EX.A, depth: 4) ==
+               Example.Circle.build(EX.A,
+                 name: "a",
+                 link2: [],
+                 link1: [
+                   Example.Circle.build!(EX.B,
+                     name: "b",
+                     link2: [],
+                     link1: [
+                       Example.Circle.build!(EX.C,
+                         name: "c",
+                         link2: [],
+                         link1: [
+                           Example.Circle.build!(EX.A,
+                             name: "a",
+                             link2: [],
+                             link1: [
+                               Example.Circle.build!(EX.B, name: "b", link1: RDF.iri(EX.C))
+                             ]
+                           )
+                         ]
+                       )
+                     ]
+                   )
+                 ]
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.name("a") |> EX.link1(EX.B, EX.C),
+               EX.B |> EX.name("b") |> EX.link1(EX.D),
+               EX.C |> EX.name("c") |> EX.link1(EX.E),
+               EX.D |> EX.name("d") |> EX.link1(EX.C),
+               EX.E |> EX.name("e") |> EX.link1(EX.B)
+             ])
+             |> Example.Circle.load(EX.A, depth: 5) ==
+               Example.Circle.build(EX.A,
+                 name: "a",
+                 link2: [],
+                 link1: [
+                   Example.Circle.build!(EX.B,
+                     name: "b",
+                     link2: [],
+                     link1: [
+                       Example.Circle.build!(EX.D,
+                         name: "d",
+                         link2: [],
+                         link1: [
+                           Example.Circle.build!(EX.C,
+                             name: "c",
+                             link2: [],
+                             link1: [
+                               Example.Circle.build!(EX.E,
+                                 name: "e",
+                                 link2: [],
+                                 link1: [
+                                   Example.Circle.build!(EX.B, name: "b", link1: RDF.iri(EX.D))
+                                 ]
+                               )
+                             ]
+                           )
+                         ]
+                       )
+                     ]
+                   ),
+                   Example.Circle.build!(EX.C,
+                     name: "c",
+                     link2: [],
+                     link1: [
+                       Example.Circle.build!(EX.E,
+                         name: "e",
+                         link2: [],
+                         link1: [
+                           Example.Circle.build!(EX.B,
+                             name: "b",
+                             link2: [],
+                             link1: [
+                               Example.Circle.build!(EX.D,
+                                 name: "d",
+                                 link2: [],
+                                 link1: [
+                                   Example.Circle.build!(EX.C, name: "c", link1: RDF.iri(EX.E))
+                                 ]
+                               )
+                             ]
+                           )
+                         ]
+                       )
+                     ]
+                   )
+                 ]
+               )
+    end
   end
 
   describe "next_preload_opt" do

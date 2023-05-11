@@ -238,43 +238,6 @@ defmodule Grax.RDF.LoaderTest do
     assert user.name == ["Jane", Example.user(EX.User0).name]
   end
 
-  describe "preloading of nested mappings" do
-    test "when no description of the associated resource exists" do
-      assert example_description(:user)
-             |> Example.User.load(EX.User0) ==
-               {:ok,
-                Example.user(EX.User0, depth: 1)
-                |> Map.put(:posts, [Example.Post.build!(EX.Post0)])}
-    end
-
-    test "load/2 when the nested description doesn't match the nested schema" do
-      assert {:error, %ValidationError{}} =
-               example_graph()
-               |> Graph.add({EX.Post0, EX.title(), "Other"})
-               |> Example.User.load(EX.User0)
-    end
-
-    test "load!/2 when the nested description doesn't match the nested schema" do
-      assert %Example.User{} =
-               user =
-               example_graph()
-               |> Graph.add({EX.Post0, EX.title(), "Other"})
-               |> Example.User.load!(EX.User0)
-
-      refute Grax.valid?(user)
-      assert hd(user.posts).title == [Example.post().title, "Other"]
-
-      assert %Example.User{} =
-               user =
-               example_graph()
-               |> Graph.put({EX.Post0, EX.title(), 42})
-               |> Example.User.load!(EX.User0)
-
-      refute Grax.valid?(user)
-      assert hd(user.posts).title == 42
-    end
-  end
-
   describe "inverse properties" do
     test "normal case" do
       description = EX.S |> EX.name("subject")
