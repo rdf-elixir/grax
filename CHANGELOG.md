@@ -43,6 +43,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
     `Grax.delete_additional_predicates/2` function for this now.
 - "heterogeneous link properties" are now called "union link properties"
   (since this name didn't appear in the code, this change only affects the documentation)
+- Rename `Grax.Schema.InvalidProperty` to `Grax.Schema.InvalidPropertyError` for
+  consistency reasons
 
 ### Fixed
 

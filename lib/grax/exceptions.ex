@@ -64,9 +64,7 @@ defmodule Grax.Schema.CardinalityError do
   end
 end
 
-# TODO: rename to Grax.Schema.InvalidPropertyError in v0.5
-# credo:disable-for-this-file Credo.Check.Consistency.ExceptionNames
-defmodule Grax.Schema.InvalidProperty do
+defmodule Grax.Schema.InvalidPropertyError do
   @moduledoc """
   Raised when accessing a property that is not defined on a schema.
   """

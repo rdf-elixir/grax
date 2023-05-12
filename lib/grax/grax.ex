@@ -15,7 +15,7 @@ defmodule Grax do
   import RDF.Utils
   import RDF.Utils.Guards
 
-  @__id__property_access_error Schema.InvalidProperty.exception(
+  @__id__property_access_error Schema.InvalidPropertyError.exception(
                                  property: :__id__,
                                  message:
                                    "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id."
@@ -213,7 +213,7 @@ defmodule Grax do
         {:ok, struct!(mapping, [{property, value}])}
       end
     else
-      {:error, Schema.InvalidProperty.exception(property: property)}
+      {:error, Schema.InvalidPropertyError.exception(property: property)}
     end
   end
 

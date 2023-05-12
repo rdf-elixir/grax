@@ -6,7 +6,7 @@ defmodule GraxTest do
   import Grax.UuidTestHelper
 
   alias Grax.ValidationError
-  alias Grax.Schema.{TypeError, InvalidProperty, CardinalityError}
+  alias Grax.Schema.{TypeError, InvalidPropertyError, CardinalityError}
   alias Example.IdSpecs
 
   describe "build/1" do
@@ -76,7 +76,7 @@ defmodule GraxTest do
                         value: Example.User.build!(EX.Bar),
                         type: Example.Post
                       ),
-                    foo: InvalidProperty.exception(property: :foo),
+                    foo: InvalidPropertyError.exception(property: :foo),
                     age: TypeError.exception(value: "secret", type: XSD.Integer)
                   ]
                 }}
@@ -381,7 +381,7 @@ defmodule GraxTest do
     test "when the property does not exist" do
       assert Example.User.build!(EX.User0)
              |> Grax.put(:foo, "foo") ==
-               {:error, InvalidProperty.exception(property: :foo)}
+               {:error, InvalidPropertyError.exception(property: :foo)}
     end
 
     test "when the value type does not match the schema" do
@@ -470,7 +470,7 @@ defmodule GraxTest do
       assert Example.User.build!(EX.User0)
              |> Grax.put(:__id__, "foo") ==
                {:error,
-                InvalidProperty.exception(
+                InvalidPropertyError.exception(
                   property: :__id__,
                   message:
                     "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id."
@@ -695,7 +695,7 @@ defmodule GraxTest do
     end
 
     test "with the __id__ field" do
-      assert_raise InvalidProperty,
+      assert_raise InvalidPropertyError,
                    "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id.",
                    fn ->
                      Example.User.build!(EX.User0)
@@ -797,7 +797,7 @@ defmodule GraxTest do
                         value: Example.User.build!(EX.Bar),
                         type: Example.Post
                       ),
-                    foo: InvalidProperty.exception(property: :foo),
+                    foo: InvalidPropertyError.exception(property: :foo),
                     age: TypeError.exception(value: "secret", type: XSD.Integer)
                   ]
                 }}
