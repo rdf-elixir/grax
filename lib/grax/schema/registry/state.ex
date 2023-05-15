@@ -6,7 +6,7 @@ defmodule Grax.Schema.Registry.State do
 
   require Logger
 
-  defstruct schemas_by_iri: %{}
+  defstruct schemas_by_iri: %{}, schemas_without_iri: []
 
   def build(additional \\ []) do
     %__MODULE__{}
@@ -19,13 +19,18 @@ defmodule Grax.Schema.Registry.State do
   end
 
   def register(state, module) do
-    if Schema.schema?(module) do
-      %__MODULE__{
+    cond do
+      not Schema.schema?(module) ->
         state
-        | schemas_by_iri: add_schema_iri(state.schemas_by_iri, module, module.__class__())
-      }
-    else
-      state
+
+      class_iri = module.__class__() ->
+        %__MODULE__{
+          state
+          | schemas_by_iri: add_schema_iri(state.schemas_by_iri, module, class_iri)
+        }
+
+      true ->
+        %__MODULE__{state | schemas_without_iri: [module | state.schemas_without_iri]}
     end
   end
 
@@ -37,5 +42,14 @@ defmodule Grax.Schema.Registry.State do
 
   def schema(%{schemas_by_iri: schemas_by_iri}, iri) do
     schemas_by_iri[iri]
+  end
+
+  def all_schemas(%{schemas_by_iri: schemas_by_iri, schemas_without_iri: schemas_without_iri}) do
+    Enum.uniq(
+      schemas_without_iri ++
+        (schemas_by_iri
+         |> Map.values()
+         |> Enum.flat_map(&List.wrap/1))
+    )
   end
 end

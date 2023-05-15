@@ -22,6 +22,10 @@ defmodule Grax.Schema.Registry do
     GenServer.call(__MODULE__, {:schema, iri})
   end
 
+  def all_schemas do
+    GenServer.call(__MODULE__, :all_schemas)
+  end
+
   @impl true
   def init(opts) do
     {:ok, State.build(opts)}
@@ -40,5 +44,10 @@ defmodule Grax.Schema.Registry do
   @impl true
   def handle_call({:schema, iri}, _from, state) do
     {:reply, State.schema(state, iri), state}
+  end
+
+  @impl true
+  def handle_call(:all_schemas, _from, state) do
+    {:reply, State.all_schemas(state), state}
   end
 end
