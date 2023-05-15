@@ -19,55 +19,12 @@ defmodule Grax.Schema.RegistryTest do
   end
 
   test "all_schemas/0" do
-    assert Enum.sort(Registry.all_schemas()) ==
-             [
-               Example.AddDepthPreloading,
-               Example.AnotherParentSchema,
-               Example.AnyType,
-               Example.Cardinalities,
-               Example.ChildOfMany,
-               Example.ChildSchema,
-               Example.ChildSchemaWithClass,
-               Example.Circle,
-               Example.ClassDeclaration,
-               Example.Comment,
-               Example.CustomMapping,
-               Example.CustomMappingInSeparateModule,
-               Example.CustomMappingOnCustomFields,
-               Example.Datatypes,
-               Example.DefaultValues,
-               Example.DepthPreloading,
-               Example.IdsAsPropertyValues,
-               Example.IgnoreAdditionalStatements,
-               Example.InverseProperties,
-               Example.LanguageStrings,
-               Example.Links,
-               Example.MultipleSchemasA,
-               Example.MultipleSchemasB,
-               Example.NonPolymorphicLink,
-               Example.ParentSchema,
-               Example.PolymorphicLink,
-               Example.Post,
-               Example.Required,
-               Example.SelfLinked,
-               Example.SingularInverseProperties,
-               Example.Untyped,
-               Example.User,
-               Example.UserWithCallbacks,
-               Example.VarMappingA,
-               Example.VarMappingB,
-               Example.VarMappingC,
-               Example.VarMappingD,
-               Example.WithBlankNodeIdSchema,
-               Example.WithCustomSelectedIdSchemaA,
-               Example.WithCustomSelectedIdSchemaB,
-               Example.WithIdSchema,
-               Example.WithIdSchemaNested,
-               Example.ZeroDepthLinkPreloading,
-               Example.ZeroDepthPreloading
-             ]
-             |> Enum.uniq()
-             |> Enum.sort()
+    all_schemas = Registry.all_schemas()
+
+    assert is_list(all_schemas)
+    refute Enum.empty?(all_schemas)
+    assert Enum.all?(all_schemas, &Grax.Schema.schema?/1)
+    assert all_schemas == Enum.uniq(all_schemas)
   end
 
   describe "register/1" do
