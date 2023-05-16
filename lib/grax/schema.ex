@@ -278,8 +278,13 @@ defmodule Grax.Schema do
   def struct?(_), do: false
 
   @doc """
-  Checks if the given module is a `Grax.Schema`.
+  Checks if the given module or struct is a `Grax.Schema`.
   """
+  @spec schema?(module | struct) :: boolean
+  def schema?(mod_or_struct)
+
+  def schema?(%mod{}), do: schema?(mod)
+
   def schema?(mod) when maybe_module(mod) do
     case Code.ensure_compiled(mod) do
       {:module, mod} -> function_exported?(mod, :__properties__, 1)
@@ -288,4 +293,16 @@ defmodule Grax.Schema do
   end
 
   def schema?(_), do: false
+
+  @doc """
+  Checks if the given `Grax.Schema` or `Grax.Schema` struct is inherited from another `Grax.Schema`.
+  """
+  @spec inherited_from?(module | struct, module) :: boolean
+  def inherited_from?(schema, parent)
+
+  def inherited_from?(%schema{}, parent), do: inherited_from?(schema, parent)
+
+  def inherited_from?(schema, parent) do
+    schema?(schema) and Inheritance.inherited_schema?(schema, parent)
+  end
 end

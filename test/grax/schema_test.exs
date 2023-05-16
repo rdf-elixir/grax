@@ -1,6 +1,7 @@
 defmodule Grax.SchemaTest do
   use Grax.TestCase
 
+  alias Grax.Schema
   alias Example.{IdSpecs, User, Post, Comment}
 
   describe "default values" do
@@ -221,5 +222,25 @@ defmodule Grax.SchemaTest do
     test "when no Id.Schema can be found" do
       assert Comment.__id_schema__(IdSpecs.GenericIds) == nil
     end
+  end
+
+  test "schema?/2" do
+    assert Schema.schema?(User)
+    refute Schema.schema?(Regex)
+    refute Schema.schema?(:random)
+    refute Schema.schema?(42)
+
+    assert Example.user(EX.User0) |> Schema.schema?()
+    refute ~D[2023-05-16] |> Schema.schema?()
+  end
+
+  test "inherited_from?/2" do
+    assert Example.ParentSchema |> Schema.inherited_from?(Example.ParentSchema)
+    assert Example.ChildSchema |> Schema.inherited_from?(Example.ParentSchema)
+    refute Example.ChildOfMany |> Schema.inherited_from?(User)
+    refute Example.AnotherParentSchema |> Schema.inherited_from?(Example.ParentSchema)
+
+    assert Example.user(EX.User0) |> Schema.inherited_from?(User)
+    refute Example.user(EX.User0) |> Schema.inherited_from?(ParentSchema)
   end
 end
