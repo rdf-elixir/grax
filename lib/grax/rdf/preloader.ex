@@ -185,7 +185,7 @@ defmodule Grax.RDF.Preloader do
   end
 
   defp map_link(resource, {:resource, schema}, %{polymorphic: false} = link_schema, graph, opts) do
-    case link_schema.on_type_mismatch do
+    case link_schema.on_rdf_type_mismatch do
       :ignore ->
         schema.load(graph, resource, opts)
 

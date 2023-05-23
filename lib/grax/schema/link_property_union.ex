@@ -56,7 +56,7 @@ defmodule Grax.Schema.LinkProperty.Union do
   defp do_determine_schema([schema], _, _, _), do: {:ok, schema}
 
   defp do_determine_schema([], types, class_mapping, property_schema) do
-    type_mismatch(class_mapping[nil], property_schema.on_type_mismatch, types)
+    type_mismatch(class_mapping[nil], property_schema.on_rdf_type_mismatch, types)
   end
 
   defp do_determine_schema(candidates, _, _, _) do
@@ -77,7 +77,7 @@ defmodule Grax.Schema.LinkProperty.Union do
     end
   end
 
-  defp type_mismatch(fallback_schema, on_type_mismatch, types)
+  defp type_mismatch(fallback_schema, on_rdf_type_mismatch, types)
   defp type_mismatch(nil, :ignore, _), do: {:ok, nil}
 
   defp type_mismatch(nil, :error, types),

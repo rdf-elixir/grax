@@ -80,7 +80,7 @@ defmodule Grax.Schema.Inheritance do
         {:ok, result_schema}
 
       [] ->
-        case property_schema.on_type_mismatch do
+        case property_schema.on_rdf_type_mismatch do
           :ignore ->
             {:ok, schema}
 

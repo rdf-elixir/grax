@@ -48,6 +48,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   - You no longer can use `nil` values on a property with `Grax.put_additional_statements/2`
     to remove statements with this property. You must use the new 
     `Grax.delete_additional_predicates/2` function for this now.
+- Rename `:on_type_mismatch` link option to `:on_rdf_type_mismatch` to make it
+  clearer that it is only relevant during preloading from RDF data
 - "heterogeneous link properties" are now called "union link properties"
   (since this name didn't appear in the code, this change only affects the documentation)
 - Rename `Grax.Schema.InvalidProperty` to `Grax.Schema.InvalidPropertyError` for

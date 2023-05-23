@@ -705,7 +705,11 @@ defmodule Example do
       property name: EX.name()
 
       link one: EX.one(), type: Example.ParentSchema
-      link strict_one: EX.strictOne(), type: Example.AnotherParentSchema, on_type_mismatch: :error
+
+      link strict_one: EX.strictOne(),
+           type: Example.AnotherParentSchema,
+           on_rdf_type_mismatch: :error
+
       link many: EX.many(), type: list_of(Example.ParentSchema)
     end
   end
@@ -719,7 +723,7 @@ defmodule Example do
       link strict_one: EX.strictOne(),
            type: Example.AnotherParentSchema,
            polymorphic: false,
-           on_type_mismatch: :error
+           on_rdf_type_mismatch: :error
 
       link many: EX.many(), type: list_of(Example.ParentSchema), polymorphic: false
     end

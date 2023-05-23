@@ -73,7 +73,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp1,
                  iri: ~I<http://example.com/lp1>,
                  schema: ChildSchema,
-                 on_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :ignore,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -81,7 +81,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp2,
                  iri: ~I<http://example.com/lp22>,
                  schema: ChildSchema,
-                 on_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :ignore,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -89,7 +89,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp3,
                  iri: ~I<http://example.com/lp3>,
                  schema: ChildSchema,
-                 on_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :ignore,
                  polymorphic: true,
                  type: {:resource, User}
                }
@@ -139,7 +139,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp1,
                  iri: ~I<http://example.com/lp1>,
                  schema: ChildOfMany,
-                 on_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :ignore,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -147,7 +147,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp2,
                  iri: ~I<http://example.com/lp2>,
                  schema: ChildOfMany,
-                 on_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :ignore,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -155,7 +155,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp3,
                  iri: ~I<http://example.com/lp3>,
                  schema: ChildOfMany,
-                 on_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :ignore,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -163,7 +163,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp4,
                  iri: ~I<http://example.com/lp4>,
                  schema: ChildOfMany,
-                 on_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :ignore,
                  polymorphic: true,
                  type: {:resource, User}
                }

@@ -37,7 +37,7 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
              EX.Comment => Comment,
              EX.ParentSchema => ParentSchema
            },
-           on_type_mismatch: :error
+           on_rdf_type_mismatch: :error
 
       link many: EX.many(),
            type:
@@ -67,7 +67,7 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
              EX.ChildOfMany => ChildOfMany
            },
            polymorphic: false,
-           on_type_mismatch: :error
+           on_rdf_type_mismatch: :error
 
       link strict_one: EX.strictOne(),
            type: %{
@@ -78,7 +78,7 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
              EX.Child2 => ChildSchemaWithClass
            },
            polymorphic: false,
-           on_type_mismatch: :error
+           on_rdf_type_mismatch: :error
 
       link many: EX.many(),
            type:
@@ -588,7 +588,7 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                 )}
     end
 
-    test "ignores resources when no class matches with on_type_mismatch: :ignore" do
+    test "ignores resources when no class matches with on_rdf_type_mismatch: :ignore" do
       # when no class matches
       assert RDF.graph([
                EX.A |> EX.one(EX.Something)
@@ -620,7 +620,7 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                )
     end
 
-    test "returns error when no class matches with on_type_mismatch: :error" do
+    test "returns error when no class matches with on_rdf_type_mismatch: :error" do
       assert RDF.graph([
                EX.A |> EX.strictOne(EX.Post1),
                EX.Post1 |> EX.title("foo")

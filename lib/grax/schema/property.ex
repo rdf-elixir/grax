@@ -138,7 +138,7 @@ defmodule Grax.Schema.LinkProperty do
   alias Grax.Schema.Property
   alias Grax.Schema.LinkProperty.Union
 
-  defstruct Property.shared_attrs() ++ [:preload, :polymorphic, :on_type_mismatch]
+  defstruct Property.shared_attrs() ++ [:preload, :polymorphic, :on_rdf_type_mismatch]
 
   def new(schema, name, iri, opts) do
     {type, cardinality} = Property.type_with_cardinality(name, opts, __MODULE__)
@@ -154,18 +154,20 @@ defmodule Grax.Schema.LinkProperty do
       cardinality: cardinality,
       polymorphic: Keyword.get(opts, :polymorphic, true),
       preload: opts[:preload],
-      on_type_mismatch: init_on_type_mismatch(opts[:on_type_mismatch])
+      on_rdf_type_mismatch: init_on_rdf_type_mismatch(opts[:on_rdf_type_mismatch])
     )
   end
 
-  @valid_on_type_mismatch_values ~w[ignore error]a
+  @valid_on_rdf_type_mismatch_values ~w[ignore error]a
 
-  defp init_on_type_mismatch(nil), do: :ignore
-  defp init_on_type_mismatch(value) when value in @valid_on_type_mismatch_values, do: value
+  defp init_on_rdf_type_mismatch(nil), do: :ignore
 
-  defp init_on_type_mismatch(value) do
+  defp init_on_rdf_type_mismatch(value) when value in @valid_on_rdf_type_mismatch_values,
+    do: value
+
+  defp init_on_rdf_type_mismatch(value) do
     raise ArgumentError,
-          "invalid on_type_mismatch value: #{inspect(value)} (valid values: #{inspect(@valid_on_type_mismatch_values)})"
+          "invalid on_rdf_type_mismatch value: #{inspect(value)} (valid values: #{inspect(@valid_on_rdf_type_mismatch_values)})"
   end
 
   def initial_value_type(nil), do: {:error, "type missing"}
