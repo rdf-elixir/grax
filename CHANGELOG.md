@@ -11,16 +11,9 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 - Grax schema mapping functions `from/1` and `from!/1` on Grax schema modules,
   which allows to map one schema struct to another
-- Preloading of links now has become polymorphic, i.e. the most specific 
-  inherited schema matching one of the types of a linked resource is used;
-  opting-out to the previous behaviour is possible by setting the 
-  `:polymorphic` option to `false` on a `link` definition
-- Preloading of union links whose schemas are in an inheritance relationship
-  are resolved to the most specific class and no longer result in an
-  `:multiple_matches` when the resource is typed also with the broader classes.
-- The class mapping can now also be provided as a list of `{class_iri, schema}`
-  tuples or just Grax schemas, for those which are associated with a class IRI
-  with a class declaration.
+- The class mapping on a union type can now also be provided as a list of
+  `{class_iri, schema}` tuples or just Grax schemas, for those which are
+  associated with a class IRI with a class declaration.
 - `Grax.Schema.schema?/1` and `Grax.Schema.struct?/1` to determine whether a given
   module or struct is a Grax schema resp. Grax schema struct
 - `Grax.schema/1` to get the schema(s) of a given class IRI
@@ -31,6 +24,17 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Changed
 
+- Links now have become polymorphic, i.e. the most specific
+  inherited schema matching one of the types of a linked resource is used.
+  Opting-out to non-polymorphic behaviour is possible by setting the
+  `:polymorphic` option to `false` on a `link` definition. However, the
+  non-polymorphic behaviour still differs slightly from the previous version,
+  in that, when `:on_type_mismatch` is set to `:error`, preloading of an RDF  
+  resource which is not typed with the class of the specified schema, but the
+  class of an inherited schema, no longer leads to an error.
+- Preloading of union links whose schemas are in an inheritance relationship
+  are resolved to the most specific class and no longer result in an
+  `:multiple_matches` when the resource is typed also with the broader classes.
 - The internal representation of the `__additional_statements__` field of Grax 
   schema structs was changed to use now the same format as the internal
   `predications` field of `RDF.Description`s. This allows various optimizations 

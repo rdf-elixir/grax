@@ -207,7 +207,7 @@ defmodule Grax.RDF.Preloader do
   defp map_link(resource, {:resource, schema}, property_schema, graph, opts) do
     description = description(graph, resource)
 
-    with {:ok, schema} <- Inheritance.determine_schema(schema, description, property_schema) do
+    with {:ok, schema} <- Inheritance.determine_schema(description, schema, property_schema) do
       schema.load(graph, resource, Keyword.put(opts, :description, description))
     end
   end

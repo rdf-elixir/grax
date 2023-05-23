@@ -65,9 +65,13 @@ defmodule Grax.Schema.Inheritance do
     end)
   end
 
-  def determine_schema(schema, description, property_schema) do
-    types = Description.get(description, RDF.type(), [])
+  def determine_schema(%Description{} = description, schema, property_schema) do
+    description
+    |> Description.get(RDF.type(), [])
+    |> determine_schema(schema, property_schema)
+  end
 
+  def determine_schema(types, schema, property_schema) do
     types
     |> Enum.flat_map(&(&1 |> Registry.schema() |> List.wrap()))
     |> Enum.filter(&inherited_schema?(&1, schema))

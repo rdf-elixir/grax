@@ -735,7 +735,7 @@ defmodule GraxTest do
     test "with a map and an id schema defined for the linked schema" do
       assert %Example.WithIdSchemaNested{
                __id__: ~I<http://example.com/bar/bar1>,
-               foo: %Example.WithIdSchema{__id__: nested_id}
+               foo: %Example.WithIdSchema{__id__: nested_id, foo: "foo1"}
              } =
                Example.WithIdSchemaNested.build!(bar: "bar1")
                |> Grax.put!(foo: %{foo: "foo1"})

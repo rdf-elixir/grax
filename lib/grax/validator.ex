@@ -183,8 +183,14 @@ defmodule Grax.Validator do
     add_error(validation, link, TypeError.exception(value: value, type: type))
   end
 
-  defp resource_type_matches?(schema, %Union{types: class_mapping}, _) do
-    schema in Map.values(class_mapping)
+  defp resource_type_matches?(schema, %Union{types: class_mapping}, link_schema) do
+    if link_schema.polymorphic do
+      class_mapping
+      |> Map.values()
+      |> Enum.any?(&Inheritance.inherited_schema?(schema, &1))
+    else
+      schema in Map.values(class_mapping)
+    end
   end
 
   defp resource_type_matches?(schema, resource_type, link_schema) do

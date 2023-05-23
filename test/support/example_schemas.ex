@@ -698,7 +698,7 @@ defmodule Example do
     def foo(_, _), do: {:ok, :foo}
   end
 
-  defmodule LinksWithInheritedSchemas do
+  defmodule PolymorphicLinks do
     use Grax.Schema
 
     schema do
@@ -710,16 +710,18 @@ defmodule Example do
     end
   end
 
-  defmodule NonPolymorphicLink do
+  defmodule NonPolymorphicLinks do
     use Grax.Schema
 
     schema do
-      link link: EX.link(), type: Example.ParentSchema, polymorphic: false
+      link one: EX.one(), type: Example.ParentSchema, polymorphic: false
 
-      link strict_link: EX.strictLink(),
-           type: Example.ParentSchema,
+      link strict_one: EX.strictOne(),
+           type: Example.AnotherParentSchema,
            polymorphic: false,
            on_type_mismatch: :error
+
+      link many: EX.many(), type: list_of(Example.ParentSchema), polymorphic: false
     end
   end
 end

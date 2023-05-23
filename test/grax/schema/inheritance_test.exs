@@ -11,8 +11,8 @@ defmodule Grax.Schema.InheritanceTest do
     ChildSchema,
     ChildSchemaWithClass,
     ChildOfMany,
-    LinksWithInheritedSchemas,
-    NonPolymorphicLink
+    PolymorphicLinks,
+    NonPolymorphicLinks
   }
 
   test "__super__/0" do
@@ -212,57 +212,269 @@ defmodule Grax.Schema.InheritanceTest do
   end
 
   describe "put/3" do
-    test "with an inherited schema" do
-      assert LinksWithInheritedSchemas.build!(EX.A)
-             |> Grax.put(:one, ChildSchemaWithClass.build!(EX.B, dp4: 42)) ==
-               LinksWithInheritedSchemas.build(EX.A,
-                 one: ChildSchemaWithClass.build!(EX.B, dp4: 42)
-               )
+    test "with IRI" do
+      assert PolymorphicLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.bar(),
+               strict_one: EX.bar(),
+               many: [EX.baz1(), EX.baz2()]
+             ) ==
+               {:ok,
+                %PolymorphicLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: EX.bar(),
+                  strict_one: EX.bar(),
+                  many: [EX.baz1(), EX.baz2()]
+                }}
 
-      assert LinksWithInheritedSchemas.build!(EX.A)
-             |> Grax.put(:strict_one, ChildOfMany.build!(EX.B)) ==
-               LinksWithInheritedSchemas.build(EX.A,
-                 strict_one: ChildOfMany.build!(EX.B)
-               )
-
-      assert LinksWithInheritedSchemas.build!(EX.A)
-             |> Grax.put(:many, [
-               ChildSchemaWithClass.build!(EX.B),
-               ChildOfMany.build!(EX.C)
-             ]) ==
-               LinksWithInheritedSchemas.build(EX.A,
-                 many: [
-                   ChildSchemaWithClass.build!(EX.B),
-                   ChildOfMany.build!(EX.C)
-                 ]
-               )
+      assert NonPolymorphicLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.bar(),
+               strict_one: EX.bar(),
+               many: [EX.baz1(), EX.baz2()]
+             ) ==
+               {:ok,
+                %NonPolymorphicLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: EX.bar(),
+                  strict_one: EX.bar(),
+                  many: [EX.baz1(), EX.baz2()]
+                }}
     end
 
-    test "non-polymorphic property with matching schema" do
-      assert NonPolymorphicLink.build!(EX.A)
-             |> Grax.put(:link, ParentSchema.build!(EX.B)) ==
-               NonPolymorphicLink.build(EX.A, link: ParentSchema.build!(EX.B))
+    test "with bnode" do
+      assert PolymorphicLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: RDF.bnode("bar"),
+               strict_one: RDF.bnode("bar"),
+               many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
+             ) ==
+               {:ok,
+                %PolymorphicLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: RDF.bnode("bar"),
+                  strict_one: RDF.bnode("bar"),
+                  many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
+                }}
+
+      assert NonPolymorphicLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: RDF.bnode("bar"),
+               strict_one: RDF.bnode("bar"),
+               many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
+             ) ==
+               {:ok,
+                %NonPolymorphicLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: RDF.bnode("bar"),
+                  strict_one: RDF.bnode("bar"),
+                  many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
+                }}
+    end
+
+    test "with vocabulary namespace term" do
+      assert PolymorphicLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.Bar,
+               strict_one: EX.Bar,
+               many: [EX.baz(), EX.Baz1, EX.Baz2]
+             ) ==
+               {:ok,
+                %PolymorphicLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: IRI.new(EX.Bar),
+                  strict_one: IRI.new(EX.Bar),
+                  many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
+                }}
+
+      assert NonPolymorphicLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.Bar,
+               strict_one: EX.Bar,
+               many: [EX.baz(), EX.Baz1, EX.Baz2]
+             ) ==
+               {:ok,
+                %NonPolymorphicLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: IRI.new(EX.Bar),
+                  strict_one: IRI.new(EX.Bar),
+                  many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
+                }}
+    end
+
+    test "with matching schema" do
+      assert PolymorphicLinks.build!(EX.A)
+             |> Grax.put(
+               one: ParentSchema.build!(EX.B, dp2: 42),
+               strict_one: AnotherParentSchema.build!(EX.B, dp2: 42),
+               many: [ParentSchema.build!(EX.B, dp2: 42), ParentSchema.build!(EX.C, dp2: 43)]
+             ) ==
+               {:ok,
+                %PolymorphicLinks{
+                  __id__: IRI.new(EX.A),
+                  one: ParentSchema.build!(EX.B, dp2: 42),
+                  strict_one: AnotherParentSchema.build!(EX.B, dp2: 42),
+                  many: [ParentSchema.build!(EX.B, dp2: 42), ParentSchema.build!(EX.C, dp2: 43)]
+                }}
+
+      assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(
+               one: ParentSchema.build!(EX.B, dp2: 42),
+               strict_one: AnotherParentSchema.build!(EX.B, dp2: 42),
+               many: [ParentSchema.build!(EX.B, dp2: 42), ParentSchema.build!(EX.C, dp2: 43)]
+             ) ==
+               {:ok,
+                %NonPolymorphicLinks{
+                  __id__: IRI.new(EX.A),
+                  one: ParentSchema.build!(EX.B, dp2: 42),
+                  strict_one: AnotherParentSchema.build!(EX.B, dp2: 42),
+                  many: [ParentSchema.build!(EX.B, dp2: 42), ParentSchema.build!(EX.C, dp2: 43)]
+                }}
+    end
+
+    test "polymorphic property with inherited schema" do
+      assert PolymorphicLinks.build!(EX.A)
+             |> Grax.put(
+               one: ChildSchemaWithClass.build!(EX.B, dp4: 42),
+               strict_one: AnotherParentSchema.build!(EX.B),
+               many: [ChildSchemaWithClass.build!(EX.B, dp4: 42), ChildOfMany.build!(EX.C)]
+             ) ==
+               {:ok,
+                %PolymorphicLinks{
+                  __id__: IRI.new(EX.A),
+                  one: ChildSchemaWithClass.build!(EX.B, dp4: 42),
+                  strict_one: AnotherParentSchema.build!(EX.B),
+                  many: [ChildSchemaWithClass.build!(EX.B, dp4: 42), ChildOfMany.build!(EX.C)]
+                }}
     end
 
     test "non-polymorphic property with inherited schema" do
-      assert NonPolymorphicLink.build!(EX.A)
-             |> Grax.put(:link, ChildSchemaWithClass.build!(EX.B)) ==
+      assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(:one, ChildSchemaWithClass.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildSchemaWithClass.build!(EX.B),
+                  type: ParentSchema
+                )}
+
+      assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(:strict_one, ChildOfMany.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildOfMany.build!(EX.B),
+                  type: AnotherParentSchema
+                )}
+
+      assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(:many, [ChildSchemaWithClass.build!(EX.B)]) ==
                {:error,
                 TypeError.exception(
                   value: ChildSchemaWithClass.build!(EX.B),
                   type: ParentSchema
                 )}
     end
+
+    test "with non-matching schema" do
+      assert PolymorphicLinks.build!(EX.A)
+             |> Grax.put(:one, User.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: User.build!(EX.B),
+                  type: ParentSchema
+                )}
+
+      assert PolymorphicLinks.build!(EX.A)
+             |> Grax.put(:strict_one, ChildSchemaWithClass.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildSchemaWithClass.build!(EX.B),
+                  type: AnotherParentSchema
+                )}
+
+      assert PolymorphicLinks.build!(EX.A)
+             |> Grax.put(many: [User.build!(EX.B), ChildOfMany.build!(EX.C)]) ==
+               {
+                 :error,
+                 %Grax.ValidationError{
+                   context: ~I<http://example.com/A>,
+                   errors: [
+                     many:
+                       TypeError.exception(
+                         value: User.build!(EX.B),
+                         type: Example.ParentSchema
+                       )
+                   ]
+                 }
+               }
+
+      assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(:one, User.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: User.build!(EX.B),
+                  type: ParentSchema
+                )}
+
+      assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(:strict_one, ChildSchemaWithClass.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildSchemaWithClass.build!(EX.B),
+                  type: AnotherParentSchema
+                )}
+
+      assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(many: [User.build!(EX.B), ChildOfMany.build!(EX.C)]) ==
+               {
+                 :error,
+                 %Grax.ValidationError{
+                   context: ~I<http://example.com/A>,
+                   errors: [
+                     many:
+                       TypeError.exception(
+                         value: ChildOfMany.build!(EX.C),
+                         type: Example.ParentSchema
+                       )
+                   ]
+                 }
+               }
+    end
   end
 
-  describe "preloading" do
-    test "when an inherited schema exist and its class is used" do
+  describe "general preloading" do
+    test "resource typed with schema class" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.B) |> EX.strictOne(EX.C),
+               EX.B |> RDF.type(EX.Parent),
+               EX.C |> RDF.type(EX.Parent2)
+             ])
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
+                 one: ParentSchema.build!(EX.B),
+                 strict_one: AnotherParentSchema.build!(EX.C)
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.one(EX.B) |> EX.strictOne(EX.C),
+               EX.B |> RDF.type(EX.Parent),
+               EX.C |> RDF.type(EX.Parent2)
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 one: ParentSchema.build!(EX.B),
+                 strict_one: AnotherParentSchema.build!(EX.C)
+               )
+    end
+  end
+
+  describe "preloading polymorphic links" do
+    test "resource typed with inherited schema class" do
       assert RDF.graph([
                EX.A |> EX.one(EX.B),
                EX.B |> RDF.type([EX.Child2]) |> EX.dp4(42)
              ])
-             |> LinksWithInheritedSchemas.load(EX.A) ==
-               LinksWithInheritedSchemas.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one: ChildSchemaWithClass.build!(EX.B, dp4: 42)
                )
 
@@ -270,8 +482,8 @@ defmodule Grax.Schema.InheritanceTest do
                EX.A |> EX.one(EX.B),
                EX.B |> RDF.type([EX.SubClass])
              ])
-             |> LinksWithInheritedSchemas.load(EX.A) ==
-               LinksWithInheritedSchemas.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one: ChildOfMany.build!(EX.B)
                )
 
@@ -279,8 +491,8 @@ defmodule Grax.Schema.InheritanceTest do
                EX.A |> EX.strictOne(EX.B),
                EX.B |> RDF.type([EX.SubClass])
              ])
-             |> LinksWithInheritedSchemas.load(EX.A) ==
-               LinksWithInheritedSchemas.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  strict_one: ChildOfMany.build!(EX.B)
                )
 
@@ -289,8 +501,8 @@ defmodule Grax.Schema.InheritanceTest do
                EX.B |> RDF.type([EX.Child2]),
                EX.C |> RDF.type([EX.SubClass])
              ])
-             |> LinksWithInheritedSchemas.load(EX.A) ==
-               LinksWithInheritedSchemas.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  many: [
                    ChildSchemaWithClass.build!(EX.B),
                    ChildOfMany.build!(EX.C)
@@ -298,13 +510,13 @@ defmodule Grax.Schema.InheritanceTest do
                )
     end
 
-    test "when an inherited schema exist and its class is used along with the class of the parent schema" do
+    test "resource typed with inherited schema class and parent schema classes too" do
       assert RDF.graph([
                EX.A |> EX.one(EX.B),
                EX.B |> RDF.type([EX.Parent, EX.Child2])
              ])
-             |> LinksWithInheritedSchemas.load(EX.A) ==
-               LinksWithInheritedSchemas.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one:
                    ChildSchemaWithClass.build!(EX.B,
                      __additional_statements__: %{RDF.type() => [EX.Parent, EX.Child2]}
@@ -323,8 +535,8 @@ defmodule Grax.Schema.InheritanceTest do
                  EX.A |> EX.strictOne(EX.B),
                  EX.B |> RDF.type(types)
                ])
-               |> LinksWithInheritedSchemas.load(EX.A) ==
-                 LinksWithInheritedSchemas.build(EX.A,
+               |> PolymorphicLinks.load(EX.A) ==
+                 PolymorphicLinks.build(EX.A,
                    strict_one:
                      ChildOfMany.build!(EX.B,
                        __additional_statements__: %{RDF.type() => types}
@@ -333,13 +545,13 @@ defmodule Grax.Schema.InheritanceTest do
       end)
     end
 
-    test "when no type of the linked resource matches the link resource type and on_type_mismatch: :ignore (default)" do
+    test "resource typed with non-matching class (non-strict)" do
       assert RDF.graph([
                EX.A |> EX.one(EX.B),
                EX.B |> RDF.type(EX.Unknown)
              ])
-             |> LinksWithInheritedSchemas.load(EX.A) ==
-               LinksWithInheritedSchemas.build(EX.A,
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
                  one:
                    ParentSchema.build!(EX.B,
                      __additional_statements__: %{RDF.type() => [EX.Parent, EX.Unknown]}
@@ -356,71 +568,97 @@ defmodule Grax.Schema.InheritanceTest do
                {:ok, Example.user(EX.User0, depth: 1)}
     end
 
-    test "when no type of the linked resource matches the link resource type and on_type_mismatch: :error" do
+    test "resource typed with non-matching class (strict)" do
       assert RDF.graph([
                EX.A |> EX.strictOne(EX.B),
                EX.B |> RDF.type(EX.Unknown)
              ])
-             |> LinksWithInheritedSchemas.load(EX.A) ==
+             |> PolymorphicLinks.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
                   type: :no_match,
                   resource_types: [RDF.iri(EX.Unknown)]
                 )}
     end
+  end
 
-    test "non-polymorphic property with inherited and parent schema" do
+  describe "preloading non-strict non-polymorphic links" do
+    test "resource typed with inherited schema class" do
       assert RDF.graph([
-               EX.A |> EX.link(EX.B),
+               EX.A
+               |> EX.one(EX.B)
+               |> EX.many(EX.C),
+               EX.B |> RDF.type(EX.SubClass),
+               EX.C |> RDF.type(EX.SubClass)
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 one:
+                   ParentSchema.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.Parent, EX.SubClass]}
+                   ),
+                 many: [
+                   ParentSchema.build!(EX.C,
+                     __additional_statements__: %{RDF.type() => [EX.Parent, EX.SubClass]}
+                   )
+                 ]
+               )
+    end
+
+    test "resource typed with both schema class and inherited schema class" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.B),
                EX.B |> RDF.type([EX.Parent, EX.Child2])
              ])
-             |> NonPolymorphicLink.load(EX.A) ==
-               NonPolymorphicLink.build(EX.A,
-                 link:
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 one:
                    ParentSchema.build!(EX.B,
                      __additional_statements__: %{RDF.type() => [EX.Parent, EX.Child2]}
                    )
                )
     end
+  end
 
-    test "non-polymorphic and non-strict property with inherited schema only" do
+  describe "preloading strict non-polymorphic links" do
+    test "resource typed with inherited schema class" do
       assert RDF.graph([
-               EX.A |> EX.strictLink(EX.B),
-               EX.B |> RDF.type(EX.Child2)
+               EX.A |> EX.strictOne(EX.B),
+               EX.B |> RDF.type(EX.SubClass)
              ])
-             |> NonPolymorphicLink.load(EX.A) ==
-               NonPolymorphicLink.build(EX.A,
-                 strict_link:
-                   ParentSchema.build!(EX.B,
-                     __additional_statements__: %{RDF.type() => [EX.Parent, EX.Child2]}
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 strict_one:
+                   AnotherParentSchema.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.Parent2, EX.SubClass]}
                    )
                )
     end
 
-    test "non-polymorphic strict property with inherited schema only" do
+    test "resource typed with both schema class and inherited schema class" do
       assert RDF.graph([
-               EX.A |> EX.strictLink(EX.B),
-               EX.B |> RDF.type(EX.Child2)
+               EX.A |> EX.strictOne(EX.B),
+               EX.B |> RDF.type([EX.Parent2, EX.Child2])
              ])
-             |> NonPolymorphicLink.load(EX.A) ==
-               NonPolymorphicLink.build(EX.A,
-                 strict_link:
-                   ParentSchema.build!(EX.B,
-                     __additional_statements__: %{RDF.type() => [EX.Parent, EX.Child2]}
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 strict_one:
+                   AnotherParentSchema.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.Parent2, EX.Child2]}
                    )
                )
     end
 
-    test "non-polymorphic strict property with none matching schema" do
+    test "resource typed with non-matching class" do
       assert RDF.graph([
-               EX.A |> EX.strictLink(EX.B),
-               EX.B |> RDF.type(EX.User)
+               EX.A |> EX.strictOne(EX.B),
+               EX.B |> RDF.type(EX.Parent)
              ])
-             |> NonPolymorphicLink.load(EX.A) ==
+             |> NonPolymorphicLinks.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
                   type: :no_match,
-                  resource_types: [RDF.iri(EX.User)]
+                  resource_types: [RDF.iri(EX.Parent)]
                 )}
     end
   end

@@ -5,7 +5,18 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
   alias Grax.InvalidResourceTypeError
   alias Grax.Schema.TypeError
 
-  defmodule UnionLinks do
+  alias Example.{
+    User,
+    Post,
+    Comment,
+    ParentSchema,
+    AnotherParentSchema,
+    ChildSchema,
+    ChildSchemaWithClass,
+    ChildOfMany
+  }
+
+  defmodule PolymorphicUnionLinks do
     use Grax.Schema
 
     schema do
@@ -13,40 +24,72 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
 
       link one: EX.one(),
            type: %{
-             EX.Post => Example.Post,
-             EX.Comment => Example.Comment
+             EX.Post => Post,
+             EX.Comment => Comment,
+             EX.ParentSchema => ParentSchema,
+             EX.Child => ChildSchemaWithClass,
+             EX.Child2 => ChildSchemaWithClass
            }
 
       link strict_one: EX.strictOne(),
            type: %{
-             EX.Post => Example.Post,
-             EX.Comment => Example.Comment
+             EX.Post => Post,
+             EX.Comment => Comment,
+             EX.ParentSchema => ParentSchema
            },
            on_type_mismatch: :error
 
       link many: EX.many(),
            type:
              list_of(%{
-               nil => Example.Post,
-               EX.Comment => Example.Comment
+               nil => Post,
+               EX.Comment => Comment,
+               EX.ParentSchema => ParentSchema,
+               EX.Child => ChildSchemaWithClass,
+               EX.Child2 => ChildSchemaWithClass
              })
     end
   end
 
-  defmodule UnionLinkWithInheritance do
+  defmodule NonPolymorphicUnionLinks do
     use Grax.Schema
 
     schema do
       property name: EX.name()
 
-      link linked: EX.linked(),
+      link one: EX.one(),
            type: %{
-             EX.ParentSchema => Example.ParentSchema,
-             EX.ChildSchema => Example.ChildSchema,
-             EX.ChildSchemaWithClass => Example.ChildSchemaWithClass,
-             EX.ChildOfMany => Example.ChildOfMany
+             EX.Post => Post,
+             EX.Comment => Comment,
+             EX.ParentSchema => ParentSchema,
+             EX.ChildSchema => ChildSchema,
+             EX.ChildSchemaWithClass => ChildSchemaWithClass,
+             EX.ChildOfMany => ChildOfMany
            },
+           polymorphic: false,
            on_type_mismatch: :error
+
+      link strict_one: EX.strictOne(),
+           type: %{
+             EX.Post => Post,
+             EX.Comment => Comment,
+             EX.ParentSchema => ParentSchema,
+             EX.Child => ChildSchemaWithClass,
+             EX.Child2 => ChildSchemaWithClass
+           },
+           polymorphic: false,
+           on_type_mismatch: :error
+
+      link many: EX.many(),
+           type:
+             list_of(%{
+               nil => Post,
+               EX.Comment => Comment,
+               EX.ParentSchema => ParentSchema,
+               EX.Child => ChildSchemaWithClass,
+               EX.Child2 => ChildSchemaWithClass
+             }),
+           polymorphic: false
     end
   end
 
@@ -56,12 +99,12 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
     schema do
       property name: EX.name()
 
-      link link: EX.link(), type: [Example.Post, Example.Comment]
-      link inverse_link: -EX.inverseLink(), type: [Example.Post, Example.Comment]
+      link link: EX.link(), type: [Post, Comment]
+      link inverse_link: -EX.inverseLink(), type: [Post, Comment]
     end
   end
 
-  test "using the short-form when no class is defined leads to a proper error" do
+  test "using the short-form when no class is defined causes an error" do
     assert_raise RuntimeError,
                  "invalid union type definition: Example.Untyped does not specify a class",
                  fn ->
@@ -77,16 +120,53 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                  end
   end
 
+  @tag skip: "TODO: support for polymorphic union links"
+  test "inherited schemas within a union link cause an error" do
+    assert_raise RuntimeError,
+                 "invalid union type definition: union type on polymorphic link contains inherited schemas",
+                 fn ->
+                   defmodule PolymorphicUnionLinkWithInheritedSchemas do
+                     use Grax.Schema
+
+                     schema do
+                       property name: EX.name()
+
+                       link one: EX.one(),
+                            type: %{
+                              EX.ParentSchema => ParentSchema,
+                              EX.ChildSchema => ChildSchema,
+                              EX.ChildSchemaWithClass => ChildSchemaWithClass,
+                              EX.ChildOfMany => ChildOfMany
+                            }
+                     end
+                   end
+                 end
+  end
+
   describe "put/3" do
-    test "a RDF.IRI on a link property" do
-      assert UnionLinks.build!(EX.Foo)
+    test "with IRI" do
+      assert PolymorphicUnionLinks.build!(EX.Foo)
              |> Grax.put(
                one: EX.bar(),
                strict_one: EX.bar(),
                many: [EX.baz1(), EX.baz2()]
              ) ==
                {:ok,
-                %UnionLinks{
+                %PolymorphicUnionLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: EX.bar(),
+                  strict_one: EX.bar(),
+                  many: [EX.baz1(), EX.baz2()]
+                }}
+
+      assert NonPolymorphicUnionLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.bar(),
+               strict_one: EX.bar(),
+               many: [EX.baz1(), EX.baz2()]
+             ) ==
+               {:ok,
+                %NonPolymorphicUnionLinks{
                   __id__: IRI.new(EX.Foo),
                   one: EX.bar(),
                   strict_one: EX.bar(),
@@ -94,15 +174,29 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                 }}
     end
 
-    test "a RDF.BlankNode on a link property" do
-      assert UnionLinks.build!(EX.Foo)
+    test "with bnode" do
+      assert PolymorphicUnionLinks.build!(EX.Foo)
              |> Grax.put(
                one: RDF.bnode("bar"),
                strict_one: RDF.bnode("bar"),
                many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
              ) ==
                {:ok,
-                %UnionLinks{
+                %PolymorphicUnionLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: RDF.bnode("bar"),
+                  strict_one: RDF.bnode("bar"),
+                  many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
+                }}
+
+      assert NonPolymorphicUnionLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: RDF.bnode("bar"),
+               strict_one: RDF.bnode("bar"),
+               many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
+             ) ==
+               {:ok,
+                %NonPolymorphicUnionLinks{
                   __id__: IRI.new(EX.Foo),
                   one: RDF.bnode("bar"),
                   strict_one: RDF.bnode("bar"),
@@ -110,15 +204,29 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                 }}
     end
 
-    test "a vocabulary namespace term on a link property" do
-      assert UnionLinks.build!(EX.Foo)
+    test "with vocabulary namespace term" do
+      assert PolymorphicUnionLinks.build!(EX.Foo)
              |> Grax.put(
                one: EX.Bar,
                strict_one: EX.Bar,
                many: [EX.baz(), EX.Baz1, EX.Baz2]
              ) ==
                {:ok,
-                %UnionLinks{
+                %PolymorphicUnionLinks{
+                  __id__: IRI.new(EX.Foo),
+                  one: IRI.new(EX.Bar),
+                  strict_one: IRI.new(EX.Bar),
+                  many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
+                }}
+
+      assert NonPolymorphicUnionLinks.build!(EX.Foo)
+             |> Grax.put(
+               one: EX.Bar,
+               strict_one: EX.Bar,
+               many: [EX.baz(), EX.Baz1, EX.Baz2]
+             ) ==
+               {:ok,
+                %NonPolymorphicUnionLinks{
                   __id__: IRI.new(EX.Foo),
                   one: IRI.new(EX.Bar),
                   strict_one: IRI.new(EX.Bar),
@@ -126,32 +234,115 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                 }}
     end
 
-    test "a Grax schema struct of the proper type" do
-      assert UnionLinks.build!(EX.Foo)
+    test "with matching schema" do
+      assert PolymorphicUnionLinks.build!(EX.A)
              |> Grax.put(
-               one: EX.Bar,
-               strict_one: EX.Bar,
-               many: [EX.baz(), EX.Baz1, EX.Baz2]
+               one: Comment.build!(EX.B),
+               strict_one: ChildSchemaWithClass.build!(EX.B),
+               many: [
+                 Post.build!(EX.B),
+                 Comment.build!(EX.C),
+                 ParentSchema.build!(EX.D),
+                 ChildSchemaWithClass.build!(EX.E)
+               ]
              ) ==
                {:ok,
-                %UnionLinks{
-                  __id__: IRI.new(EX.Foo),
-                  one: IRI.new(EX.Bar),
-                  strict_one: IRI.new(EX.Bar),
-                  many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
+                %PolymorphicUnionLinks{
+                  __id__: IRI.new(EX.A),
+                  one: Comment.build!(EX.B),
+                  strict_one: ChildSchemaWithClass.build!(EX.B),
+                  many: [
+                    Post.build!(EX.B),
+                    Comment.build!(EX.C),
+                    ParentSchema.build!(EX.D),
+                    ChildSchemaWithClass.build!(EX.E)
+                  ]
+                }}
+
+      assert NonPolymorphicUnionLinks.build!(EX.A)
+             |> Grax.put(
+               one: ChildSchema.build!(EX.B),
+               strict_one: ChildSchemaWithClass.build!(EX.B),
+               many: [
+                 Post.build!(EX.B),
+                 Comment.build!(EX.C),
+                 ParentSchema.build!(EX.D),
+                 ChildSchemaWithClass.build!(EX.E)
+               ]
+             ) ==
+               {:ok,
+                %NonPolymorphicUnionLinks{
+                  __id__: IRI.new(EX.A),
+                  one: ChildSchema.build!(EX.B),
+                  strict_one: ChildSchemaWithClass.build!(EX.B),
+                  many: [
+                    Post.build!(EX.B),
+                    Comment.build!(EX.C),
+                    ParentSchema.build!(EX.D),
+                    ChildSchemaWithClass.build!(EX.E)
+                  ]
                 }}
     end
 
-    test "a Grax schema struct with a wrong type on a strict link" do
-      assert UnionLinks.build!(EX.Foo)
-             |> Grax.put(:strict_one, Example.User.build!(EX.Bar)) ==
+    test "with non-matching schema" do
+      assert PolymorphicUnionLinks.build!(EX.Foo)
+             |> Grax.put(:one, [User.build!(EX.Bar)]) ==
                {:error,
                 TypeError.exception(
-                  value: Example.User.build!(EX.Bar),
+                  value: User.build!(EX.Bar),
                   type: %Union{
                     types: %{
-                      RDF.iri(EX.Comment) => Example.Comment,
-                      RDF.iri(EX.Post) => Example.Post
+                      RDF.iri(EX.Comment) => Comment,
+                      RDF.iri(EX.Post) => Post,
+                      RDF.iri(EX.ParentSchema) => ParentSchema,
+                      RDF.iri(EX.Child) => ChildSchemaWithClass,
+                      RDF.iri(EX.Child2) => ChildSchemaWithClass
+                    }
+                  }
+                )}
+
+      assert PolymorphicUnionLinks.build!(EX.Foo)
+             |> Grax.put(:strict_one, AnotherParentSchema.build!(EX.Bar)) ==
+               {:error,
+                TypeError.exception(
+                  value: AnotherParentSchema.build!(EX.Bar),
+                  type: %Union{
+                    types: %{
+                      RDF.iri(EX.Comment) => Comment,
+                      RDF.iri(EX.Post) => Post,
+                      RDF.iri(EX.ParentSchema) => ParentSchema
+                    }
+                  }
+                )}
+
+      assert NonPolymorphicUnionLinks.build!(EX.Foo)
+             |> Grax.put(:strict_one, User.build!(EX.Bar)) ==
+               {:error,
+                TypeError.exception(
+                  value: User.build!(EX.Bar),
+                  type: %Union{
+                    types: %{
+                      RDF.iri(EX.Comment) => Comment,
+                      RDF.iri(EX.Post) => Post,
+                      RDF.iri(EX.ParentSchema) => ParentSchema,
+                      RDF.iri(EX.Child) => ChildSchemaWithClass,
+                      RDF.iri(EX.Child2) => ChildSchemaWithClass
+                    }
+                  }
+                )}
+
+      assert NonPolymorphicUnionLinks.build!(EX.Foo)
+             |> Grax.put(:many, [ChildOfMany.build!(EX.Bar)]) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildOfMany.build!(EX.Bar),
+                  type: %Union{
+                    types: %{
+                      nil => Post,
+                      RDF.iri(EX.Comment) => Comment,
+                      RDF.iri(EX.ParentSchema) => ParentSchema,
+                      RDF.iri(EX.Child) => ChildSchemaWithClass,
+                      RDF.iri(EX.Child2) => ChildSchemaWithClass
                     }
                   }
                 )}
@@ -161,64 +352,166 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
       assert_raise ArgumentError,
                    ~r/unable to determine value type of union link property/,
                    fn ->
-                     UnionLinks.build!(EX.Foo)
+                     PolymorphicUnionLinks.build!(EX.Foo)
                      |> Grax.put(:one, %{title: "foo"})
                    end
     end
+
+    test "polymorphic link with inherited schema" do
+      assert PolymorphicUnionLinks.build!(EX.A)
+             |> Grax.put(
+               one: ChildOfMany.build!(EX.B),
+               strict_one: ChildSchemaWithClass.build!(EX.B),
+               many: [ChildSchemaWithClass.build!(EX.B), ChildOfMany.build!(EX.C)]
+             ) ==
+               {:ok,
+                %PolymorphicUnionLinks{
+                  __id__: IRI.new(EX.A),
+                  one: ChildOfMany.build!(EX.B),
+                  strict_one: ChildSchemaWithClass.build!(EX.B),
+                  many: [ChildSchemaWithClass.build!(EX.B), ChildOfMany.build!(EX.C)]
+                }}
+    end
+
+    test "non-polymorphic property with inherited schema" do
+      assert NonPolymorphicUnionLinks.build!(EX.A)
+             |> Grax.put(:strict_one, ChildSchema.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildSchema.build!(EX.B),
+                  type: %Union{
+                    types: %{
+                      RDF.iri(EX.Child) => ChildSchemaWithClass,
+                      RDF.iri(EX.Child2) => ChildSchemaWithClass,
+                      RDF.iri(EX.Comment) => Comment,
+                      RDF.iri(EX.ParentSchema) => ParentSchema,
+                      RDF.iri(EX.Post) => Post
+                    }
+                  }
+                )}
+
+      assert NonPolymorphicUnionLinks.build!(EX.A)
+             |> Grax.put(:many, [ChildSchema.build!(EX.B)]) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildSchema.build!(EX.B),
+                  type: %Union{
+                    types: %{
+                      RDF.iri(EX.Child) => ChildSchemaWithClass,
+                      RDF.iri(EX.Child2) => ChildSchemaWithClass,
+                      RDF.iri(EX.Comment) => Comment,
+                      RDF.iri(EX.ParentSchema) => ParentSchema,
+                      nil => Post
+                    }
+                  }
+                )}
+    end
   end
 
-  describe "preloading" do
-    test "when a class matches" do
+  describe "preloading union links (general)" do
+    test "resource typed with element of the union" do
       assert RDF.graph([
-               EX.A |> EX.one(EX.Post1) |> EX.strictOne(EX.Post1),
-               EX.Post1 |> RDF.type(EX.Post) |> EX.title("foo")
+               EX.A
+               |> EX.one(EX.Post1)
+               |> EX.strictOne(EX.Post1)
+               |> EX.many([EX.Post1, EX.Comment1]),
+               EX.Post1 |> RDF.type(EX.Post) |> EX.title("foo"),
+               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A,
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               PolymorphicUnionLinks.build(EX.A,
                  one:
-                   Example.Post.build!(EX.Post1,
+                   Post.build!(EX.Post1,
                      title: "foo",
                      slug: "foo",
                      __additional_statements__: %{RDF.type() => EX.Post}
                    ),
                  strict_one:
-                   Example.Post.build!(EX.Post1,
+                   Post.build!(EX.Post1,
                      title: "foo",
                      slug: "foo",
                      __additional_statements__: %{RDF.type() => EX.Post}
                    ),
-                 many: []
-               )
-
-      assert RDF.graph([
-               EX.A |> EX.one(EX.Comment1) |> EX.strictOne(EX.Comment1),
-               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
-             ])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A,
-                 one:
-                   Example.Comment.build!(EX.Comment1,
+                 many: [
+                   Comment.build!(EX.Comment1,
                      content: "foo",
                      __additional_statements__: %{RDF.type() => EX.Comment}
                    ),
-                 strict_one:
-                   Example.Comment.build!(EX.Comment1,
-                     content: "foo",
-                     __additional_statements__: %{RDF.type() => EX.Comment}
-                   ),
-                 many: []
+                   Post.build!(EX.Post1,
+                     title: "foo",
+                     slug: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Post}
+                   )
+                 ]
+               )
+    end
+
+    test "fallback" do
+      assert RDF.graph([
+               EX.A |> EX.many(EX.Post1),
+               EX.Post1 |> EX.title("foo")
+             ])
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               PolymorphicUnionLinks.build(EX.A,
+                 one: nil,
+                 strict_one: nil,
+                 many: [Post.build!(EX.Post1, title: "foo", slug: "foo")]
                )
 
       assert RDF.graph([
-               EX.A |> EX.many(EX.Comment1),
+               EX.A |> EX.many(EX.Post1, EX.Comment1),
+               EX.Post1 |> RDF.type(EX.Other) |> EX.title("foo"),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
              ])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A,
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               PolymorphicUnionLinks.build(EX.A,
                  one: nil,
                  strict_one: nil,
                  many: [
-                   Example.Comment.build!(EX.Comment1,
+                   Comment.build!(EX.Comment1,
+                     content: "foo",
+                     __additional_statements__: %{RDF.type() => EX.Comment}
+                   ),
+                   Post.build!(EX.Post1,
+                     title: "foo",
+                     slug: "foo",
+                     __additional_statements__: %{RDF.type() => [EX.Other, EX.Post]}
+                   )
+                 ]
+               )
+    end
+
+    test "when no values present" do
+      assert RDF.graph([EX.A |> EX.name("nothing")])
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               PolymorphicUnionLinks.build(EX.A, name: "nothing")
+    end
+
+    test "when no values present in a nested schema struct with union links" do
+      defmodule NestedPolymorphicUnionLinks do
+        use Grax.Schema
+
+        schema do
+          link foo: EX.foo(), type: PolymorphicUnionLinks
+        end
+      end
+
+      assert RDF.graph([EX.A |> EX.foo(EX.B)])
+             |> NestedPolymorphicUnionLinks.load(EX.A) ==
+               NestedPolymorphicUnionLinks.build(EX.A,
+                 foo: PolymorphicUnionLinks.build!(RDF.iri(EX.B))
+               )
+    end
+
+    test "union link defined in short-form" do
+      assert RDF.graph([
+               EX.A |> EX.link(EX.Comment1),
+               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
+             ])
+             |> UnionLinksShortForm.load(EX.A) ==
+               UnionLinksShortForm.build(EX.A,
+                 link: [
+                   Comment.build!(EX.Comment1,
                      content: "foo",
                      __additional_statements__: %{RDF.type() => EX.Comment}
                    )
@@ -235,7 +528,7 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
              |> UnionLinksShortForm.load(EX.A) ==
                UnionLinksShortForm.build(EX.A,
                  inverse_link: [
-                   Example.Comment.build!(EX.Comment1,
+                   Comment.build!(EX.Comment1,
                      __additional_statements__: %{
                        RDF.type() => EX.Comment,
                        EX.inverseLink() => EX.A
@@ -244,125 +537,117 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                  ]
                )
     end
+  end
 
-    test "union link defined in short-form" do
+  describe "preloading polymorphic union links" do
+    @tag skip: "TODO: support for polymorphic union links"
+    test "selects most specific schema inherited by any of schemas of the union" do
       assert RDF.graph([
-               EX.A |> EX.link(EX.Comment1),
-               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
+               EX.A |> EX.one(EX.B),
+               EX.B |> RDF.type([EX.ChildSchema])
              ])
-             |> UnionLinksShortForm.load(EX.A) ==
-               UnionLinksShortForm.build(EX.A,
-                 link: [
-                   Example.Comment.build!(EX.Comment1,
-                     content: "foo",
-                     __additional_statements__: %{RDF.type() => EX.Comment}
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               PolymorphicUnionLinks.build(EX.A,
+                 one:
+                   ChildSchema.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.ParentSchema, EX.ChildSchema]},
+                     f2: :foo
                    )
-                 ]
                )
     end
 
-    test "fallback" do
-      assert RDF.graph([
-               EX.A |> EX.many(EX.Post1),
-               EX.Post1 |> EX.title("foo")
-             ])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A,
-                 one: nil,
-                 strict_one: nil,
-                 many: [Example.Post.build!(EX.Post1, title: "foo", slug: "foo")]
-               )
-
-      assert RDF.graph([
-               EX.A |> EX.many(EX.Post1) |> EX.many(EX.Comment1),
-               EX.Post1 |> RDF.type(EX.Other) |> EX.title("foo"),
-               EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
-             ])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A,
-                 one: nil,
-                 strict_one: nil,
-                 many: [
-                   Example.Comment.build!(EX.Comment1,
-                     content: "foo",
-                     __additional_statements__: %{RDF.type() => EX.Comment}
-                   ),
-                   Example.Post.build!(EX.Post1,
-                     title: "foo",
-                     slug: "foo",
-                     __additional_statements__: %{RDF.type() => [EX.Other, EX.Post]}
-                   )
-                 ]
-               )
+    @tag skip: "TODO: support for polymorphic union links"
+    test "selects most specific schema inherited by any of schemas of the union even when types directly matching a union schema are present" do
     end
 
-    test "when no class matches with non-strict matching" do
+    @tag skip: "TODO: support for polymorphic union links"
+    test "returns error when multiple inherited schemas are matching" do
+    end
+
+    test "returns error when multiple independent classes are matching" do
+      assert RDF.graph([
+               EX.A |> EX.one(EX.Post1),
+               EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
+             ])
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               {:error,
+                InvalidResourceTypeError.exception(
+                  type: :multiple_matches,
+                  resource_types: [Post, Comment]
+                )}
+
+      assert RDF.graph([
+               EX.A |> EX.strictOne(EX.Post1),
+               EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
+             ])
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               {:error,
+                InvalidResourceTypeError.exception(
+                  type: :multiple_matches,
+                  resource_types: [Post, Comment]
+                )}
+    end
+
+    test "ignores resources when no class matches with on_type_mismatch: :ignore" do
+      # when no class matches
       assert RDF.graph([
                EX.A |> EX.one(EX.Something)
              ])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A,
-                 one: nil,
-                 strict_one: nil,
-                 many: []
-               )
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               PolymorphicUnionLinks.build(EX.A)
 
       assert RDF.graph([
                EX.A |> EX.one(EX.Something1) |> EX.one(EX.Something21),
                EX.Something1 |> EX.foo("foo"),
                EX.Something2 |> RDF.type(EX.Other) |> EX.bar("bar")
              ])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A,
-                 one: nil,
-                 strict_one: nil,
-                 many: []
-               )
-    end
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               PolymorphicUnionLinks.build(EX.A)
 
-    test "when some classes don't match with non-strict matching" do
+      # when some classes don't match
       assert RDF.graph([
                EX.A |> EX.one(EX.Something1) |> EX.one(EX.Comment1),
                EX.Something1 |> EX.foo("foo"),
                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("bar")
              ])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A,
+             |> PolymorphicUnionLinks.load(EX.A) ==
+               PolymorphicUnionLinks.build(EX.A,
                  one:
-                   Example.Comment.build!(EX.Comment1,
+                   Comment.build!(EX.Comment1,
                      content: "bar",
                      __additional_statements__: %{RDF.type() => EX.Comment}
-                   ),
-                 strict_one: nil,
-                 many: []
+                   )
                )
     end
 
-    test "when no class matches with strict matching" do
+    test "returns error when no class matches with on_type_mismatch: :error" do
       assert RDF.graph([
                EX.A |> EX.strictOne(EX.Post1),
                EX.Post1 |> EX.title("foo")
              ])
-             |> UnionLinks.load(EX.A) ==
+             |> PolymorphicUnionLinks.load(EX.A) ==
                {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: [])}
     end
+  end
 
-    test "when multiple classes are matching which are related via inheritance" do
+  describe "preloading non-polymorphic union links" do
+    test "select most specific schema from union" do
+      # resource typed with multiple classes which are related via inheritance
       assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
+               EX.A |> EX.one(EX.B),
                EX.B |> RDF.type([EX.ParentSchema, EX.ChildSchema])
              ])
-             |> UnionLinkWithInheritance.load(EX.A) ==
-               UnionLinkWithInheritance.build(EX.A,
-                 linked:
-                   Example.ChildSchema.build!(EX.B,
+             |> NonPolymorphicUnionLinks.load(EX.A) ==
+               NonPolymorphicUnionLinks.build(EX.A,
+                 one:
+                   ChildSchema.build!(EX.B,
                      __additional_statements__: %{RDF.type() => [EX.ParentSchema, EX.ChildSchema]},
                      f2: :foo
                    )
                )
 
       assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
+               EX.A |> EX.one(EX.B),
                EX.B
                |> RDF.type([
                  EX.ParentSchema,
@@ -370,10 +655,10 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                  EX.ChildOfMany
                ])
              ])
-             |> UnionLinkWithInheritance.load(EX.A) ==
-               UnionLinkWithInheritance.build(EX.A,
-                 linked:
-                   Example.ChildOfMany.build!(EX.B,
+             |> NonPolymorphicUnionLinks.load(EX.A) ==
+               NonPolymorphicUnionLinks.build(EX.A,
+                 one:
+                   ChildOfMany.build!(EX.B,
                      __additional_statements__: %{
                        RDF.type() => [
                          EX.SubClass,
@@ -384,9 +669,11 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                      }
                    )
                )
+    end
 
+    test "returns error when most specific schema is not unique due to multiple inheritance" do
       assert RDF.graph([
-               EX.A |> EX.linked(EX.B),
+               EX.A |> EX.one(EX.B),
                EX.B
                |> RDF.type([
                  EX.ParentSchema,
@@ -395,58 +682,38 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
                  EX.ChildOfMany
                ])
              ])
-             |> UnionLinkWithInheritance.load(EX.A) ==
+             |> NonPolymorphicUnionLinks.load(EX.A) ==
                {:error,
                 InvalidResourceTypeError.exception(
                   type: :multiple_matches,
-                  resource_types: [Example.ChildSchema, Example.ChildOfMany]
+                  resource_types: [ChildSchema, ChildOfMany]
                 )}
     end
 
-    test "when multiple independent classes are matching" do
+    @tag skip: "TODO: support for polymorphic union links"
+    test "fall back to lowest common ancestor in union" do
+      # resource typed with inherited schema class where a unique parent is part of the union
       assert RDF.graph([
-               EX.A |> EX.one(EX.Post1),
-               EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
+               EX.A |> EX.many(EX.B) |> EX.strictOne(EX.C),
+               EX.B |> RDF.type(EX.ChildOfMany),
+               EX.C |> RDF.type(EX.ChildOfMany)
              ])
-             |> UnionLinks.load(EX.A) ==
-               {:error,
-                InvalidResourceTypeError.exception(
-                  type: :multiple_matches,
-                  resource_types: [Example.Post, Example.Comment]
-                )}
-
-      assert RDF.graph([
-               EX.A |> EX.strictOne(EX.Post1),
-               EX.Post1 |> RDF.type([EX.Post, EX.Comment]) |> EX.title("foo")
-             ])
-             |> UnionLinks.load(EX.A) ==
-               {:error,
-                InvalidResourceTypeError.exception(
-                  type: :multiple_matches,
-                  resource_types: [Example.Post, Example.Comment]
-                )}
-    end
-
-    test "when no values present" do
-      assert RDF.graph([EX.A |> EX.name("nothing")])
-             |> UnionLinks.load(EX.A) ==
-               UnionLinks.build(EX.A, name: "nothing")
-    end
-
-    test "when no values present in a nested schema struct with union links" do
-      defmodule NestedUnionLinks do
-        use Grax.Schema
-
-        schema do
-          link foo: EX.foo(), type: UnionLinks
-        end
-      end
-
-      assert RDF.graph([EX.A |> EX.foo(EX.B)])
-             |> NestedUnionLinks.load(EX.A) ==
-               NestedUnionLinks.build(EX.A,
-                 foo: UnionLinks.build!(RDF.iri(EX.B))
+             |> NonPolymorphicUnionLinks.load(EX.A) ==
+               NonPolymorphicUnionLinks.build(EX.A,
+                 strict_one:
+                   ChildSchemaWithClass.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.Parent2, EX.SubClass]}
+                   ),
+                 many:
+                   ChildSchemaWithClass.build!(EX.C,
+                     __additional_statements__: %{RDF.type() => [EX.Parent2, EX.SubClass]}
+                   )
                )
+    end
+
+    @tag skip: "TODO: support for polymorphic union links"
+    test "returns error when lowest common ancestor in union is not unique" do
+      # resource typed with inherited schema class where multiple parents are part of the union
     end
   end
 end

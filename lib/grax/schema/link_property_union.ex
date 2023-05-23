@@ -5,6 +5,7 @@ defmodule Grax.Schema.LinkProperty.Union do
 
   alias Grax.Schema.Inheritance
   alias Grax.InvalidResourceTypeError
+  alias RDF.Description
 
   def new(class_mapping) do
     {:ok, %__MODULE__{types: normalize_class_mapping(class_mapping)}}
@@ -35,11 +36,14 @@ defmodule Grax.Schema.LinkProperty.Union do
     end)
   end
 
-  def determine_schema(description, class_mapping, property_schema) do
-    types = description[RDF.type()]
+  def determine_schema(%Description{} = description, class_mapping, property_schema) do
+    description
+    |> Description.get(RDF.type(), [])
+    |> determine_schema(class_mapping, property_schema)
+  end
 
+  def determine_schema(types, class_mapping, property_schema) do
     types
-    |> List.wrap()
     |> Enum.reduce([], fn class, candidates ->
       case class_mapping[class] do
         nil -> candidates
@@ -52,19 +56,7 @@ defmodule Grax.Schema.LinkProperty.Union do
   defp do_determine_schema([schema], _, _, _), do: {:ok, schema}
 
   defp do_determine_schema([], types, class_mapping, property_schema) do
-    case class_mapping[nil] do
-      nil ->
-        case property_schema.on_type_mismatch do
-          :ignore ->
-            {:ok, nil}
-
-          :error ->
-            {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: types)}
-        end
-
-      schema ->
-        {:ok, schema}
-    end
+    type_mismatch(class_mapping[nil], property_schema.on_type_mismatch, types)
   end
 
   defp do_determine_schema(candidates, _, _, _) do
@@ -84,4 +76,12 @@ defmodule Grax.Schema.LinkProperty.Union do
          InvalidResourceTypeError.exception(type: :multiple_matches, resource_types: remaining)}
     end
   end
+
+  defp type_mismatch(fallback_schema, on_type_mismatch, types)
+  defp type_mismatch(nil, :ignore, _), do: {:ok, nil}
+
+  defp type_mismatch(nil, :error, types),
+    do: {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: types)}
+
+  defp type_mismatch(fallback, _, _), do: {:ok, fallback}
 end
