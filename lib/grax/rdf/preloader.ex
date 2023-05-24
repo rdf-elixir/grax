@@ -2,9 +2,7 @@ defmodule Grax.RDF.Preloader do
   @moduledoc false
 
   alias Grax.RDF.Loader
-  alias Grax.Schema.Inheritance
-  alias Grax.Schema.LinkProperty.Union
-  alias Grax.InvalidResourceTypeError
+  alias Grax.Schema.LinkProperty
 
   import Grax.RDF.Access
   import RDF.Guards
@@ -73,7 +71,7 @@ defmodule Grax.RDF.Preloader do
         Loader.load_properties([{link, link_schema}], mapping, graph, description)
         |> case do
           {:ok, _} = ok_mapping -> {:cont, ok_mapping}
-          {:error, _} = error -> {:balt, error}
+          {:error, _} = error -> {:halt, error}
         end
       end
     end)
@@ -147,13 +145,13 @@ defmodule Grax.RDF.Preloader do
     end
   end
 
-  defp map_links([value], type, property_schema, graph, opts) do
-    map_link(value, type, property_schema, graph, opts)
+  defp map_links([value], _type, property_schema, graph, opts) do
+    map_link(value, property_schema, graph, opts)
   end
 
-  defp map_links(values, type, property_schema, graph, opts) do
+  defp map_links(values, _type, property_schema, graph, opts) do
     Enum.reduce_while(values, {:ok, []}, fn value, {:ok, mapped} ->
-      case map_link(value, type, property_schema, graph, opts) do
+      case map_link(value, property_schema, graph, opts) do
         {:ok, nil} -> {:cont, {:ok, mapped}}
         {:ok, mapping} -> {:cont, {:ok, [mapping | mapped]}}
         error -> {:halt, error}
@@ -167,7 +165,7 @@ defmodule Grax.RDF.Preloader do
     end
   end
 
-  defp map_link(resource, _, property_schema, _graph, _opts)
+  defp map_link(resource, property_schema, _graph, _opts)
        when not is_rdf_resource(resource) do
     {:error,
      Error.exception(
@@ -175,45 +173,13 @@ defmodule Grax.RDF.Preloader do
      )}
   end
 
-  defp map_link(resource, {:resource, %Union{types: class_mapping}}, property_schema, graph, opts) do
+  defp map_link(resource, property_schema, graph, opts) do
     description = description(graph, resource)
 
-    with {:ok, schema} when not is_nil(schema) <-
-           Union.determine_schema(description, class_mapping, property_schema) do
-      schema.load(graph, resource, Keyword.put(opts, :description, description))
-    end
-  end
-
-  defp map_link(resource, {:resource, schema}, %{polymorphic: false} = link_schema, graph, opts) do
-    if link_schema.on_rdf_type_mismatch == :force do
-      schema.load(graph, resource, opts)
-    else
-      description = description(graph, resource)
-
-      if Inheritance.matches_rdf_types?(description, schema) do
-        schema.load(graph, resource, Keyword.put(opts, :description, description))
-      else
-        case link_schema.on_rdf_type_mismatch do
-          :ignore ->
-            {:ok, nil}
-
-          :error ->
-            {:error,
-             InvalidResourceTypeError.exception(
-               type: :no_match,
-               resource_types: description[RDF.type()]
-             )}
-        end
-      end
-    end
-  end
-
-  defp map_link(resource, {:resource, schema}, property_schema, graph, opts) do
-    description = description(graph, resource)
-
-    with {:ok, schema} when not is_nil(schema) <-
-           Inheritance.determine_schema(description, schema, property_schema) do
-      schema.load(graph, resource, Keyword.put(opts, :description, description))
+    case LinkProperty.determine_schema(property_schema, description) do
+      {:ok, nil} -> {:ok, nil}
+      {:ok, schema} -> schema.load(graph, resource, Keyword.put(opts, :description, description))
+      error -> error
     end
   end
 end

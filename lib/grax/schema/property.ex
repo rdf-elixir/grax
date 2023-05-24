@@ -137,6 +137,8 @@ defmodule Grax.Schema.LinkProperty do
 
   alias Grax.Schema.Property
   alias Grax.Schema.LinkProperty.Union
+  alias Grax.Schema.Inheritance
+  alias Grax.InvalidResourceTypeError
 
   defstruct Property.shared_attrs() ++ [:preload, :polymorphic, :on_rdf_type_mismatch]
 
@@ -196,5 +198,39 @@ defmodule Grax.Schema.LinkProperty do
 
   def union_type?(schema) do
     match?(%Union{}, value_type(schema))
+  end
+
+  def determine_schema(property_schema, description) do
+    determine_schema(property_schema, value_type(property_schema), description)
+  end
+
+  def determine_schema(property_schema, %Union{types: class_mapping}, description) do
+    Union.determine_schema(description, class_mapping, property_schema)
+  end
+
+  def determine_schema(%{polymorphic: false, on_rdf_type_mismatch: :force}, schema, _) do
+    {:ok, schema}
+  end
+
+  def determine_schema(%{polymorphic: false} = property_schema, schema, description) do
+    if Inheritance.matches_rdf_types?(description, schema) do
+      {:ok, schema}
+    else
+      case property_schema.on_rdf_type_mismatch do
+        :ignore ->
+          {:ok, nil}
+
+        :error ->
+          {:error,
+           InvalidResourceTypeError.exception(
+             type: :no_match,
+             resource_types: description[RDF.type()]
+           )}
+      end
+    end
+  end
+
+  def determine_schema(property_schema, schema, description) do
+    Inheritance.determine_schema(description, schema, property_schema)
   end
 end

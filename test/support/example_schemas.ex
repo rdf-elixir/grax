@@ -715,6 +715,16 @@ defmodule Example do
            on_rdf_type_mismatch: :ignore
 
       link many: EX.many(), type: list_of(Example.ParentSchema)
+
+      link inverses: -EX.inverse(), type: list_of(Example.AnotherParentSchema)
+
+      link strict_inverses: -EX.strictInverse(),
+           type: list_of(Example.AnotherParentSchema),
+           on_rdf_type_mismatch: :error
+
+      link ignored_inverses: -EX.ignoredInverse(),
+           type: list_of(Example.AnotherParentSchema),
+           on_rdf_type_mismatch: :ignore
     end
   end
 
@@ -735,6 +745,20 @@ defmodule Example do
            on_rdf_type_mismatch: :ignore
 
       link many: EX.many(), type: list_of(Example.ParentSchema), polymorphic: false
+
+      link inverses: -EX.inverse(),
+           type: list_of(Example.ParentSchema),
+           polymorphic: false
+
+      link strict_inverses: -EX.strictInverse(),
+           type: list_of(Example.ParentSchema),
+           polymorphic: false,
+           on_rdf_type_mismatch: :error
+
+      link ignored_inverses: -EX.ignoredInverse(),
+           type: list_of(Example.ParentSchema),
+           polymorphic: false,
+           on_rdf_type_mismatch: :ignore
     end
   end
 end

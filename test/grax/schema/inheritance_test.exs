@@ -658,6 +658,54 @@ defmodule Grax.Schema.InheritanceTest do
                  ignored_one: nil
                )
     end
+
+    test "inverses" do
+      add_additional_statements = fn schema ->
+        Grax.put_additional_statements(schema, %{
+          EX.inverse() => RDF.iri(EX.A),
+          EX.strictInverse() => RDF.iri(EX.A),
+          EX.ignoredInverse() => RDF.iri(EX.A)
+        })
+      end
+
+      assert RDF.graph([
+               EX.B
+               |> EX.inverse(EX.A)
+               |> EX.strictInverse(EX.A)
+               |> EX.ignoredInverse(EX.A)
+               |> RDF.type([EX.SubClass]),
+               EX.C
+               |> EX.inverse(EX.A)
+               |> EX.ignoredInverse(EX.A)
+               |> RDF.type([EX.Parent, EX.Child2])
+             ])
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
+                 inverses: [
+                   ChildOfMany.build!(EX.B) |> add_additional_statements.(),
+                   AnotherParentSchema.build!(EX.C)
+                   |> Grax.put_additional_statements(%{
+                     RDF.type() => [EX.Parent, EX.Parent2, EX.Child2],
+                     EX.inverse() => RDF.iri(EX.A),
+                     EX.ignoredInverse() => RDF.iri(EX.A)
+                   })
+                 ],
+                 ignored_inverses: [ChildOfMany.build!(EX.B) |> add_additional_statements.()],
+                 strict_inverses: [ChildOfMany.build!(EX.B) |> add_additional_statements.()]
+               )
+
+      assert RDF.graph([
+               EX.B
+               |> EX.strictInverse(EX.A)
+               |> RDF.type([EX.Parent, EX.Child2])
+             ])
+             |> PolymorphicLinks.load(EX.A) ==
+               {:error,
+                InvalidResourceTypeError.exception(
+                  type: :no_match,
+                  resource_types: [RDF.iri(EX.Child2), RDF.iri(EX.Parent)]
+                )}
+    end
   end
 
   describe "preloading non-polymorphic links with on_rdf_type_mismatch: :force" do
@@ -694,6 +742,40 @@ defmodule Grax.Schema.InheritanceTest do
                    ParentSchema.build!(EX.B,
                      __additional_statements__: %{RDF.type() => [EX.Parent, EX.Child2]}
                    )
+               )
+    end
+
+    test "inverses" do
+      add_additional_statements = fn schema ->
+        Grax.put_additional_statements(schema, %{
+          EX.inverse() => RDF.iri(EX.A)
+        })
+      end
+
+      assert RDF.graph([
+               EX.B
+               |> EX.inverse(EX.A)
+               |> RDF.type([EX.Parent]),
+               EX.C
+               |> EX.inverse(EX.A)
+               |> RDF.type([EX.SubClass]),
+               EX.D
+               |> EX.inverse(EX.A)
+               |> RDF.type([EX.Parent2])
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 inverses: [
+                   ParentSchema.build!(EX.B)
+                   |> add_additional_statements.()
+                   |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent]}),
+                   ParentSchema.build!(EX.C)
+                   |> add_additional_statements.()
+                   |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent, EX.SubClass]}),
+                   ParentSchema.build!(EX.D)
+                   |> add_additional_statements.()
+                   |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent, EX.Parent2]})
+                 ]
                )
     end
   end
@@ -739,6 +821,46 @@ defmodule Grax.Schema.InheritanceTest do
                   resource_types: [RDF.iri(EX.Parent)]
                 )}
     end
+
+    test "inverses" do
+      add_additional_statements = fn schema ->
+        Grax.put_additional_statements(schema, %{
+          EX.strictInverse() => RDF.iri(EX.A)
+        })
+      end
+
+      assert RDF.graph([
+               EX.B
+               |> EX.strictInverse(EX.A)
+               |> RDF.type([EX.Parent]),
+               EX.C
+               |> EX.strictInverse(EX.A)
+               |> RDF.type([EX.SubClass])
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 strict_inverses: [
+                   ParentSchema.build!(EX.B)
+                   |> add_additional_statements.()
+                   |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent]}),
+                   ParentSchema.build!(EX.C)
+                   |> add_additional_statements.()
+                   |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent, EX.SubClass]})
+                 ]
+               )
+
+      assert RDF.graph([
+               EX.B
+               |> EX.strictInverse(EX.A)
+               |> RDF.type([EX.Parent2])
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               {:error,
+                InvalidResourceTypeError.exception(
+                  type: :no_match,
+                  resource_types: [RDF.iri(EX.Parent2)]
+                )}
+    end
   end
 
   describe "preloading non-polymorphic links with on_rdf_type_mismatch: :ignore" do
@@ -778,6 +900,37 @@ defmodule Grax.Schema.InheritanceTest do
              |> NonPolymorphicLinks.load(EX.A) ==
                NonPolymorphicLinks.build(EX.A, ignored_one: nil)
     end
+  end
+
+  test "inverses" do
+    add_additional_statements = fn schema ->
+      Grax.put_additional_statements(schema, %{
+        EX.ignoredInverse() => RDF.iri(EX.A)
+      })
+    end
+
+    assert RDF.graph([
+             EX.B
+             |> EX.ignoredInverse(EX.A)
+             |> RDF.type([EX.Parent]),
+             EX.C
+             |> EX.ignoredInverse(EX.A)
+             |> RDF.type([EX.SubClass]),
+             EX.D
+             |> EX.ignoredInverse(EX.A)
+             |> RDF.type([EX.Parent2])
+           ])
+           |> NonPolymorphicLinks.load(EX.A) ==
+             NonPolymorphicLinks.build(EX.A,
+               ignored_inverses: [
+                 ParentSchema.build!(EX.B)
+                 |> add_additional_statements.()
+                 |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent]}),
+                 ParentSchema.build!(EX.C)
+                 |> add_additional_statements.()
+                 |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent, EX.SubClass]})
+               ]
+             )
   end
 
   test "paths/1" do

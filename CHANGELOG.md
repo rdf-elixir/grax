@@ -31,12 +31,14 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   Opting-out to non-polymorphic behaviour is possible by setting the
   `:polymorphic` option to `false` on a `link` definition. However, the
   non-polymorphic behaviour still differs slightly from the previous version,
-  in that, when `:on_type_mismatch` is set to `:error`, preloading of an RDF  
+  in that, when `:on_rdf_type_mismatch` is set to `:error`, preloading of an RDF  
   resource which is not typed with the class of the specified schema, but the
   class of an inherited schema, no longer leads to an error.
 - Preloading of union links whose schemas are in an inheritance relationship
   are resolved to the most specific class and no longer result in an
   `:multiple_matches` when the resource is typed also with the broader classes.
+- All the new link options (`:polymorphic`, `:on_rdf_type_mismatch`) are available
+  on inverse links, too.
 - The internal representation of the `__additional_statements__` field of Grax 
   schema structs was changed to use now the same format as the internal
   `predications` field of `RDF.Description`s. This allows various optimizations 
@@ -52,10 +54,10 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
     `Grax.delete_additional_predicates/2` function for this now.
 - Rename `:on_type_mismatch` link option to `:on_rdf_type_mismatch` to make it
   clearer that it is only relevant during preloading from RDF data
-- "heterogeneous link properties" are now called "union link properties"
-  (since this name didn't appear in the code, this change only affects the documentation)
 - Rename `Grax.Schema.InvalidProperty` to `Grax.Schema.InvalidPropertyError` for
   consistency reasons
+- "heterogeneous link properties" are now called "union link properties"
+  (since this name didn't appear in the code, this change only affects the documentation)
 
 ### Fixed
 

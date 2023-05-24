@@ -7,7 +7,6 @@ defmodule Grax.RDF.Access do
 
   alias RDF.{Description, Graph, Query}
   alias Grax.Schema.LinkProperty
-  alias Grax.Schema.LinkProperty.Union
 
   # TODO: this function becomes unnecessary when we depend on RDF.ex >= 0.12 as that's the default behaviour of Graph.description now
   # Dialyzer raises a warning with RDF.ex 0.12, since the fallback will never be used, but we need
@@ -27,26 +26,27 @@ defmodule Grax.RDF.Access do
     Description.get(description, property_iri)
   end
 
-  def filtered_objects(graph, description, property_schema) do
-    if objects = objects(graph, description, property_schema.iri) do
-      case LinkProperty.value_type(property_schema) do
-        %Union{types: class_mapping} ->
-          Enum.reduce_while(objects, {:ok, []}, fn object, {:ok, objects} ->
-            graph
-            |> description(object)
-            |> Union.determine_schema(class_mapping, property_schema)
-            |> case do
-              {:ok, nil} -> {:cont, {:ok, objects}}
-              {:ok, _} -> {:cont, {:ok, [object | objects]}}
-              {:error, _} = error -> {:halt, error}
-            end
-          end)
+  def filtered_objects(graph, description, %property_type{} = property_schema) do
+    case objects(graph, description, property_schema.iri) do
+      nil ->
+        {:ok, nil}
 
-        _ ->
-          {:ok, objects}
-      end
-    else
-      {:ok, nil}
+      objects when property_type == LinkProperty ->
+        Enum.reduce_while(objects, {:ok, []}, fn object, {:ok, objects} ->
+          case LinkProperty.determine_schema(property_schema, description(graph, object)) do
+            {:ok, nil} -> {:cont, {:ok, objects}}
+            {:ok, _} -> {:cont, {:ok, [object | objects]}}
+            {:error, _} = error -> {:halt, error}
+          end
+        end)
+        |> case do
+          {:ok, objects} -> {:ok, Enum.reverse(objects)}
+          other -> other
+        end
+
+      # We currently have no filter logic on data properties
+      objects ->
+        {:ok, objects}
     end
   end
 
