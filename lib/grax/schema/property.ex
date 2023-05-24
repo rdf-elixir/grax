@@ -147,6 +147,8 @@ defmodule Grax.Schema.LinkProperty do
       raise ArgumentError, "the :default option is not supported on links"
     end
 
+    union_type? = match?(%Union{}, do_value_type(type))
+
     __MODULE__
     |> Property.init(schema, name, iri, opts)
     |> struct!(
@@ -154,18 +156,24 @@ defmodule Grax.Schema.LinkProperty do
       cardinality: cardinality,
       polymorphic: Keyword.get(opts, :polymorphic, true),
       preload: opts[:preload],
-      on_rdf_type_mismatch: init_on_rdf_type_mismatch(opts[:on_rdf_type_mismatch])
+      on_rdf_type_mismatch: init_on_rdf_type_mismatch(union_type?, opts[:on_rdf_type_mismatch])
     )
   end
 
-  @valid_on_rdf_type_mismatch_values ~w[ignore error]a
+  @valid_on_rdf_type_mismatch_values ~w[ignore force error]a
 
-  defp init_on_rdf_type_mismatch(nil), do: :ignore
+  defp init_on_rdf_type_mismatch(false, nil), do: :force
+  defp init_on_rdf_type_mismatch(true, nil), do: :ignore
 
-  defp init_on_rdf_type_mismatch(value) when value in @valid_on_rdf_type_mismatch_values,
+  defp init_on_rdf_type_mismatch(true, :force) do
+    raise ArgumentError,
+          "on_rdf_type_mismatch: :force is not supported on union types; use a nil fallback instead to enforce a certain schema"
+  end
+
+  defp init_on_rdf_type_mismatch(_, value) when value in @valid_on_rdf_type_mismatch_values,
     do: value
 
-  defp init_on_rdf_type_mismatch(value) do
+  defp init_on_rdf_type_mismatch(_, value) do
     raise ArgumentError,
           "invalid on_rdf_type_mismatch value: #{inspect(value)} (valid values: #{inspect(@valid_on_rdf_type_mismatch_values)})"
   end

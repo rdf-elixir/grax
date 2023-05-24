@@ -73,7 +73,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp1,
                  iri: ~I<http://example.com/lp1>,
                  schema: ChildSchema,
-                 on_rdf_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -81,7 +81,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp2,
                  iri: ~I<http://example.com/lp22>,
                  schema: ChildSchema,
-                 on_rdf_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -89,7 +89,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp3,
                  iri: ~I<http://example.com/lp3>,
                  schema: ChildSchema,
-                 on_rdf_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
                }
@@ -139,7 +139,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp1,
                  iri: ~I<http://example.com/lp1>,
                  schema: ChildOfMany,
-                 on_rdf_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -147,7 +147,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp2,
                  iri: ~I<http://example.com/lp2>,
                  schema: ChildOfMany,
-                 on_rdf_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -155,7 +155,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp3,
                  iri: ~I<http://example.com/lp3>,
                  schema: ChildOfMany,
-                 on_rdf_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
                },
@@ -163,7 +163,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp4,
                  iri: ~I<http://example.com/lp4>,
                  schema: ChildOfMany,
-                 on_rdf_type_mismatch: :ignore,
+                 on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
                }
@@ -217,6 +217,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: EX.bar(),
                strict_one: EX.bar(),
+               ignored_one: EX.bar(),
                many: [EX.baz1(), EX.baz2()]
              ) ==
                {:ok,
@@ -224,6 +225,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.Foo),
                   one: EX.bar(),
                   strict_one: EX.bar(),
+                  ignored_one: EX.bar(),
                   many: [EX.baz1(), EX.baz2()]
                 }}
 
@@ -231,6 +233,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: EX.bar(),
                strict_one: EX.bar(),
+               ignored_one: EX.bar(),
                many: [EX.baz1(), EX.baz2()]
              ) ==
                {:ok,
@@ -238,6 +241,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.Foo),
                   one: EX.bar(),
                   strict_one: EX.bar(),
+                  ignored_one: EX.bar(),
                   many: [EX.baz1(), EX.baz2()]
                 }}
     end
@@ -247,6 +251,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: RDF.bnode("bar"),
                strict_one: RDF.bnode("bar"),
+               ignored_one: RDF.bnode("bar"),
                many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
              ) ==
                {:ok,
@@ -254,6 +259,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.Foo),
                   one: RDF.bnode("bar"),
                   strict_one: RDF.bnode("bar"),
+                  ignored_one: RDF.bnode("bar"),
                   many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
                 }}
 
@@ -261,6 +267,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: RDF.bnode("bar"),
                strict_one: RDF.bnode("bar"),
+               ignored_one: RDF.bnode("bar"),
                many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
              ) ==
                {:ok,
@@ -268,6 +275,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.Foo),
                   one: RDF.bnode("bar"),
                   strict_one: RDF.bnode("bar"),
+                  ignored_one: RDF.bnode("bar"),
                   many: [RDF.bnode("baz1"), RDF.bnode("baz2")]
                 }}
     end
@@ -277,6 +285,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: EX.Bar,
                strict_one: EX.Bar,
+               ignored_one: EX.Bar,
                many: [EX.baz(), EX.Baz1, EX.Baz2]
              ) ==
                {:ok,
@@ -284,6 +293,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.Foo),
                   one: IRI.new(EX.Bar),
                   strict_one: IRI.new(EX.Bar),
+                  ignored_one: IRI.new(EX.Bar),
                   many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
                 }}
 
@@ -291,6 +301,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: EX.Bar,
                strict_one: EX.Bar,
+               ignored_one: EX.Bar,
                many: [EX.baz(), EX.Baz1, EX.Baz2]
              ) ==
                {:ok,
@@ -298,6 +309,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.Foo),
                   one: IRI.new(EX.Bar),
                   strict_one: IRI.new(EX.Bar),
+                  ignored_one: IRI.new(EX.Bar),
                   many: [EX.baz(), IRI.new(EX.Baz1), IRI.new(EX.Baz2)]
                 }}
     end
@@ -307,6 +319,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: ParentSchema.build!(EX.B, dp2: 42),
                strict_one: AnotherParentSchema.build!(EX.B, dp2: 42),
+               ignored_one: AnotherParentSchema.build!(EX.B, dp2: 42),
                many: [ParentSchema.build!(EX.B, dp2: 42), ParentSchema.build!(EX.C, dp2: 43)]
              ) ==
                {:ok,
@@ -314,6 +327,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.A),
                   one: ParentSchema.build!(EX.B, dp2: 42),
                   strict_one: AnotherParentSchema.build!(EX.B, dp2: 42),
+                  ignored_one: AnotherParentSchema.build!(EX.B, dp2: 42),
                   many: [ParentSchema.build!(EX.B, dp2: 42), ParentSchema.build!(EX.C, dp2: 43)]
                 }}
 
@@ -321,6 +335,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: ParentSchema.build!(EX.B, dp2: 42),
                strict_one: AnotherParentSchema.build!(EX.B, dp2: 42),
+               ignored_one: AnotherParentSchema.build!(EX.B, dp2: 42),
                many: [ParentSchema.build!(EX.B, dp2: 42), ParentSchema.build!(EX.C, dp2: 43)]
              ) ==
                {:ok,
@@ -328,6 +343,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.A),
                   one: ParentSchema.build!(EX.B, dp2: 42),
                   strict_one: AnotherParentSchema.build!(EX.B, dp2: 42),
+                  ignored_one: AnotherParentSchema.build!(EX.B, dp2: 42),
                   many: [ParentSchema.build!(EX.B, dp2: 42), ParentSchema.build!(EX.C, dp2: 43)]
                 }}
     end
@@ -337,6 +353,7 @@ defmodule Grax.Schema.InheritanceTest do
              |> Grax.put(
                one: ChildSchemaWithClass.build!(EX.B, dp4: 42),
                strict_one: AnotherParentSchema.build!(EX.B),
+               ignored_one: AnotherParentSchema.build!(EX.B),
                many: [ChildSchemaWithClass.build!(EX.B, dp4: 42), ChildOfMany.build!(EX.C)]
              ) ==
                {:ok,
@@ -344,6 +361,7 @@ defmodule Grax.Schema.InheritanceTest do
                   __id__: IRI.new(EX.A),
                   one: ChildSchemaWithClass.build!(EX.B, dp4: 42),
                   strict_one: AnotherParentSchema.build!(EX.B),
+                  ignored_one: AnotherParentSchema.build!(EX.B),
                   many: [ChildSchemaWithClass.build!(EX.B, dp4: 42), ChildOfMany.build!(EX.C)]
                 }}
     end
@@ -359,6 +377,14 @@ defmodule Grax.Schema.InheritanceTest do
 
       assert NonPolymorphicLinks.build!(EX.A)
              |> Grax.put(:strict_one, ChildOfMany.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildOfMany.build!(EX.B),
+                  type: AnotherParentSchema
+                )}
+
+      assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(:ignored_one, ChildOfMany.build!(EX.B)) ==
                {:error,
                 TypeError.exception(
                   value: ChildOfMany.build!(EX.B),
@@ -385,6 +411,14 @@ defmodule Grax.Schema.InheritanceTest do
 
       assert PolymorphicLinks.build!(EX.A)
              |> Grax.put(:strict_one, ChildSchemaWithClass.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildSchemaWithClass.build!(EX.B),
+                  type: AnotherParentSchema
+                )}
+
+      assert PolymorphicLinks.build!(EX.A)
+             |> Grax.put(:ignored_one, ChildSchemaWithClass.build!(EX.B)) ==
                {:error,
                 TypeError.exception(
                   value: ChildSchemaWithClass.build!(EX.B),
@@ -424,6 +458,14 @@ defmodule Grax.Schema.InheritanceTest do
                 )}
 
       assert NonPolymorphicLinks.build!(EX.A)
+             |> Grax.put(:ignored_one, ChildSchemaWithClass.build!(EX.B)) ==
+               {:error,
+                TypeError.exception(
+                  value: ChildSchemaWithClass.build!(EX.B),
+                  type: AnotherParentSchema
+                )}
+
+      assert NonPolymorphicLinks.build!(EX.A)
              |> Grax.put(many: [User.build!(EX.B), ChildOfMany.build!(EX.C)]) ==
                {
                  :error,
@@ -444,25 +486,29 @@ defmodule Grax.Schema.InheritanceTest do
   describe "general preloading" do
     test "resource typed with schema class" do
       assert RDF.graph([
-               EX.A |> EX.one(EX.B) |> EX.strictOne(EX.C),
+               EX.A |> EX.one(EX.B) |> EX.strictOne(EX.C) |> EX.ignoredOne(EX.D),
                EX.B |> RDF.type(EX.Parent),
-               EX.C |> RDF.type(EX.Parent2)
+               EX.C |> RDF.type(EX.Parent2),
+               EX.D |> RDF.type(EX.Parent2)
              ])
              |> PolymorphicLinks.load(EX.A) ==
                PolymorphicLinks.build(EX.A,
                  one: ParentSchema.build!(EX.B),
-                 strict_one: AnotherParentSchema.build!(EX.C)
+                 strict_one: AnotherParentSchema.build!(EX.C),
+                 ignored_one: AnotherParentSchema.build!(EX.D)
                )
 
       assert RDF.graph([
-               EX.A |> EX.one(EX.B) |> EX.strictOne(EX.C),
+               EX.A |> EX.one(EX.B) |> EX.strictOne(EX.C) |> EX.ignoredOne(EX.D),
                EX.B |> RDF.type(EX.Parent),
-               EX.C |> RDF.type(EX.Parent2)
+               EX.C |> RDF.type(EX.Parent2),
+               EX.D |> RDF.type(EX.Parent2)
              ])
              |> NonPolymorphicLinks.load(EX.A) ==
                NonPolymorphicLinks.build(EX.A,
                  one: ParentSchema.build!(EX.B),
-                 strict_one: AnotherParentSchema.build!(EX.C)
+                 strict_one: AnotherParentSchema.build!(EX.C),
+                 ignored_one: AnotherParentSchema.build!(EX.D)
                )
     end
   end
@@ -494,6 +540,15 @@ defmodule Grax.Schema.InheritanceTest do
              |> PolymorphicLinks.load(EX.A) ==
                PolymorphicLinks.build(EX.A,
                  strict_one: ChildOfMany.build!(EX.B)
+               )
+
+      assert RDF.graph([
+               EX.A |> EX.ignoredOne(EX.B),
+               EX.B |> RDF.type([EX.SubClass])
+             ])
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
+                 ignored_one: ChildOfMany.build!(EX.B)
                )
 
       assert RDF.graph([
@@ -542,10 +597,22 @@ defmodule Grax.Schema.InheritanceTest do
                        __additional_statements__: %{RDF.type() => types}
                      )
                  )
+
+        assert RDF.graph([
+                 EX.A |> EX.ignoredOne(EX.B),
+                 EX.B |> RDF.type(types)
+               ])
+               |> PolymorphicLinks.load(EX.A) ==
+                 PolymorphicLinks.build(EX.A,
+                   ignored_one:
+                     ChildOfMany.build!(EX.B,
+                       __additional_statements__: %{RDF.type() => types}
+                     )
+                 )
       end)
     end
 
-    test "resource typed with non-matching class (non-strict)" do
+    test "resource typed with non-matching class (default; on_rdf_type_mismatch: :force)" do
       assert RDF.graph([
                EX.A |> EX.one(EX.B),
                EX.B |> RDF.type(EX.Unknown)
@@ -568,7 +635,7 @@ defmodule Grax.Schema.InheritanceTest do
                {:ok, Example.user(EX.User0, depth: 1)}
     end
 
-    test "resource typed with non-matching class (strict)" do
+    test "resource typed with non-matching class (on_rdf_type_mismatch: :error)" do
       assert RDF.graph([
                EX.A |> EX.strictOne(EX.B),
                EX.B |> RDF.type(EX.Unknown)
@@ -580,9 +647,20 @@ defmodule Grax.Schema.InheritanceTest do
                   resource_types: [RDF.iri(EX.Unknown)]
                 )}
     end
+
+    test "resource typed with non-matching class (on_rdf_type_mismatch: :ignore)" do
+      assert RDF.graph([
+               EX.A |> EX.ignoredOne(EX.B),
+               EX.B |> RDF.type(EX.Unknown)
+             ])
+             |> PolymorphicLinks.load(EX.A) ==
+               PolymorphicLinks.build(EX.A,
+                 ignored_one: nil
+               )
+    end
   end
 
-  describe "preloading non-strict non-polymorphic links" do
+  describe "preloading non-polymorphic links with on_rdf_type_mismatch: :force" do
     test "resource typed with inherited schema class" do
       assert RDF.graph([
                EX.A
@@ -620,7 +698,7 @@ defmodule Grax.Schema.InheritanceTest do
     end
   end
 
-  describe "preloading strict non-polymorphic links" do
+  describe "preloading non-polymorphic links with on_rdf_type_mismatch: :error" do
     test "resource typed with inherited schema class" do
       assert RDF.graph([
                EX.A |> EX.strictOne(EX.B),
@@ -660,6 +738,45 @@ defmodule Grax.Schema.InheritanceTest do
                   type: :no_match,
                   resource_types: [RDF.iri(EX.Parent)]
                 )}
+    end
+  end
+
+  describe "preloading non-polymorphic links with on_rdf_type_mismatch: :ignore" do
+    test "resource typed with inherited schema class" do
+      assert RDF.graph([
+               EX.A |> EX.ignoredOne(EX.B),
+               EX.B |> RDF.type(EX.SubClass)
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 ignored_one:
+                   AnotherParentSchema.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.Parent2, EX.SubClass]}
+                   )
+               )
+    end
+
+    test "resource typed with both schema class and inherited schema class" do
+      assert RDF.graph([
+               EX.A |> EX.ignoredOne(EX.B),
+               EX.B |> RDF.type([EX.Parent2, EX.Child2])
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 ignored_one:
+                   AnotherParentSchema.build!(EX.B,
+                     __additional_statements__: %{RDF.type() => [EX.Parent2, EX.Child2]}
+                   )
+               )
+    end
+
+    test "resource typed with non-matching class" do
+      assert RDF.graph([
+               EX.A |> EX.ignoredOne(EX.B),
+               EX.B |> RDF.type(EX.Parent)
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A, ignored_one: nil)
     end
   end
 

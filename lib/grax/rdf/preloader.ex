@@ -185,29 +185,34 @@ defmodule Grax.RDF.Preloader do
   end
 
   defp map_link(resource, {:resource, schema}, %{polymorphic: false} = link_schema, graph, opts) do
-    case link_schema.on_rdf_type_mismatch do
-      :ignore ->
-        schema.load(graph, resource, opts)
+    if link_schema.on_rdf_type_mismatch == :force do
+      schema.load(graph, resource, opts)
+    else
+      description = description(graph, resource)
 
-      :error ->
-        description = description(graph, resource)
+      if Inheritance.matches_rdf_types?(description, schema) do
+        schema.load(graph, resource, Keyword.put(opts, :description, description))
+      else
+        case link_schema.on_rdf_type_mismatch do
+          :ignore ->
+            {:ok, nil}
 
-        if Inheritance.matches_rdf_types?(description, schema) do
-          schema.load(graph, resource, Keyword.put(opts, :description, description))
-        else
-          {:error,
-           InvalidResourceTypeError.exception(
-             type: :no_match,
-             resource_types: description[RDF.type()]
-           )}
+          :error ->
+            {:error,
+             InvalidResourceTypeError.exception(
+               type: :no_match,
+               resource_types: description[RDF.type()]
+             )}
         end
+      end
     end
   end
 
   defp map_link(resource, {:resource, schema}, property_schema, graph, opts) do
     description = description(graph, resource)
 
-    with {:ok, schema} <- Inheritance.determine_schema(description, schema, property_schema) do
+    with {:ok, schema} when not is_nil(schema) <-
+           Inheritance.determine_schema(description, schema, property_schema) do
       schema.load(graph, resource, Keyword.put(opts, :description, description))
     end
   end

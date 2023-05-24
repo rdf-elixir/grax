@@ -81,8 +81,11 @@ defmodule Grax.Schema.Inheritance do
 
       [] ->
         case property_schema.on_rdf_type_mismatch do
-          :ignore ->
+          :force ->
             {:ok, schema}
+
+          :ignore ->
+            {:ok, nil}
 
           :error ->
             {:error, InvalidResourceTypeError.exception(type: :no_match, resource_types: types)}

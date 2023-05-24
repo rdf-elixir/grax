@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - The class mapping on a union type can now also be provided as a list of
   `{class_iri, schema}` tuples or just Grax schemas, for those which are
   associated with a class IRI with a class declaration.
+- the `:on_rdf_type_mismatch` option is now supported on all types of links
+  (previously it was available on union links only)
 - `Grax.Schema.schema?/1` and `Grax.Schema.struct?/1` to determine whether a given
   module or struct is a Grax schema resp. Grax schema struct
 - `Grax.schema/1` to get the schema(s) of a given class IRI
@@ -59,7 +61,6 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 - a bug when preloading a nested schema with union links without values
 - union links weren't validated properly
-- `:on_type_mismatch` option of link properties wasn't always respected
 
 
 [Compare v0.3.5...HEAD](https://github.com/rdf-elixir/grax/compare/v0.3.5...HEAD)

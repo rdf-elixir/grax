@@ -710,6 +710,10 @@ defmodule Example do
            type: Example.AnotherParentSchema,
            on_rdf_type_mismatch: :error
 
+      link ignored_one: EX.ignoredOne(),
+           type: Example.AnotherParentSchema,
+           on_rdf_type_mismatch: :ignore
+
       link many: EX.many(), type: list_of(Example.ParentSchema)
     end
   end
@@ -724,6 +728,11 @@ defmodule Example do
            type: Example.AnotherParentSchema,
            polymorphic: false,
            on_rdf_type_mismatch: :error
+
+      link ignored_one: EX.ignoredOne(),
+           type: Example.AnotherParentSchema,
+           polymorphic: false,
+           on_rdf_type_mismatch: :ignore
 
       link many: EX.many(), type: list_of(Example.ParentSchema), polymorphic: false
     end
