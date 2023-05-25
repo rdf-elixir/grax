@@ -7,8 +7,17 @@ defmodule Grax do
   """
 
   alias Grax.{Schema, Id, Validator, ValidationError}
-  alias Grax.Schema.{Registry, DataProperty, LinkProperty, AdditionalStatements}
-  alias Grax.RDF.{Loader, Preloader, Mapper}
+
+  alias Grax.Schema.{
+    Registry,
+    DataProperty,
+    LinkProperty,
+    AdditionalStatements,
+    Inheritance,
+    DetectionError
+  }
+
+  alias Grax.RDF.{Loader, Preloader, Mapper, Access}
 
   alias RDF.{IRI, BlankNode, Graph, Description, Statement}
 
@@ -97,18 +106,35 @@ defmodule Grax do
          Id.Spec.custom_select_id_schema(schema.__id_spec__(), schema, initial))
   end
 
-  def load(mod, id, graph, opts \\ []) do
+  def load(graph, id), do: load(graph, id, nil, [])
+  def load(graph, id, opts) when is_list(opts), do: load(graph, id, nil, opts)
+  def load(graph, id, mod), do: load(graph, id, mod, [])
+
+  def load(graph, id, nil, opts) do
+    description = Access.description(graph, id)
+
+    case Inheritance.determine_schema(description) do
+      no_unique when is_nil(no_unique) or is_list(no_unique) ->
+        {:error, DetectionError.exception(candidates: no_unique, context: id)}
+
+      schema ->
+        load(graph, id, schema, Keyword.put(opts, :description, description))
+    end
+  end
+
+  def load(graph, id, mod, opts) do
     validate? = Keyword.get(opts, :validate, true)
     opts = Keyword.put(opts, :validate, validate?)
 
     do_load(mod, id, graph, validate?, opts)
   end
 
-  def load!(mod, id, graph, opts \\ []) do
-    validate? = Keyword.get(opts, :validate, false)
-    opts = Keyword.put_new(opts, :validate, validate?)
+  def load!(graph, id), do: load!(graph, id, nil, [])
+  def load!(graph, id, opts) when is_list(opts), do: load!(graph, id, nil, opts)
+  def load!(graph, id, mod), do: load!(graph, id, mod, [])
 
-    case do_load(mod, id, graph, validate?, opts) do
+  def load!(graph, id, mod, opts) do
+    case load(graph, id, mod, Keyword.put_new(opts, :validate, false)) do
       {:ok, mapping} -> mapping
       {:error, error} -> raise error
     end

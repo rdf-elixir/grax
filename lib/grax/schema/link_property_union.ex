@@ -60,20 +60,13 @@ defmodule Grax.Schema.LinkProperty.Union do
   end
 
   defp do_determine_schema(candidates, _, _, _) do
-    paths = Enum.flat_map(candidates, &Inheritance.paths/1)
-
-    candidates
-    |> Enum.reject(fn candidate -> Enum.any?(paths, &(candidate in &1)) end)
-    |> case do
-      [result] ->
-        {:ok, result}
-
-      [] ->
-        raise "Oops, something went fundamentally wrong. Please report this at https://github.com/rdf-elixir/grax/issues"
-
-      remaining ->
+    case Inheritance.most_specific_schema(candidates) do
+      multiple when is_list(multiple) ->
         {:error,
-         InvalidResourceTypeError.exception(type: :multiple_matches, resource_types: remaining)}
+         InvalidResourceTypeError.exception(type: :multiple_matches, resource_types: multiple)}
+
+      result ->
+        {:ok, result}
     end
   end
 

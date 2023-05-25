@@ -959,4 +959,50 @@ defmodule Grax.Schema.InheritanceTest do
     refute Inheritance.inherited_schema?(ChildOfMany, User)
     refute Inheritance.inherited_schema?(AnotherParentSchema, ParentSchema)
   end
+
+  describe "determine_schema/1" do
+    test "when no rdf:types exist" do
+      assert Inheritance.determine_schema([]) == nil
+      assert EX.S |> EX.p(EX.O) |> Inheritance.determine_schema() == nil
+    end
+
+    test "when no rdf:type is associated with a Grax.Schema" do
+      assert Inheritance.determine_schema([RDF.iri(EX.Unknown)]) == nil
+      assert EX.S |> EX.p(EX.O) |> RDF.type(EX.Unknown) |> Inheritance.determine_schema() == nil
+    end
+
+    test "when exactly one rdf:type is associated with a Grax.Schema" do
+      assert EX.S |> EX.p(EX.O) |> RDF.type(EX.Post) |> Inheritance.determine_schema() ==
+               Example.Post
+
+      assert Inheritance.determine_schema([RDF.iri(EX.Post)]) == Example.Post
+      assert Inheritance.determine_schema([RDF.iri(EX.Post), RDF.iri(EX.Unknown)]) == Example.Post
+    end
+
+    test "when an rdf:type is associated with multiple Grax.Schemas" do
+      assert Inheritance.determine_schema([RDF.iri(EX.User)]) == [
+               Example.UserWithCallbacks,
+               Example.User
+             ]
+    end
+
+    test "when multiple rdf:types are associated with unrelated Grax.Schemas" do
+      assert Inheritance.determine_schema([RDF.iri(EX.Comment), RDF.iri(EX.Post)]) == [
+               Example.Comment,
+               Example.Post
+             ]
+    end
+
+    test "trys to select the most specific schema when multiple rdf:types are associated with related Grax.Schemas" do
+      [
+        {[EX.Parent, EX.Child2], ChildSchemaWithClass},
+        {[EX.Child2, EX.Parent], ChildSchemaWithClass},
+        {[EX.Parent, EX.Child2, EX.Parent2], [ChildSchemaWithClass, AnotherParentSchema]},
+        {[EX.Parent, EX.Child2, EX.Parent2, EX.SubClass], ChildOfMany}
+      ]
+      |> Enum.each(fn {types, schema} ->
+        assert types |> Enum.map(&RDF.iri/1) |> Inheritance.determine_schema() == schema
+      end)
+    end
+  end
 end

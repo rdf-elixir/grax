@@ -81,7 +81,7 @@ defmodule Grax.Schema do
               opts :: keyword()
             ) ::
               {:ok, __MODULE__.t()} | {:error, any}
-      def load(graph, id, opts \\ []), do: Grax.load(__MODULE__, id, graph, opts)
+      def load(graph, id, opts \\ []), do: Grax.load(graph, id, __MODULE__, opts)
 
       @spec load!(
               RDF.Graph.t() | RDF.Description.t(),
@@ -89,7 +89,7 @@ defmodule Grax.Schema do
               opts :: keyword()
             ) ::
               __MODULE__.t()
-      def load!(graph, id, opts \\ []), do: Grax.load!(__MODULE__, id, graph, opts)
+      def load!(graph, id, opts \\ []), do: Grax.load!(graph, id, __MODULE__, opts)
 
       @spec from(Grax.Schema.t()) :: {:ok, __MODULE__.t()} | {:error, any}
       def from(value), do: Grax.Schema.Mapping.from(value, __MODULE__)

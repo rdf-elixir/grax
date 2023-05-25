@@ -124,3 +124,18 @@ defmodule Grax.InvalidResourceTypeError do
     %__MODULE__{message: msg, type: type, resource_types: resource_types}
   end
 end
+
+defmodule Grax.Schema.DetectionError do
+  @moduledoc """
+  Raised when no schema could be detected with `Grax.load/3`.
+  """
+  defexception [:candidates, :context]
+
+  def message(%{candidates: nil, context: context}) do
+    "No schema could be detected for #{context}"
+  end
+
+  def message(%{candidates: multiple, context: context}) when is_list(multiple) do
+    "Multiple possible schemas detected for #{context}"
+  end
+end

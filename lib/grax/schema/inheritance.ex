@@ -65,6 +65,22 @@ defmodule Grax.Schema.Inheritance do
     end)
   end
 
+  def determine_schema(%Description{} = description) do
+    description
+    |> Description.get(RDF.type(), [])
+    |> determine_schema()
+  end
+
+  def determine_schema([]), do: nil
+
+  def determine_schema(types) do
+    case Enum.flat_map(types, &(&1 |> Registry.schema() |> List.wrap())) do
+      [] -> nil
+      [schema] -> schema
+      multiple -> most_specific_schema(multiple)
+    end
+  end
+
   def determine_schema(%Description{} = description, schema, property_schema) do
     description
     |> Description.get(RDF.type(), [])
@@ -110,6 +126,23 @@ defmodule Grax.Schema.Inheritance do
                resource_types: remaining
              )}
         end
+    end
+  end
+
+  def most_specific_schema(candidates) do
+    paths = Enum.flat_map(candidates, &paths/1)
+
+    candidates
+    |> Enum.reject(fn candidate -> Enum.any?(paths, &(candidate in &1)) end)
+    |> case do
+      [] ->
+        raise "Oops, something went fundamentally wrong. Please report this at https://github.com/rdf-elixir/grax/issues"
+
+      [result] ->
+        result
+
+      multiple ->
+        multiple
     end
   end
 

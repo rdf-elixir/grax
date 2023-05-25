@@ -6,7 +6,7 @@ defmodule GraxTest do
   import Grax.UuidTestHelper
 
   alias Grax.ValidationError
-  alias Grax.Schema.{TypeError, InvalidPropertyError, CardinalityError}
+  alias Grax.Schema.{TypeError, InvalidPropertyError, CardinalityError, DetectionError}
   alias Example.IdSpecs
 
   describe "build/1" do
@@ -314,6 +314,75 @@ defmodule GraxTest do
                  | __id__: RDF.iri(EX.Other)
                }
     end
+  end
+
+  describe "load/2" do
+    test "when no schema can be determined" do
+      assert EX.S |> EX.p(EX.O) |> RDF.graph() |> Grax.load(EX.S) ==
+               {:error, DetectionError.exception(candidates: nil, context: EX.S)}
+
+      assert EX.S |> EX.p(EX.O) |> RDF.type(EX.Unknown) |> RDF.graph() |> Grax.load(EX.S) ==
+               {:error, DetectionError.exception(candidates: nil, context: EX.S)}
+    end
+
+    test "when a unique schema can be determined" do
+      assert example_graph() |> Grax.load(EX.Post0) ==
+               {:ok, Example.post()}
+    end
+
+    test "when no unique schema can be determined" do
+      assert example_graph() |> Grax.load(EX.User0) ==
+               {:error,
+                DetectionError.exception(
+                  candidates: [Example.UserWithCallbacks, Example.User],
+                  context: EX.User0
+                )}
+    end
+  end
+
+  describe "load/3" do
+    test "schema detection with opts" do
+      assert example_graph() |> Grax.load(EX.Post0, validate: false) ==
+               {:ok, Example.post()}
+    end
+
+    test "no schema with opts" do
+      assert example_graph() |> Grax.load(EX.Post0, Example.Post) ==
+               {:ok, Example.post()}
+    end
+  end
+
+  test "load/4" do
+    assert example_graph() |> Grax.load(EX.User0, Example.User, validate: false) ==
+             {:ok, Example.user(EX.User0, depth: 1)}
+  end
+
+  describe "load!/2" do
+    test "when a unique schema can be determined" do
+      assert example_graph() |> Grax.load!(EX.Post0) ==
+               Example.post()
+    end
+
+    test "when no unique schema can be determined" do
+      assert_raise DetectionError, fn -> example_graph() |> Grax.load!(EX.User0) end
+    end
+  end
+
+  describe "load!/3" do
+    test "schema detection with opts" do
+      assert example_graph() |> Grax.load!(EX.Post0, validate: false) ==
+               Example.post()
+    end
+
+    test "no schema with opts" do
+      assert example_graph() |> Grax.load!(EX.Post0, Example.Post) ==
+               Example.post()
+    end
+  end
+
+  test "load!/4" do
+    assert example_graph() |> Grax.load!(EX.User0, Example.User, validate: false) ==
+             Example.user(EX.User0, depth: 1)
   end
 
   describe "id/2" do
