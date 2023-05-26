@@ -102,7 +102,7 @@ defmodule Grax.RDF.Mapper do
     {:error, TypeError.exception(value: values, type: type)}
   end
 
-  defp map_values(%type{__id__: id} = mapping, {:resource, type}, _property_schema, opts) do
+  defp map_values(%{__id__: id} = mapping, {:resource, _}, _property_schema, opts) do
     with {:ok, graph} <- Grax.to_rdf(mapping, opts) do
       {:ok, id, graph}
     end

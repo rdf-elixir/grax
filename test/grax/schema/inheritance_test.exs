@@ -933,6 +933,24 @@ defmodule Grax.Schema.InheritanceTest do
     end
   end
 
+  test "to_rdf/1" do
+    assert PolymorphicLinks.build!(EX.A,
+             one: ChildOfMany.build!(EX.D),
+             many: [
+               ChildSchemaWithClass.build!(EX.B),
+               ChildOfMany.build!(EX.C)
+             ]
+           )
+           |> Grax.to_rdf() ==
+             {:ok,
+              RDF.graph([
+                EX.A |> EX.many([EX.B, EX.C]) |> EX.one(EX.D),
+                EX.B |> RDF.type([EX.Child2]),
+                EX.C |> RDF.type([EX.SubClass]),
+                EX.D |> RDF.type([EX.SubClass])
+              ])}
+  end
+
   test "paths/1" do
     assert Inheritance.paths(User) == []
     assert Inheritance.paths(ParentSchema) == []

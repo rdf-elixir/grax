@@ -716,4 +716,29 @@ defmodule Grax.Schema.LinkProperty.UnionTest do
       # resource typed with inherited schema class where multiple parents are part of the union
     end
   end
+
+  test "to_rdf/1" do
+    assert PolymorphicUnionLinks.build!(EX.A,
+             one: nil,
+             strict_one: nil,
+             many: [
+               Comment.build!(EX.Comment1,
+                 content: "foo",
+                 __additional_statements__: %{RDF.type() => EX.Comment}
+               ),
+               Post.build!(EX.Post1,
+                 title: "foo",
+                 slug: "foo",
+                 __additional_statements__: %{RDF.type() => [EX.Other, EX.Post]}
+               )
+             ]
+           )
+           |> Grax.to_rdf() ==
+             {:ok,
+              RDF.graph([
+                EX.A |> EX.many(EX.Post1, EX.Comment1),
+                EX.Post1 |> RDF.type([EX.Other, EX.Post]) |> EX.title("foo"),
+                EX.Comment1 |> RDF.type(EX.Comment) |> EX.content("foo")
+              ])}
+  end
 end
