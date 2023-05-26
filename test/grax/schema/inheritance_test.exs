@@ -900,37 +900,37 @@ defmodule Grax.Schema.InheritanceTest do
              |> NonPolymorphicLinks.load(EX.A) ==
                NonPolymorphicLinks.build(EX.A, ignored_one: nil)
     end
-  end
 
-  test "inverses" do
-    add_additional_statements = fn schema ->
-      Grax.put_additional_statements(schema, %{
-        EX.ignoredInverse() => RDF.iri(EX.A)
-      })
+    test "inverses" do
+      add_additional_statements = fn schema ->
+        Grax.put_additional_statements(schema, %{
+          EX.ignoredInverse() => RDF.iri(EX.A)
+        })
+      end
+
+      assert RDF.graph([
+               EX.B
+               |> EX.ignoredInverse(EX.A)
+               |> RDF.type([EX.Parent]),
+               EX.C
+               |> EX.ignoredInverse(EX.A)
+               |> RDF.type([EX.SubClass]),
+               EX.D
+               |> EX.ignoredInverse(EX.A)
+               |> RDF.type([EX.Parent2])
+             ])
+             |> NonPolymorphicLinks.load(EX.A) ==
+               NonPolymorphicLinks.build(EX.A,
+                 ignored_inverses: [
+                   ParentSchema.build!(EX.B)
+                   |> add_additional_statements.()
+                   |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent]}),
+                   ParentSchema.build!(EX.C)
+                   |> add_additional_statements.()
+                   |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent, EX.SubClass]})
+                 ]
+               )
     end
-
-    assert RDF.graph([
-             EX.B
-             |> EX.ignoredInverse(EX.A)
-             |> RDF.type([EX.Parent]),
-             EX.C
-             |> EX.ignoredInverse(EX.A)
-             |> RDF.type([EX.SubClass]),
-             EX.D
-             |> EX.ignoredInverse(EX.A)
-             |> RDF.type([EX.Parent2])
-           ])
-           |> NonPolymorphicLinks.load(EX.A) ==
-             NonPolymorphicLinks.build(EX.A,
-               ignored_inverses: [
-                 ParentSchema.build!(EX.B)
-                 |> add_additional_statements.()
-                 |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent]}),
-                 ParentSchema.build!(EX.C)
-                 |> add_additional_statements.()
-                 |> Grax.put_additional_statements(%{RDF.type() => [EX.Parent, EX.SubClass]})
-               ]
-             )
   end
 
   test "paths/1" do
