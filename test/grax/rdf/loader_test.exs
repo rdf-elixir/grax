@@ -154,15 +154,19 @@ defmodule Grax.RDF.LoaderTest do
              |> Example.Datatypes.load(EX.S) ==
                Example.Datatypes.build(EX.S, integers: [1])
 
-      assert EX.S
-             |> EX.integers(XSD.integer(1), XSD.byte(2), XSD.negativeInteger(-3))
-             |> Example.Datatypes.load(EX.S) ==
-               Example.Datatypes.build(EX.S, integers: [2, 1, -3])
+      assert_order_independent(
+        EX.S
+        |> EX.integers(XSD.integer(1), XSD.byte(2), XSD.negativeInteger(-3))
+        |> Example.Datatypes.load(EX.S) ==
+          Example.Datatypes.build(EX.S, integers: [2, 1, -3])
+      )
 
-      assert EX.S
-             |> EX.numerics(XSD.integer(42), XSD.decimal(0.5), XSD.float(3.14))
-             |> Example.Datatypes.load(EX.S) ==
-               Example.Datatypes.build(EX.S, numerics: [Decimal.from_float(0.5), 3.14, 42])
+      assert_order_independent(
+        EX.S
+        |> EX.numerics(XSD.integer(42), XSD.decimal(0.5), XSD.float(3.14))
+        |> Example.Datatypes.load(EX.S) ==
+          Example.Datatypes.build(EX.S, numerics: [Decimal.from_float(0.5), 3.14, 42])
+      )
     end
 
     test "type derivations are taken into account" do

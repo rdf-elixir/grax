@@ -18,4 +18,25 @@ defmodule Grax.TestCase do
       @compile {:no_warn_undefined, Example.NS.FOAF}
     end
   end
+
+  def order_independent({:ok, %Example.Datatypes{} = datatypes}),
+    do:
+      {:ok,
+       %{
+         datatypes
+         | integers: Enum.sort(datatypes.integers),
+           numerics: Enum.sort(datatypes.numerics)
+       }}
+
+  def order_independent({:error, %Grax.ValidationError{errors: error} = validation_error}),
+    do: {:error, %{validation_error | errors: Enum.sort(error)}}
+
+  def order_independent({:ok, elements}), do: {:ok, Enum.sort(elements)}
+  def order_independent(elements), do: Enum.sort(elements)
+
+  defmacro assert_order_independent({:==, _, [left, right]}) do
+    quote do
+      assert order_independent(unquote(left)) == order_independent(unquote(right))
+    end
+  end
 end

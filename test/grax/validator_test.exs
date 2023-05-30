@@ -233,15 +233,17 @@ defmodule Grax.ValidatorTest do
   end
 
   test "missing required properties" do
-    assert validate(%Example.Required{__id__: IRI.new(EX.S)}) ==
-             {:error,
-              validation_error(IRI.new(EX.S),
-                bar: CardinalityError.exception(cardinality: 1, value: nil),
-                baz: CardinalityError.exception(cardinality: {:min, 1}, value: []),
-                foo: CardinalityError.exception(cardinality: 1, value: nil),
-                l1: CardinalityError.exception(cardinality: 1, value: nil),
-                l2: CardinalityError.exception(cardinality: {:min, 1}, value: [])
-              )}
+    assert_order_independent(
+      validate(%Example.Required{__id__: IRI.new(EX.S)}) ==
+        {:error,
+         validation_error(IRI.new(EX.S),
+           bar: CardinalityError.exception(cardinality: 1, value: nil),
+           baz: CardinalityError.exception(cardinality: {:min, 1}, value: []),
+           foo: CardinalityError.exception(cardinality: 1, value: nil),
+           l1: CardinalityError.exception(cardinality: 1, value: nil),
+           l2: CardinalityError.exception(cardinality: {:min, 1}, value: [])
+         )}
+    )
   end
 
   test "cardinality constraints" do
