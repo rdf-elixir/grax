@@ -106,6 +106,19 @@ defmodule Grax do
          Id.Spec.custom_select_id_schema(schema.__id_spec__(), schema, initial))
   end
 
+  def reset_id(%schema{} = struct) do
+    case build_id(schema, %{struct | __id__: nil}) do
+      {:ok, id} -> reset_id(struct, id)
+      {:error, error} -> raise error
+    end
+  end
+
+  def reset_id(%_{} = schema, id) when is_rdf_resource(id) do
+    %{schema | __id__: id}
+  end
+
+  def reset_id(%_{} = schema, id), do: reset_id(schema, RDF.iri(id))
+
   def load(graph, id), do: load(graph, id, nil, [])
   def load(graph, id, opts) when is_list(opts), do: load(graph, id, nil, opts)
   def load(graph, id, mod), do: load(graph, id, mod, [])

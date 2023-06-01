@@ -385,6 +385,43 @@ defmodule GraxTest do
              Example.user(EX.User0, depth: 1)
   end
 
+  describe "reset_id/1" do
+    test "when an id schema exists" do
+      assert %Example.VarMappingA{__id__: ~I<http://example.com/foo/FOO>} =
+               a = Example.VarMappingA.build!(name: "Foo")
+
+      assert %Example.VarMappingA{__id__: ~I<http://example.com/foo/BAR>} =
+               a
+               |> Grax.put!(name: "Bar")
+               |> Grax.reset_id()
+    end
+  end
+
+  describe "reset_id/2" do
+    test "with an IRI" do
+      assert user = Example.user(EX.User0) |> Grax.reset_id(RDF.iri(EX.Other))
+      assert Grax.valid?(user)
+
+      assert user ==
+               %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
+    end
+
+    test "with a namespace term" do
+      assert Example.user(EX.User0) |> Grax.reset_id(EX.Other) ==
+               %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
+    end
+
+    test "with a blank node" do
+      assert Example.user(EX.User0) |> Grax.reset_id(~B"foo") ==
+               %Example.User{Example.user(EX.User0) | __id__: ~B"foo"}
+    end
+
+    test "with a string" do
+      assert Example.user(EX.User0) |> Grax.reset_id("http://example.com/foo") ==
+               %Example.User{Example.user(EX.User0) | __id__: ~I<http://example.com/foo>}
+    end
+  end
+
   describe "build_id/2" do
     test "with a map containing an __id__ field" do
       assert {:ok, RDF.iri(EX.Foo)} ==
