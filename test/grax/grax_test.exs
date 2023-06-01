@@ -385,10 +385,10 @@ defmodule GraxTest do
              Example.user(EX.User0, depth: 1)
   end
 
-  describe "id/2" do
+  describe "build_id/2" do
     test "with a map containing an __id__ field" do
       assert {:ok, RDF.iri(EX.Foo)} ==
-               Example.User.__id__(%{
+               Example.User.build_id(%{
                  __id__: RDF.iri(EX.Foo),
                  name: "Foo",
                  email: ["foo@example.com"],
@@ -396,28 +396,28 @@ defmodule GraxTest do
                })
 
       assert {:ok, RDF.iri(EX.Foo)} ==
-               Example.User.__id__(%{
+               Example.User.build_id(%{
                  __id__: EX.Foo,
                  name: "Foo",
                  email: ["foo@example.com"],
                  password: "secret"
                })
 
-      assert {:ok, ~B"foo"} == Example.User.__id__(%{__id__: ~B"foo"})
-      assert {:ok, RDF.iri(EX.User0)} == Example.user(EX.User0) |> Example.User.__id__()
+      assert {:ok, ~B"foo"} == Example.User.build_id(%{__id__: ~B"foo"})
+      assert {:ok, RDF.iri(EX.User0)} == Example.user(EX.User0) |> Example.User.build_id()
     end
 
     test "when an id schema exists" do
-      assert {:ok, id} = Example.WithIdSchema.__id__(%{foo: "Foo"})
+      assert {:ok, id} = Example.WithIdSchema.build_id(%{foo: "Foo"})
       assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
 
-      assert {:ok, id} = Example.WithIdSchema.__id__(foo: "Foo")
+      assert {:ok, id} = Example.WithIdSchema.build_id(foo: "Foo")
       assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
 
-      assert {:ok, ~I<http://example.com/foo/FOO>} = Example.VarMappingA.__id__(name: "Foo")
+      assert {:ok, ~I<http://example.com/foo/FOO>} = Example.VarMappingA.build_id(name: "Foo")
 
       assert {:ok, ~I<http://example.com/feab40e1fca77c7360ccca1481bb8ba5f919ce3a>} =
-               Example.VarMappingC.__id__(name: "Foo")
+               Example.VarMappingC.build_id(name: "Foo")
     end
   end
 

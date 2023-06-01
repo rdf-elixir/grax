@@ -26,7 +26,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - `Grax.Schema.schema?/1` to check if a given module or struct is a `Grax.Schema`
 - `Grax.Schema.inherited_from?/1` to check if a given module or struct is 
   inherited from another `Grax.Schema`
-- `Grax.delete_additional_predicates/2` to delete all additional statements
+- `Grax.delete_additional_predicates/2` to delete all additional statements 
+  with specific predicates 
 
 ### Changed
 
@@ -56,6 +57,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   - You no longer can use `nil` values on a property with `Grax.put_additional_statements/2`
     to remove statements with this property. You must use the new 
     `Grax.delete_additional_predicates/2` function for this now.
+- Rename `Grax.id/2` to `Grax.build_id/2` and the generated `__id__/1` function
+  on the Grax schema modules to `build_id/1` 
 - Rename `:on_type_mismatch` link option to `:on_rdf_type_mismatch` to make it
   clearer that it is only relevant during preloading from RDF data
 - Rename `Grax.Schema.InvalidProperty` to `Grax.Schema.InvalidPropertyError` for

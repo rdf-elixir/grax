@@ -68,7 +68,7 @@ defmodule Grax.Schema do
 
   defmacro __before_compile__(_env) do
     quote do
-      def __id__(attributes), do: Grax.id(__MODULE__, attributes)
+      def build_id(attributes), do: Grax.build_id(__MODULE__, attributes)
 
       def build(id), do: Grax.build(__MODULE__, id)
       def build(id, initial), do: Grax.build(__MODULE__, id, initial)

@@ -21,6 +21,7 @@ defmodule Grax do
 
   alias RDF.{IRI, BlankNode, Graph, Description, Statement}
 
+  import RDF.Guards
   import RDF.Utils
   import RDF.Utils.Guards
 
@@ -30,14 +31,13 @@ defmodule Grax do
                                    "__id__ can't be changed. Use build/2 to construct a new Grax.Schema mapping from another with a new id."
                                )
 
-  def build(mod, %IRI{} = id), do: {:ok, do_build(mod, id)}
-  def build(mod, %BlankNode{} = id), do: {:ok, do_build(mod, id)}
+  def build(mod, id) when is_rdf_resource(id), do: {:ok, do_build(mod, id)}
   def build(mod, %Id.Schema{} = id_schema), do: build(mod, id_schema, %{})
 
   def build(mod, initial) when is_list(initial), do: build(mod, Map.new(initial))
 
   def build(mod, initial) when is_map(initial) do
-    with {:ok, id} <- id(mod, initial) do
+    with {:ok, id} <- build_id(mod, initial) do
       build(mod, id, Map.delete(initial, :__id__))
     end
   end
@@ -47,7 +47,7 @@ defmodule Grax do
   end
 
   def build(mod, %Id.Schema{} = id_schema, initial) do
-    with {:ok, id} <- id(id_schema, initial) do
+    with {:ok, id} <- build_id(id_schema, initial) do
       build(mod, id, initial)
     end
   end
@@ -85,20 +85,20 @@ defmodule Grax do
     struct(mod, __id__: id)
   end
 
-  def id(_, %{__id__: %RDF.BlankNode{} = bnode}), do: {:ok, bnode}
-  def id(_, %{__id__: id}), do: {:ok, RDF.iri(id)}
+  def build_id(_, %{__id__: id}) when is_rdf_resource(id), do: {:ok, id}
+  def build_id(_, %{__id__: id}) when not is_nil(id), do: {:ok, RDF.iri(id)}
 
-  def id(%Id.Schema{} = id_schema, attributes) do
+  def build_id(%Id.Schema{} = id_schema, attributes) do
     Id.Schema.generate_id(id_schema, attributes)
   end
 
-  def id(schema, attributes) when maybe_module(schema) do
+  def build_id(schema, attributes) when maybe_module(schema) do
     schema
     |> id_schema(attributes)
-    |> id(attributes)
+    |> build_id(attributes)
   end
 
-  def id(_, _), do: {:error, "no id schema found"}
+  def build_id(_, _), do: {:error, "no id schema found"}
 
   def id_schema(schema, initial) when is_atom(schema) do
     schema.__id_schema__() ||
