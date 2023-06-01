@@ -106,6 +106,20 @@ defmodule Grax do
          Id.Spec.custom_select_id_schema(schema.__id_spec__(), schema, initial))
   end
 
+  @doc """
+  Returns the id of a Grax struct.
+
+  This should be the preferred over accessing the `:__id__` field directly.
+
+  ## Example
+
+      iex> user = Example.User.build!(EX.User, name: "John Doe")
+      ...> Grax.id(user)
+      ~I<http://example.com/User>
+
+  """
+  def id(%{__id__: id}), do: id
+
   def reset_id(%schema{} = struct) do
     case build_id(schema, %{struct | __id__: nil}) do
       {:ok, id} -> reset_id(struct, id)

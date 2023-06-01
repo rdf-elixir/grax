@@ -26,6 +26,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - `Grax.Schema.schema?/1` to check if a given module or struct is a `Grax.Schema`
 - `Grax.Schema.inherited_from?/1` to check if a given module or struct is 
   inherited from another `Grax.Schema`
+- `Grax.id/1` to get the id of a Grax struct (rather than of having to access 
+  `:__id__` field)
 - `Grax.reset_id/2` to set a new id on a Grax struct
 - `Grax.reset_id/1` to set a new id on a Grax struct by reapplying its id schema 
 - `Grax.delete_additional_predicates/2` to delete all additional statements 
