@@ -120,12 +120,24 @@ defmodule Grax do
   """
   def id(%{__id__: id}), do: id
 
+  @doc """
+  Resets the id of the given Grax schema `struct` by reapplying its `Grax.Id.Schema`.
+  """
+  @spec reset_id(Schema.t()) :: Schema.t()
   def reset_id(%schema{} = struct) do
     case build_id(schema, %{struct | __id__: nil}) do
       {:ok, id} -> reset_id(struct, id)
       {:error, error} -> raise error
     end
   end
+
+  @doc """
+  Resets the id of the given Grax schema `struct` to the given `id`.
+
+  This should always be preferred over setting the `__id__` field directly.
+  """
+  @spec reset_id(Schema.t(), RDF.Resource.coercible()) :: Schema.t()
+  def reset_id(schema, id)
 
   def reset_id(%_{} = schema, id) when is_rdf_resource(id) do
     %{schema | __id__: id}
