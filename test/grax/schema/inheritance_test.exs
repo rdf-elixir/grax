@@ -998,10 +998,10 @@ defmodule Grax.Schema.InheritanceTest do
     end
 
     test "when an rdf:type is associated with multiple Grax.Schemas" do
-      assert Inheritance.determine_schema([RDF.iri(EX.User)]) == [
-               Example.UserWithCallbacks,
-               Example.User
-             ]
+      assert_order_independent Inheritance.determine_schema([RDF.iri(EX.User)]) == [
+                                 Example.UserWithCallbacks,
+                                 Example.User
+                               ]
     end
 
     test "when multiple rdf:types are associated with unrelated Grax.Schemas" do

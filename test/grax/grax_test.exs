@@ -331,12 +331,12 @@ defmodule GraxTest do
     end
 
     test "when no unique schema can be determined" do
-      assert example_graph() |> Grax.load(EX.User0) ==
-               {:error,
-                DetectionError.exception(
-                  candidates: [Example.UserWithCallbacks, Example.User],
-                  context: EX.User0
-                )}
+      assert_order_independent example_graph() |> Grax.load(EX.User0) ==
+                                 {:error,
+                                  DetectionError.exception(
+                                    candidates: [Example.UserWithCallbacks, Example.User],
+                                    context: EX.User0
+                                  )}
     end
   end
 

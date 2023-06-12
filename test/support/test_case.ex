@@ -28,8 +28,11 @@ defmodule Grax.TestCase do
            numerics: Enum.sort(datatypes.numerics)
        }}
 
-  def order_independent({:error, %Grax.ValidationError{errors: error} = validation_error}),
-    do: {:error, %{validation_error | errors: Enum.sort(error)}}
+  def order_independent({:error, %Grax.ValidationError{errors: errors} = error}),
+    do: {:error, %{error | errors: Enum.sort(errors)}}
+
+  def order_independent({:error, %Grax.Schema.DetectionError{candidates: candidates} = error}),
+    do: {:error, %{error | candidates: Enum.sort(candidates)}}
 
   def order_independent({:ok, elements}), do: {:ok, Enum.sort(elements)}
   def order_independent(elements), do: Enum.sort(elements)
