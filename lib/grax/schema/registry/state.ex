@@ -3,10 +3,21 @@ defmodule Grax.Schema.Registry.State do
 
   alias Grax.Schema
   alias Grax.Schema.Loader
+  alias Grax.Schema.Registry.Cache
 
   require Logger
 
   defstruct schemas_by_iri: %{}, schemas_without_iri: []
+
+  @doc """
+  This functions loads the state from the `Grax.Schema.Registry.Cache` when present.
+  """
+  def cached do
+    if cached_schemas = Cache.cached_schemas() do
+      %__MODULE__{}
+      |> register(cached_schemas)
+    end
+  end
 
   def build(additional \\ []) do
     %__MODULE__{}

@@ -28,7 +28,7 @@ defmodule Grax.Schema.Registry do
 
   @impl true
   def init(opts) do
-    {:ok, State.build(opts)}
+    {:ok, State.cached(opts) || State.build(opts)}
   end
 
   @impl true
