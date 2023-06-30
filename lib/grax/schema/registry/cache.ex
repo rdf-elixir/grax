@@ -57,7 +57,7 @@ defmodule Grax.Schema.Registry.Cache do
   def encode(
         schema_modules,
         cache_module_name \\ module_name(),
-        cache_function_name \\ function_name
+        cache_function_name \\ function_name()
       ) do
     code = """
     defmodule #{cache_module_name} do
