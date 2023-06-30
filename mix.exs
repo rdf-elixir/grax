@@ -91,7 +91,9 @@ defmodule Grax.MixProject do
 
   defp dialyzer do
     [
-      plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+      # This is needed for proper treatment of Mix.Tasks.
+      plt_add_apps: [:mix]
     ]
   end
 
