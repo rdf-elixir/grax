@@ -1,17 +1,16 @@
 defmodule Grax.Schema.Registry.Cache do
+  @default_path "priv/grax/schema_registry.cache"
+
   @moduledoc """
   A cache for the `Grax.Schema.Registry`.
 
-  The cached schema modules are encoded as an Elixir module with name `module_name/0`
-  in a function `function_name/0` that is created with the Mix task `Mix.Tasks.Grax.CacheSchemaRegistry`
-  at `path/0`.
+  The cache file of registry can be created with the Mix task `Mix.Tasks.Grax.CacheSchemaRegistry`
+  at `path/0`, by default `#{@default_path}`.
 
   This can be used in cases when your application has a very large code base,
   causing a slow registry initialization and with that slows down the startup time
   of the application overall.
   """
-
-  @default_path "priv/grax/schema_registry.cache"
 
   def path do
     # TODO: check presence of application configuration for a custom path?
