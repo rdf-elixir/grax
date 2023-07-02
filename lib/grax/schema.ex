@@ -302,9 +302,9 @@ defmodule Grax.Schema do
   Returns all modules using `Grax.Schema`.
   """
   # ignore dialyzer assumes Grax.Schema.Registerable is always consolidated
-  @dialyzer {:nowarn_function, schemas: 0}
-  @spec schemas :: [module]
-  def schemas do
+  @dialyzer {:nowarn_function, known_schemas: 0}
+  @spec known_schemas :: [module]
+  def known_schemas do
     case Grax.Schema.Registerable.__protocol__(:impls) do
       {:consolidated, modules} ->
         modules

@@ -9,7 +9,7 @@ defmodule Grax.Schema.Registry.State do
 
   def build(additional \\ []) do
     %__MODULE__{}
-    |> register(Grax.Schema.schemas())
+    |> register(Grax.Schema.known_schemas())
     |> register(additional)
   end
 
