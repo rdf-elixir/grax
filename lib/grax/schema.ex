@@ -62,6 +62,10 @@ defmodule Grax.Schema do
       @impl Grax.Callbacks
       def on_to_rdf(_schema, graph, _opts), do: {:ok, graph}
 
+      defimpl Grax.Schema.Registerable do
+        def register(schema), do: schema
+      end
+
       defoverridable on_load: 3, on_to_rdf: 3
     end
   end
@@ -293,6 +297,22 @@ defmodule Grax.Schema do
   end
 
   def schema?(_), do: false
+
+  @doc """
+  Returns all modules using `Grax.Schema`.
+  """
+  # ignore dialyzer assumes Grax.Schema.Registerable is always consolidated
+  @dialyzer {:nowarn_function, schemas: 0}
+  @spec schemas :: [module]
+  def schemas do
+    case Grax.Schema.Registerable.__protocol__(:impls) do
+      {:consolidated, modules} ->
+        modules
+
+      :not_consolidated ->
+        Protocol.extract_impls(Grax.Schema.Registerable, :code.get_path())
+    end
+  end
 
   @doc """
   Checks if the given `Grax.Schema` or `Grax.Schema` struct is inherited from another `Grax.Schema`.
