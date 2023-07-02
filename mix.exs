@@ -12,6 +12,7 @@ defmodule Grax.MixProject do
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
+      consolidate_protocols: Mix.env() != :test,
       deps: deps(),
       aliases: aliases(),
 

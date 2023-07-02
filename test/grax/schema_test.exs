@@ -243,4 +243,16 @@ defmodule Grax.SchemaTest do
     assert Example.user(EX.User0) |> Schema.inherited_from?(User)
     refute Example.user(EX.User0) |> Schema.inherited_from?(ParentSchema)
   end
+
+  describe "known_schemas/0" do
+    test "returns all known grax schemas, derived from code base" do
+      all_schemas = Grax.Schema.known_schemas()
+
+      assert is_list(all_schemas)
+      refute Enum.empty?(all_schemas)
+      assert Enum.all?(all_schemas, &Grax.Schema.schema?/1)
+      assert all_schemas == Enum.uniq(all_schemas)
+      assert Example.User in all_schemas
+    end
+  end
 end

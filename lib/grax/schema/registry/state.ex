@@ -2,7 +2,6 @@ defmodule Grax.Schema.Registry.State do
   @moduledoc false
 
   alias Grax.Schema
-  alias Grax.Schema.Loader
 
   require Logger
 
@@ -10,7 +9,7 @@ defmodule Grax.Schema.Registry.State do
 
   def build(additional \\ []) do
     %__MODULE__{}
-    |> register(Loader.load_all())
+    |> register(Grax.Schema.known_schemas())
     |> register(additional)
   end
 
