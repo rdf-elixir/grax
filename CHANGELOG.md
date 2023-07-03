@@ -5,6 +5,18 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## v0.4.1 - 2023-07-03
+
+### Fixed
+
+- slow startup on large code bases due to long `Grax.Schema.Registry` initialization
+  (thanks @semarco)
+
+
+[Compare v0.4.0...v0.4.1](https://github.com/rdf-elixir/grax/compare/v0.4.0...v0.4.1)
+
+
+
 ## v0.4.0 - 2023-06-12
 
 ### Added
