@@ -3,6 +3,7 @@ defmodule Grax.RDF.Preloader do
 
   alias Grax.RDF.Loader
   alias Grax.Schema.LinkProperty
+  alias RDF.Description
 
   import Grax.RDF.Access
   import RDF.Guards
@@ -176,10 +177,19 @@ defmodule Grax.RDF.Preloader do
   defp map_link(resource, property_schema, graph, opts) do
     description = description(graph, resource)
 
-    case LinkProperty.determine_schema(property_schema, description) do
-      {:ok, nil} -> {:ok, nil}
-      {:ok, schema} -> schema.load(graph, resource, Keyword.put(opts, :description, description))
-      error -> error
+    if Description.empty?(description) && property_schema.on_missing_description == :use_rdf_node do
+      {:ok, resource}
+    else
+      case LinkProperty.determine_schema(property_schema, description) do
+        {:ok, nil} ->
+          {:ok, nil}
+
+        {:ok, schema} ->
+          schema.load(graph, resource, Keyword.put(opts, :description, description))
+
+        error ->
+          error
+      end
     end
   end
 end

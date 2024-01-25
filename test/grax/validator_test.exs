@@ -287,6 +287,18 @@ defmodule Grax.ValidatorTest do
       |> assert_ok_validation(%Example.Post{__id__: IRI.new(EX.S)})
     end
 
+    test "with RDF nodes as values of a link" do
+      [
+        author: EX.foo()
+      ]
+      |> assert_ok_validation(%Example.Post{__id__: IRI.new(EX.S)})
+
+      [
+        posts: [~b<bar>]
+      ]
+      |> assert_ok_validation(%Example.User{__id__: IRI.new(EX.S)})
+    end
+
     test "when scalar value is a list" do
       [
         author: [],

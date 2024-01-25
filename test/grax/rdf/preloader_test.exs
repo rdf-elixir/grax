@@ -45,6 +45,23 @@ defmodule Grax.RDF.PreloaderTest do
                {:ok, Example.user(EX.User0, depth: 2)}
     end
 
+    test "when no description of the linked resource exists in the graph" do
+      # with on_missing_description: :empty_schema (default)
+      assert Example.user(EX.User0, depth: 0)
+             |> Grax.preload(example_graph() |> Graph.delete_descriptions(EX.Post0)) ==
+               {:ok,
+                Example.user(EX.User0, depth: 1)
+                |> Grax.put!(:posts, Example.Post.build!(EX.Post0))}
+
+      # with on_missing_description: :use_rdf_node
+
+      graph = RDF.graph([EX.A |> EX.user(EX.B)])
+
+      assert Example.OnMissingDescription.build!(EX.A)
+             |> Grax.preload(graph) ==
+               Example.OnMissingDescription.build(EX.A, user: EX.B)
+    end
+
     test "with validation errors" do
       graph_with_error = example_graph() |> Graph.add({EX.Post0, EX.title(), "Other"})
 

@@ -73,6 +73,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp1,
                  iri: ~I<http://example.com/lp1>,
                  schema: ChildSchema,
+                 on_missing_description: :empty_schema,
                  on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
@@ -80,6 +81,7 @@ defmodule Grax.Schema.InheritanceTest do
                lp2: %Grax.Schema.LinkProperty{
                  name: :lp2,
                  iri: ~I<http://example.com/lp22>,
+                 on_missing_description: :empty_schema,
                  schema: ChildSchema,
                  on_rdf_type_mismatch: :force,
                  polymorphic: true,
@@ -89,6 +91,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp3,
                  iri: ~I<http://example.com/lp3>,
                  schema: ChildSchema,
+                 on_missing_description: :empty_schema,
                  on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
@@ -139,6 +142,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp1,
                  iri: ~I<http://example.com/lp1>,
                  schema: ChildOfMany,
+                 on_missing_description: :empty_schema,
                  on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
@@ -147,6 +151,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp2,
                  iri: ~I<http://example.com/lp2>,
                  schema: ChildOfMany,
+                 on_missing_description: :empty_schema,
                  on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
@@ -155,6 +160,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp3,
                  iri: ~I<http://example.com/lp3>,
                  schema: ChildOfMany,
+                 on_missing_description: :empty_schema,
                  on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}
@@ -163,6 +169,7 @@ defmodule Grax.Schema.InheritanceTest do
                  name: :lp4,
                  iri: ~I<http://example.com/lp4>,
                  schema: ChildOfMany,
+                 on_missing_description: :empty_schema,
                  on_rdf_type_mismatch: :force,
                  polymorphic: true,
                  type: {:resource, User}

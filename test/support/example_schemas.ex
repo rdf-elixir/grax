@@ -400,6 +400,14 @@ defmodule Example do
     end
   end
 
+  defmodule OnMissingDescription do
+    use Grax.Schema
+
+    schema do
+      link user: EX.user(), type: Example.User, on_missing_description: :use_rdf_node
+    end
+  end
+
   defmodule InverseProperties do
     use Grax.Schema
 

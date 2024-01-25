@@ -140,7 +140,8 @@ defmodule Grax.Schema.LinkProperty do
   alias Grax.Schema.Inheritance
   alias Grax.InvalidResourceTypeError
 
-  defstruct Property.shared_attrs() ++ [:preload, :polymorphic, :on_rdf_type_mismatch]
+  defstruct Property.shared_attrs() ++
+              [:preload, :polymorphic, :on_rdf_type_mismatch, :on_missing_description]
 
   def new(schema, name, iri, opts) do
     {type, cardinality} = Property.type_with_cardinality(name, opts, __MODULE__)
@@ -158,7 +159,8 @@ defmodule Grax.Schema.LinkProperty do
       cardinality: cardinality,
       polymorphic: Keyword.get(opts, :polymorphic, true),
       preload: opts[:preload],
-      on_rdf_type_mismatch: init_on_rdf_type_mismatch(union_type?, opts[:on_rdf_type_mismatch])
+      on_rdf_type_mismatch: init_on_rdf_type_mismatch(union_type?, opts[:on_rdf_type_mismatch]),
+      on_missing_description: init_on_missing_description(opts[:on_missing_description])
     )
   end
 
@@ -178,6 +180,18 @@ defmodule Grax.Schema.LinkProperty do
   defp init_on_rdf_type_mismatch(_, value) do
     raise ArgumentError,
           "invalid on_rdf_type_mismatch value: #{inspect(value)} (valid values: #{inspect(@valid_on_rdf_type_mismatch_values)})"
+  end
+
+  @valid_on_missing_description_values ~w[empty_schema use_rdf_node]a
+
+  defp init_on_missing_description(nil), do: :empty_schema
+
+  defp init_on_missing_description(valid) when valid in @valid_on_missing_description_values,
+    do: valid
+
+  defp init_on_missing_description(invalid) do
+    raise ArgumentError,
+          "invalid on_missing_description value: #{inspect(invalid)} (valid values: #{inspect(@valid_on_missing_description_values)})"
   end
 
   def initial_value_type(nil), do: {:error, "type missing"}
