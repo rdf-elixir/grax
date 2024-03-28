@@ -6,6 +6,8 @@ defmodule Grax.RDF.Mapper do
   alias Grax.Schema.TypeError
 
   def call(%schema{} = mapping, opts) do
+    {validate, opts} = Keyword.pop(opts, :validate, true)
+
     opts =
       if id_spec = schema.__id_spec__() do
         Keyword.put_new_lazy(opts, :prefixes, fn ->
@@ -16,7 +18,7 @@ defmodule Grax.RDF.Mapper do
         opts
       end
 
-    with {:ok, mapping} <- Validator.call(mapping, opts) do
+    with {:ok, mapping} <- validate(validate, mapping, opts) do
       schema.__properties__()
       |> Enum.reduce_while(
         {:ok, Grax.additional_statements(mapping), Graph.new(opts)},
@@ -46,6 +48,9 @@ defmodule Grax.RDF.Mapper do
       end
     end
   end
+
+  defp validate(true, mapping, opts), do: Validator.call(mapping, opts)
+  defp validate(false, mapping, _opts), do: {:ok, mapping}
 
   defp add_statements(graph, description, {:inverse, property}, values, additions) do
     {

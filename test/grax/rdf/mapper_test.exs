@@ -77,6 +77,26 @@ defmodule Grax.RDF.MapperTest do
              |> to_rdf()
   end
 
+  test "with invalid struct and validate: false" do
+    assert {:ok, graph} =
+             Example.User.build!(EX.User0,
+               name: "John Doe",
+               email: ~w[jd@example.com],
+               age: "42"
+             )
+             |> to_rdf(validate: false)
+
+    assert Graph.include?(
+             graph,
+             EX.User0
+             |> RDF.type(EX.User)
+             |> EX.name("John Doe")
+             |> EX.age(42)
+             |> EX.email("jd@example.com")
+             |> RDF.graph()
+           )
+  end
+
   test "mapping of untyped scalar properties" do
     assert Example.Untyped.build!(EX.S, foo: "foo")
            |> to_rdf() ==

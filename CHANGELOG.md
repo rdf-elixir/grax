@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
   be kept as an RDF resource (`RDF.IRI` or `RDF.BlankNode`) when preloaded
   (instead of the default behaviour `:empty_schema` which creating an empty 
   schema for the linked resource)
+- flag option `:validate` on `Grax.to_rdf/2` which allows to turn off validation 
+
 
 [Compare v0.4.1...HEAD](https://github.com/rdf-elixir/grax/compare/v0.4.1...HEAD)
 
