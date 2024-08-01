@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ## Unreleased
 
+This version upgrades to RDF.ex v2.0.
+
+Elixir versions < 1.13 and OTP version < 23 are no longer supported.
+
 ### Added
 
 - option `:on_missing_description` on `link` macro which allows to specify 
