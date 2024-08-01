@@ -4,6 +4,8 @@ defmodule Grax.Id.UUID do
   alias Grax.Id
   alias Grax.Id.UrnNamespace
 
+  alias Uniq.UUID
+
   import Grax.Utils, only: [rename_keyword: 3]
 
   defstruct [:version, :format, :namespace, :name_var]

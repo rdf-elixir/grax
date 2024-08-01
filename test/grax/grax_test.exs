@@ -9,6 +9,8 @@ defmodule GraxTest do
   alias Grax.Schema.{TypeError, InvalidPropertyError, CardinalityError, DetectionError}
   alias Example.IdSpecs
 
+  alias Uniq.UUID
+
   describe "build/1" do
     test "with a string id" do
       assert Example.User.build("http://example.com/user/1") ==
@@ -114,7 +116,7 @@ defmodule GraxTest do
                IdSpecs.GenericUuids.expected_id_schema(Example.User)
                |> Example.User.build()
 
-      assert_valid_uuid(id, "http://example.com/", version: 4, type: :hex)
+      assert_valid_uuid(id, "http://example.com/", version: 4, format: :hex)
     end
 
     test "when an explicitly given Id.Schema depends on a given property value" do
@@ -143,12 +145,12 @@ defmodule GraxTest do
       assert {:ok, %Example.WithIdSchema{__id__: id, foo: "Foo"}} =
                Example.WithIdSchema.build(%{foo: "Foo"})
 
-      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 4, format: :default)
 
       assert {:ok, %Example.WithIdSchema{__id__: id, foo: "Foo"}} =
                Example.WithIdSchema.build(foo: "Foo")
 
-      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 4, format: :default)
     end
 
     test "with nested ids to generate" do
@@ -169,8 +171,8 @@ defmodule GraxTest do
                  more: %{bar: "bar2", foo: %{foo: "foo2"}}
                )
 
-      assert_valid_uuid(nested_id, "http://example.com/", version: 4, type: :default)
-      assert_valid_uuid(nested_id2, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(nested_id, "http://example.com/", version: 4, format: :default)
+      assert_valid_uuid(nested_id2, "http://example.com/", version: 4, format: :default)
       refute nested_id == nested_id2
     end
 
@@ -195,12 +197,12 @@ defmodule GraxTest do
       assert {:ok, %Example.WithCustomSelectedIdSchemaB{__id__: id, bar: "bar"}} =
                Example.WithCustomSelectedIdSchemaB.build(bar: "bar")
 
-      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 4, format: :default)
 
       assert {:ok, %Example.WithCustomSelectedIdSchemaB{__id__: id, bar: "test"}} =
                Example.WithCustomSelectedIdSchemaB.build(bar: "test")
 
-      assert_valid_uuid(id, "http://example.com/", version: 5, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 5, format: :default)
     end
 
     test "with non-matching custom selector" do
@@ -446,10 +448,10 @@ defmodule GraxTest do
 
     test "when an id schema exists" do
       assert {:ok, id} = Example.WithIdSchema.build_id(%{foo: "Foo"})
-      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 4, format: :default)
 
       assert {:ok, id} = Example.WithIdSchema.build_id(foo: "Foo")
-      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 4, format: :default)
 
       assert {:ok, ~I<http://example.com/foo/FOO>} = Example.VarMappingA.build_id(name: "Foo")
 
@@ -685,7 +687,7 @@ defmodule GraxTest do
                Example.WithIdSchemaNested.build!(bar: "bar1")
                |> Grax.put(foo: %{foo: "foo1"})
 
-      assert_valid_uuid(nested_id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(nested_id, "http://example.com/", version: 4, format: :default)
     end
 
     test "with a list of maps" do
@@ -846,7 +848,7 @@ defmodule GraxTest do
                Example.WithIdSchemaNested.build!(bar: "bar1")
                |> Grax.put!(foo: %{foo: "foo1"})
 
-      assert_valid_uuid(nested_id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(nested_id, "http://example.com/", version: 4, format: :default)
     end
   end
 

@@ -2,6 +2,8 @@ defmodule Grax.Id.Schema do
   alias Grax.Id.Namespace
   alias Grax.Id.Schema.Extension
 
+  alias Uniq.UUID
+
   @type template :: struct
   @type t :: %__MODULE__{
           namespace: Namespace.t(),

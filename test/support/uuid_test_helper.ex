@@ -2,6 +2,8 @@ defmodule Grax.UuidTestHelper do
   import ExUnit.Assertions
   alias RDF.IRI
 
+  alias Uniq.UUID
+
   def assert_valid_uuid(%IRI{} = iri, prefix, opts) do
     assert_valid_uuid(IRI.to_string(iri), prefix, opts)
   end
@@ -20,24 +22,24 @@ defmodule Grax.UuidTestHelper do
   end
 
   def assert_valid_uuid(uuid, opts) do
-    assert {:ok, info} = UUID.info(uuid)
+    assert {:ok, uuid_info} = UUID.info(uuid)
 
     if expected_version = Keyword.get(opts, :version) do
-      version = Keyword.get(info, :version)
+      version = uuid_info.version
 
       assert version == expected_version,
              "UUID version mismatch; expected #{expected_version}, but got #{version}"
     end
 
-    if expected_type = Keyword.get(opts, :type) do
-      type = Keyword.get(info, :type)
+    if expected_format = Keyword.get(opts, :format) do
+      format = uuid_info.format
 
-      assert type == expected_type,
-             "UUID type mismatch; expected #{expected_type}, but got #{type}"
+      assert format == expected_format,
+             "UUID format mismatch; expected #{expected_format}, but got #{format}"
     end
 
     if expected_variant = Keyword.get(opts, :variant) do
-      variant = Keyword.get(info, :variant)
+      variant = uuid_info.variant
 
       assert variant == expected_variant,
              "UUID type mismatch; expected #{expected_variant}, but got #{variant}"

@@ -6,31 +6,33 @@ defmodule Grax.Id.Types.UuidTest do
   alias Grax.Id
   alias Example.{IdSpecs, User, Post, Comment}
 
+  alias Uniq.UUID
+
   describe "generic uuid" do
     test "random UUIDs" do
       assert {:ok, %RDF.IRI{} = id} =
                IdSpecs.GenericUuids.expected_id_schema(User)
                |> Id.Schema.generate_id(Example.user(EX.User0))
 
-      assert_valid_uuid(id, "http://example.com/", version: 4, type: :hex)
+      assert_valid_uuid(id, "http://example.com/", version: 4, format: :hex)
 
       assert {:ok, %RDF.IRI{} = id} =
                IdSpecs.GenericUuids.expected_id_schema(Post)
                |> Id.Schema.generate_id(Example.post())
 
-      assert_valid_uuid(id, "http://example.com/posts/", version: 4, type: :default)
+      assert_valid_uuid(id, "http://example.com/posts/", version: 4, format: :default)
 
       assert {:ok, %RDF.IRI{} = id} =
                IdSpecs.ShortUuids.expected_id_schema(Post)
                |> Id.Schema.generate_id(Example.post())
 
-      assert_valid_uuid(id, "http://example.com/", version: 4, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 4, format: :default)
 
       assert {:ok, %RDF.IRI{} = id} =
                IdSpecs.ShortUuids.expected_id_schema(Comment)
                |> Id.Schema.generate_id(%{})
 
-      assert_valid_uuid(id, "http://example.com/comments/", version: 1, type: :hex)
+      assert_valid_uuid(id, "http://example.com/comments/", version: 1, format: :hex)
     end
 
     test "hash-based UUIDs" do
@@ -45,7 +47,7 @@ defmodule Grax.Id.Types.UuidTest do
                  Example.user(EX.User0)
                )
 
-      assert_valid_uuid(id, "http://example.com/", version: 5, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 5, format: :default)
 
       assert {:ok, %RDF.IRI{} = id} =
                IdSpecs.HashUuids.expected_id_schema(Post)
@@ -56,7 +58,7 @@ defmodule Grax.Id.Types.UuidTest do
                IdSpecs.HashUuids.expected_id_schema(Post)
                |> Id.Schema.generate_id(Example.post() |> Map.from_struct())
 
-      assert_valid_uuid(id, "http://example.com/", version: 3, type: :default)
+      assert_valid_uuid(id, "http://example.com/", version: 3, format: :default)
 
       id =
         RDF.iri(
@@ -76,7 +78,7 @@ defmodule Grax.Id.Types.UuidTest do
                  |> Keyword.new()
                )
 
-      assert_valid_uuid(id, "http://example.com/", version: 5, type: :hex)
+      assert_valid_uuid(id, "http://example.com/", version: 5, format: :hex)
     end
 
     test "URN UUIDs" do
@@ -84,13 +86,13 @@ defmodule Grax.Id.Types.UuidTest do
                IdSpecs.UuidUrns.expected_id_schema(User)
                |> Id.Schema.generate_id(Example.user(EX.User0))
 
-      assert_valid_uuid(id, "urn:uuid:", version: 4, type: :urn)
+      assert_valid_uuid(id, "urn:uuid:", version: 4, format: :urn)
 
       assert {:ok, %RDF.IRI{} = id} =
                IdSpecs.UuidUrns.expected_id_schema(Post)
                |> Id.Schema.generate_id(Example.post())
 
-      assert_valid_uuid(id, "urn:uuid:", version: 5, type: :urn)
+      assert_valid_uuid(id, "urn:uuid:", version: 5, format: :urn)
     end
 
     test "when no value for the name present" do

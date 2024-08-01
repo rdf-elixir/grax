@@ -12,12 +12,17 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 - option `:on_missing_description` on `link` macro which allows to specify 
   with value `:use_rdf_node` that a linked resource without a description should
   be kept as an RDF resource (`RDF.IRI` or `RDF.BlankNode`) when preloaded
-  (instead of the default behaviour `:empty_schema` which creating an empty 
+  (instead of the default behaviour `:empty_schema` which creates an empty 
   schema for the linked resource)
 - flag option `:validate` on `Grax.to_rdf/2` which allows to turn off validation 
 
+### Changed
+
+- Replacement of `elixir_uuid` with `uniq` dependency
+
 
 [Compare v0.4.1...HEAD](https://github.com/rdf-elixir/grax/compare/v0.4.1...HEAD)
+
 
 
 ## v0.4.1 - 2023-07-03
@@ -124,7 +129,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ## v0.3.4 - 2022-11-03
 
-This version is upgrades to RDF.ex 1.0.
+This version upgrades to RDF.ex 1.0.
 
 Elixir versions < 1.11 are no longer supported
 

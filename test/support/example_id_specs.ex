@@ -251,6 +251,8 @@ defmodule Example.IdSpecs do
     use Grax.Id.Spec
     import Grax.Id.UUID
 
+    alias Uniq.UUID
+
     @custom_namespace UUID.uuid4()
 
     namespace "http://example.com/", prefix: :ex do

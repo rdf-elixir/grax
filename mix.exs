@@ -74,7 +74,7 @@ defmodule Grax.MixProject do
     [
       rdf_ex_dep(:rdf, "~> 1.0"),
       {:yuri_template, "~> 1.1"},
-      {:elixir_uuid, "~> 1.2"},
+      {:uniq, "~> 0.6"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: :dev, runtime: false},
       {:ex_doc, "~> 0.29", only: :dev, runtime: false},
