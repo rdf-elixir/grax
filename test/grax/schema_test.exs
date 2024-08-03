@@ -82,7 +82,7 @@ defmodule Grax.SchemaTest do
 
         schema do
           property p1: EX.p1(), type: list(card: 1..1)
-          property p2: EX.p2(), type: list(card: 3..2)
+          property p2: EX.p2(), type: list(card: 3..2//-1)
           property p3: EX.p3(), type: list(min: 0)
         end
       end

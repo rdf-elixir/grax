@@ -45,9 +45,9 @@ defmodule Grax.Schema.RegistryTest do
   end
 
   test "completeness" do
-    for schema <- Grax.Schema.known_schemas(), not is_nil(schema.__class__) do
-      assert Registry.schema(RDF.iri(schema.__class__)) == schema or
-               schema in Registry.schema(RDF.iri(schema.__class__))
+    for schema <- Grax.Schema.known_schemas(), not is_nil(schema.__class__()) do
+      assert Registry.schema(RDF.iri(schema.__class__())) == schema or
+               schema in Registry.schema(RDF.iri(schema.__class__()))
     end
   end
 end
