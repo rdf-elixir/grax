@@ -12,8 +12,6 @@ A light-weight graph data mapper which maps RDF graph data from [RDF.ex] data st
 
 For a guide and more information about Grax, and it's related projects, go to <https://rdf-elixir.dev/grax/>.
 
-A migration guide to Grax v0.4 can be found [here](https://github.com/rdf-elixir/grax/wiki/Upgrading-to-Grax-v0.4).
-
 
 ## Usage
 
