@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.5.0 - 2024-08-07
 
 This version upgrades to RDF.ex v2.0.
 
@@ -25,7 +25,7 @@ Elixir versions < 1.13 and OTP version < 23 are no longer supported.
 - Replacement of `elixir_uuid` with `uniq` dependency
 
 
-[Compare v0.4.1...HEAD](https://github.com/rdf-elixir/grax/compare/v0.4.1...HEAD)
+[Compare v0.4.1...v0.5.0](https://github.com/rdf-elixir/grax/compare/v0.4.1...v0.5.0)
 
 
 
