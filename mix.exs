@@ -103,7 +103,6 @@ defmodule Grax.MixProject do
         "deps.unlock --check-unused",
         "compile --all-warnings --warnings-as-errors",
         "format --check-formatted",
-        "deps.unlock --check-unused",
         "test --warnings-as-errors",
         "credo"
       ]
