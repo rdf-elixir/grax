@@ -30,7 +30,7 @@ defmodule Grax.SchemaTest do
 
     test "property sets don't support custom defaults" do
       assert_raise ArgumentError, "the :default option is not supported on sets", fn ->
-        defmodule LinkWithDefault do
+        defmodule PropertySetWithDefault do
           use Grax.Schema
 
           schema do
