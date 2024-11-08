@@ -2,6 +2,7 @@ defmodule Grax.Schema.Property do
   @moduledoc false
 
   alias Grax.Schema.Type
+  import Grax.Schema.Type
 
   @shared_attrs [:schema, :name, :iri, :type, :cardinality]
 
@@ -21,7 +22,7 @@ defmodule Grax.Schema.Property do
   def value_set?(%{type: type}), do: value_set?(type)
   def value_set?(type), do: Type.set?(type)
 
-  def default({:list_set, _}), do: []
+  def default({list_type, _}) when is_list_type(list_type), do: []
   def default(_), do: nil
 
   def type_with_cardinality(name, opts, property_type) do
@@ -65,9 +66,10 @@ defmodule Grax.Schema.Property do
     end
   end
 
-  defp initial_value_type({:list_set, type, cardinality}, property_type) do
+  defp initial_value_type({list_type, type, cardinality}, property_type)
+       when is_list_type(list_type) do
     with {:ok, inner_type} <- property_type.initial_value_type(type) do
-      {:ok, {:list_set, inner_type}, cardinality}
+      {:ok, {list_type, inner_type}, cardinality}
     end
   end
 
@@ -84,6 +86,8 @@ defmodule Grax.Schema.DataProperty do
   alias Grax.Schema.Property
   alias Grax.Datatype
   alias RDF.Literal
+
+  import Grax.Schema.Type
 
   defstruct Property.shared_attrs() ++ [:default, :from_rdf, :to_rdf]
 
@@ -108,8 +112,8 @@ defmodule Grax.Schema.DataProperty do
 
   defp init_default(type, nil), do: Property.default(type)
 
-  defp init_default({:list_set, _}, _),
-    do: raise(ArgumentError, "the :default option is not supported on sets")
+  defp init_default({list_type, _}, _) when is_list_type(list_type),
+    do: raise(ArgumentError, "the :default option is not supported on list types")
 
   defp init_default(nil, default), do: default
 
@@ -128,7 +132,7 @@ defmodule Grax.Schema.DataProperty do
 
   def value_type(%__MODULE__{} = schema), do: do_value_type(schema.type)
 
-  defp do_value_type({:list_set, type}), do: do_value_type(type)
+  defp do_value_type({list_type, type}) when is_list_type(list_type), do: do_value_type(type)
   defp do_value_type(type), do: type
 end
 
@@ -139,6 +143,8 @@ defmodule Grax.Schema.LinkProperty do
   alias Grax.Schema.LinkProperty.Union
   alias Grax.Schema.Inheritance
   alias Grax.InvalidResourceTypeError
+
+  import Grax.Schema.Type
 
   defstruct Property.shared_attrs() ++
               [:preload, :polymorphic, :on_rdf_type_mismatch, :on_missing_description]
@@ -206,7 +212,7 @@ defmodule Grax.Schema.LinkProperty do
 
   def value_type(%__MODULE__{} = schema), do: do_value_type(schema.type)
   def value_type(_), do: nil
-  defp do_value_type({:list_set, type}), do: do_value_type(type)
+  defp do_value_type({list_type, type}) when is_list_type(list_type), do: do_value_type(type)
   defp do_value_type({:resource, type}), do: type
   defp do_value_type(_), do: nil
 

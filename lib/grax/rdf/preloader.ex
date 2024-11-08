@@ -3,10 +3,12 @@ defmodule Grax.RDF.Preloader do
 
   alias Grax.RDF.Loader
   alias Grax.Schema.LinkProperty
+  alias Grax.InvalidValueError
   alias RDF.Description
 
   import Grax.RDF.Access
   import RDF.Guards
+  import RDF.Utils
 
   defmodule Error do
     defexception [:message]
@@ -144,6 +146,24 @@ defmodule Grax.RDF.Preloader do
     with {:ok, mapped} <- map_links(values, type, property_schema, graph, opts) do
       {:ok, List.wrap(mapped)}
     end
+  end
+
+  defp map_links([value], {:rdf_list, _type}, property_schema, graph, opts) do
+    if list = RDF.List.new(value, graph) do
+      list
+      |> RDF.List.values()
+      |> map_while_ok(&map_link(&1, property_schema, graph, opts))
+    else
+      {:error, InvalidValueError.exception(value: value, message: "ill-formed RDF list")}
+    end
+  end
+
+  defp map_links(values, {:rdf_list, _type}, _property_schema, _graph, _opts) do
+    {:error,
+     InvalidValueError.exception(
+       value: values,
+       message: "multiple RDF lists as values are not supported yet"
+     )}
   end
 
   defp map_links([value], _type, property_schema, graph, opts) do

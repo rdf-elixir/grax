@@ -6,6 +6,7 @@ defmodule Grax.Validator do
   alias Grax.Schema.LinkProperty.Union
   alias RDF.{IRI, BlankNode, Literal, XSD}
 
+  import Grax.Schema.Type
   import ValidationError, only: [add_error: 3]
 
   def call(mapping, opts) do
@@ -60,8 +61,8 @@ defmodule Grax.Validator do
     |> check_resource_type(link, value, type, link_schema, opts)
   end
 
-  defp check_cardinality(validation, property, values, {:list_set, _}, cardinality)
-       when is_list(values) do
+  defp check_cardinality(validation, property, values, {list_type, _}, cardinality)
+       when is_list(values) and is_list_type(list_type) do
     count = length(values)
 
     case cardinality do
@@ -86,7 +87,8 @@ defmodule Grax.Validator do
     end
   end
 
-  defp check_cardinality(validation, property, value, {:list_set, _} = type, _) do
+  defp check_cardinality(validation, property, value, {list_type, _} = type, _)
+       when is_list_type(list_type) do
     add_error(validation, property, TypeError.exception(value: value, type: type))
   end
 
@@ -104,7 +106,8 @@ defmodule Grax.Validator do
   defp check_datatype(validation, _, nil, _, _), do: validation
   defp check_datatype(validation, _, [], _, _), do: validation
 
-  defp check_datatype(validation, property, values, {:list_set, type}, opts) do
+  defp check_datatype(validation, property, values, {list_type, type}, opts)
+       when is_list_type(list_type) do
     check_datatype(validation, property, values, type, opts)
   end
 
@@ -152,7 +155,8 @@ defmodule Grax.Validator do
   defp check_resource_type(validation, _, nil, _, _, _), do: validation
   defp check_resource_type(validation, _, [], _, _, _), do: validation
 
-  defp check_resource_type(validation, link, values, {:list_set, type}, link_schema, opts) do
+  defp check_resource_type(validation, link, values, {list_type, type}, link_schema, opts)
+       when is_list_type(list_type) do
     check_resource_type(validation, link, values, type, link_schema, opts)
   end
 

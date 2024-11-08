@@ -140,7 +140,7 @@ defmodule Grax.RDF.LoaderTest do
                Example.Untyped.build(EX.S, foo: 42)
     end
 
-    test "untyped set properties" do
+    test "untyped list properties" do
       assert EX.S |> EX.bar("bar") |> Example.Untyped.load(EX.S) ==
                Example.Untyped.build(EX.S, bar: ["bar"])
 
@@ -148,7 +148,7 @@ defmodule Grax.RDF.LoaderTest do
                Example.Untyped.build(EX.S, bar: [42, "bar"])
     end
 
-    test "typed set properties" do
+    test "typed list properties" do
       assert EX.S
              |> EX.integers(XSD.integer(1))
              |> Example.Datatypes.load(EX.S) ==
@@ -167,6 +167,39 @@ defmodule Grax.RDF.LoaderTest do
         |> Example.Datatypes.load(EX.S) ==
           Example.Datatypes.build(EX.S, numerics: [Decimal.from_float(0.5), 3.14, 42])
       )
+    end
+
+    test "untyped ordered list properties" do
+      [
+        [42],
+        [42, "foo", true, EX.o()]
+      ]
+      |> Enum.each(fn elements ->
+        list = RDF.List.from(elements)
+
+        assert Graph.new()
+               |> Graph.add(EX.S |> EX.foo(list.head))
+               |> Graph.add(list.graph)
+               |> Example.RdfListType.load(EX.S) ==
+                 Example.RdfListType.build(EX.S, foo: elements)
+      end)
+    end
+
+    test "typed ordered list properties" do
+      [
+        integers: [42],
+        integers: [3, 1, 2],
+        numerics: [Decimal.from_float(0.5), 3.14, 42]
+      ]
+      |> Enum.each(fn {property, elements} ->
+        list = RDF.List.from(elements)
+
+        assert Graph.new()
+               |> Graph.add({EX.S, apply(EX, property, []), list.head})
+               |> Graph.add(list.graph)
+               |> Example.RdfListType.load(EX.S) ==
+                 Example.RdfListType.build(EX.S, [{property, elements}])
+      end)
     end
 
     test "type derivations are taken into account" do

@@ -5,6 +5,19 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+### Added
+
+- Support for RDF lists via the new `ordered_list_of/2` type constructor that  
+  can be used on the `:type` of `property` and `link` definitions in a `schema` 
+  similarly to the `list_of/2` type constructor
+
+
+[Compare v0.5.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.5.0...HEAD)
+
+
+
 ## v0.5.0 - 2024-08-07
 
 This version upgrades to RDF.ex v2.0.

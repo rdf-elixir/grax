@@ -103,6 +103,13 @@ defmodule Grax.RDF.Mapper do
     )
   end
 
+  defp map_values(values, {:rdf_list, type}, property_schema, opts) when is_list(values) do
+    with {:ok, values, graph} <- map_values(values, {:list_set, type}, property_schema, opts) do
+      list = values |> Enum.reverse() |> RDF.List.from()
+      {:ok, list.head, Graph.add(graph, list.graph)}
+    end
+  end
+
   defp map_values(values, type, _, _) when is_list(values) do
     {:error, TypeError.exception(value: values, type: type)}
   end

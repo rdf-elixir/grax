@@ -113,7 +113,7 @@ defmodule Grax.RDF.MapperTest do
               |> RDF.graph()}
   end
 
-  test "mapping of untyped set properties" do
+  test "mapping of untyped list properties" do
     assert Example.Untyped.build!(EX.S, bar: ["bar"])
            |> to_rdf() ==
              {:ok,
@@ -127,6 +127,28 @@ defmodule Grax.RDF.MapperTest do
               EX.S
               |> EX.bar(XSD.integer(42), XSD.string("bar"))
               |> RDF.graph()}
+  end
+
+  test "mapping of untyped ordered list properties" do
+    list = RDF.List.from([XSD.string("bar")])
+
+    assert RDF.Graph.isomorphic?(
+             Example.RdfListType.build!(EX.S, foo: ["bar"]) |> to_rdf!(),
+             EX.S
+             |> EX.foo(list.head)
+             |> RDF.graph()
+             |> Graph.add(list.graph)
+           )
+
+    list = RDF.List.from([XSD.integer(44), XSD.integer(42), XSD.string("bar")])
+
+    assert RDF.Graph.isomorphic?(
+             Example.RdfListType.build!(EX.S, foo: [44, 42, "bar"]) |> to_rdf!(),
+             EX.S
+             |> EX.foo(list.head)
+             |> RDF.graph()
+             |> Graph.add(list.graph)
+           )
   end
 
   test "type mapping" do
@@ -221,13 +243,36 @@ defmodule Grax.RDF.MapperTest do
               |> RDF.graph()}
   end
 
-  test "typed set properties" do
+  test "typed list properties" do
     assert Example.Datatypes.build!(EX.S, numerics: [42, 3.14, Decimal.from_float(0.5)])
            |> to_rdf() ==
              {:ok,
               EX.S
               |> EX.numerics(XSD.integer(42), XSD.double(3.14), XSD.decimal(0.5))
               |> RDF.graph()}
+  end
+
+  test "typed ordered list properties" do
+    users = [Example.user(EX.User0), Example.user(EX.User1)]
+    ids = Enum.map(users, & &1.__id__)
+    users_list = RDF.List.from(ids)
+
+    numerics_list = RDF.List.from([XSD.integer(42), XSD.double(3.14), XSD.decimal(0.5)])
+
+    assert RDF.Graph.isomorphic?(
+             Example.RdfListType.build!(EX.S,
+               numerics: [42, 3.14, Decimal.from_float(0.5)],
+               users: users
+             )
+             |> to_rdf!(),
+             EX.S
+             |> EX.numerics(numerics_list.head)
+             |> EX.users(users_list.head)
+             |> RDF.graph()
+             |> Graph.add(users_list.graph)
+             |> Graph.add(numerics_list.graph)
+             |> Graph.add(Enum.map(users, &to_rdf!/1))
+           )
   end
 
   test "blank node values" do

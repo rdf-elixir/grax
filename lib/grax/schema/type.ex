@@ -14,6 +14,16 @@ defmodule Grax.Schema.Type do
       end
     end
 
+    def ordered_list(opts \\ []), do: ordered_list_of(nil, opts)
+
+    def ordered_list_of(type, opts \\ []) do
+      cond do
+        card = Keyword.get(opts, :card) -> {:rdf_list, type, cardinality(card)}
+        min = Keyword.get(opts, :min) -> {:rdf_list, type, min_cardinality(min)}
+        true -> {:rdf_list, type, nil}
+      end
+    end
+
     defp cardinality(%Range{} = range) do
       cond do
         range.first == range.last -> range.first
@@ -30,6 +40,11 @@ defmodule Grax.Schema.Type do
     defp min_cardinality(invalid), do: raise("invalid min cardinality: #{inspect(invalid)}")
   end
 
-  def set?({:list_set, _}), do: true
+  @list_types [:list_set, :rdf_list]
+  def list_types, do: @list_types
+
+  defguard is_list_type(list_type) when list_type in @list_types
+
+  def set?({list_type, _}) when list_type in @list_types, do: true
   def set?(_), do: false
 end

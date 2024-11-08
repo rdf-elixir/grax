@@ -71,6 +71,13 @@ defmodule Grax.ValidatorTest do
         bar: ["bar", 42, Decimal.from_float(0.5), 3.14]
       ]
       |> assert_ok_validation(%Example.Untyped{__id__: IRI.new(EX.S)})
+
+      [
+        foo: [],
+        foo: ["bar"],
+        foo: ["bar", 42, Decimal.from_float(0.5), 3.14]
+      ]
+      |> assert_ok_validation(%Example.RdfListType{__id__: IRI.new(EX.S)})
     end
 
     test "literal datatype mismatches" do
@@ -187,7 +194,7 @@ defmodule Grax.ValidatorTest do
       )
     end
 
-    test "when set value is a scalar" do
+    test "when list value is a scalar" do
       [
         email: "foo@example.com",
         email: nil
@@ -211,6 +218,21 @@ defmodule Grax.ValidatorTest do
         &[
           value: &1,
           type: Example.Untyped.__property__(&2).type
+        ]
+      )
+    end
+
+    test "when ordered list value is a scalar" do
+      [
+        foo: "bar",
+        foo: nil
+      ]
+      |> assert_validation_error(
+        %Example.RdfListType{__id__: IRI.new(EX.S)},
+        TypeError,
+        &[
+          value: &1,
+          type: Example.RdfListType.__property__(&2).type
         ]
       )
     end
@@ -314,7 +336,7 @@ defmodule Grax.ValidatorTest do
       )
     end
 
-    test "when set value is a scalar" do
+    test "when list value is a scalar" do
       [
         posts: nil,
         posts: Example.post()
@@ -325,6 +347,21 @@ defmodule Grax.ValidatorTest do
         &[
           value: &1,
           type: Example.User.__property__(&2).type
+        ]
+      )
+    end
+
+    test "when ordered list value is a scalar" do
+      [
+        users: nil,
+        users: Example.user(EX.User0)
+      ]
+      |> assert_validation_error(
+        %Example.RdfListType{__id__: IRI.new(EX.S)},
+        TypeError,
+        &[
+          value: &1,
+          type: Example.RdfListType.__property__(&2).type
         ]
       )
     end

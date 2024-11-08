@@ -231,6 +231,26 @@ defmodule Grax.RDF.PreloaderTest do
                )
     end
 
+    test "ordered lists" do
+      elements = [Example.user(EX.User0), Example.user(EX.User1)]
+      ids = Enum.map(elements, & &1.__id__)
+      list = RDF.List.from(ids)
+
+      assert Graph.new()
+             |> Graph.add({EX.S, EX.users(), list.head})
+             |> Graph.add(list.graph)
+             |> Graph.add(Enum.map(elements, &Grax.to_rdf!/1))
+             |> Graph.add(EX.Comment1 |> Example.comment() |> Grax.to_rdf!())
+             |> Example.RdfListType.load(EX.S) ==
+               Example.RdfListType.build(EX.S, users: elements)
+
+      assert Graph.new()
+             |> Graph.add({EX.S, EX.users(), list.head})
+             |> Graph.add(list.graph)
+             |> Example.RdfListType.load(EX.S) ==
+               Example.RdfListType.build(EX.S, users: ids)
+    end
+
     test "direct link to itself" do
       assert RDF.graph([EX.A |> EX.name("a") |> EX.next(EX.A)])
              |> Example.SelfLinked.load(EX.A) ==

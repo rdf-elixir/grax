@@ -95,13 +95,29 @@ defmodule Grax.RDF.Loader do
     apply(mod, fun, [objects, description, graph])
   end
 
-  defp handle(objects, _description, _graph, property_schema) do
-    map_values(objects, property_schema.type)
+  defp handle(objects, _description, graph, property_schema) do
+    map_values(objects, property_schema.type, graph)
   end
 
-  defp map_values(values, {:list_set, _type}), do: map_while_ok(values, &map_value(&1))
-  defp map_values([value], _type), do: map_value(value)
-  defp map_values(values, _type), do: map_while_ok(values, &map_value(&1))
+  defp map_values([value], {:rdf_list, _type}, graph) do
+    if list = RDF.List.new(value, graph) do
+      list |> RDF.List.values() |> map_while_ok(&map_value(&1))
+    else
+      {:error, InvalidValueError.exception(value: value, message: "ill-formed RDF list")}
+    end
+  end
+
+  defp map_values(values, {:rdf_list, _type}, _) do
+    {:error,
+     InvalidValueError.exception(
+       value: values,
+       message: "multiple RDF lists as values are not supported yet"
+     )}
+  end
+
+  defp map_values(values, {:list_set, _type}, _), do: map_while_ok(values, &map_value(&1))
+  defp map_values([value], _type, _), do: map_value(value)
+  defp map_values(values, _type, _), do: map_while_ok(values, &map_value(&1))
 
   defp map_value(%Literal{} = literal) do
     if Literal.valid?(literal) do

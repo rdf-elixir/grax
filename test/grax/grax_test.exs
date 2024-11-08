@@ -506,13 +506,23 @@ defmodule GraxTest do
                {:error, CardinalityError.exception(cardinality: 1, value: nil)}
     end
 
-    test "scalar values on a set property" do
+    test "scalar values on a list property" do
       assert Example.User.build!(EX.User0)
              |> Grax.put(:email, "foo@example.com") ==
                {:ok,
                 %Example.User{
                   __id__: IRI.new(EX.User0),
                   email: ["foo@example.com"]
+                }}
+    end
+
+    test "scalar values on a ordered list property" do
+      assert Example.RdfListType.build!(EX.Example)
+             |> Grax.put(:foo, "foo@example.com") ==
+               {:ok,
+                %Example.RdfListType{
+                  __id__: IRI.new(EX.Example),
+                  foo: ["foo@example.com"]
                 }}
     end
 
@@ -707,6 +717,23 @@ defmodule GraxTest do
               }} =
                Example.WithIdSchemaNested.build!(bar: "bar1")
                |> Grax.put(more: [%{bar: "bar1"}, %{bar: "bar2"}])
+
+      assert {:ok,
+              %Example.WithIdSchemaNested{
+                __id__: ~I<http://example.com/bar/bar1>,
+                ordered_more: [
+                  %Example.WithIdSchemaNested{
+                    __id__: ~I<http://example.com/bar/bar1>,
+                    bar: "bar1"
+                  },
+                  %Example.WithIdSchemaNested{
+                    __id__: ~I<http://example.com/bar/bar2>,
+                    bar: "bar2"
+                  }
+                ]
+              }} =
+               Example.WithIdSchemaNested.build!(bar: "bar1")
+               |> Grax.put(ordered_more: [%{bar: "bar1"}, %{bar: "bar2"}])
     end
 
     test "with a map and without an id or id schema defined for the linked schema" do

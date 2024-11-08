@@ -28,13 +28,25 @@ defmodule Grax.SchemaTest do
       end
     end
 
-    test "property sets don't support custom defaults" do
-      assert_raise ArgumentError, "the :default option is not supported on sets", fn ->
-        defmodule PropertySetWithDefault do
+    test "lists don't support custom defaults" do
+      assert_raise ArgumentError, "the :default option is not supported on list types", fn ->
+        defmodule ListWithDefault do
           use Grax.Schema
 
           schema do
             property a: EX.a(), type: list(), default: :foo
+          end
+        end
+      end
+    end
+
+    test "ordered lists don't support custom defaults" do
+      assert_raise ArgumentError, "the :default option is not supported on list types", fn ->
+        defmodule OrderedListWithDefault do
+          use Grax.Schema
+
+          schema do
+            property a: EX.a(), type: ordered_list(), default: :foo
           end
         end
       end
@@ -84,12 +96,18 @@ defmodule Grax.SchemaTest do
           property p1: EX.p1(), type: list(card: 1..1)
           property p2: EX.p2(), type: list(card: 3..2//-1)
           property p3: EX.p3(), type: list(min: 0)
+          property p12: EX.p12(), type: ordered_list(card: 1..1)
+          property p22: EX.p22(), type: ordered_list(card: 3..2//-1)
+          property p32: EX.p32(), type: ordered_list(min: 0)
         end
       end
 
       assert EquivalentCardinalities.__property__(:p1).cardinality == 1
       assert EquivalentCardinalities.__property__(:p2).cardinality == 2..3
       assert EquivalentCardinalities.__property__(:p3).cardinality == nil
+      assert EquivalentCardinalities.__property__(:p12).cardinality == 1
+      assert EquivalentCardinalities.__property__(:p22).cardinality == 2..3
+      assert EquivalentCardinalities.__property__(:p32).cardinality == nil
     end
 
     test "mapping of required flag to cardinalities" do
@@ -101,8 +119,11 @@ defmodule Grax.SchemaTest do
           property p2: EX.p1(), type: :string, required: false
           property p3: EX.p3(), type: list(), required: true
           property p4: EX.p4(), type: list(), required: false
+          property p5: EX.p5(), type: ordered_list(), required: true
+          property p6: EX.p6(), type: ordered_list(), required: false
           link l1: EX.l1(), type: User, required: true
           link l2: EX.l2(), type: list_of(User), required: true
+          link l3: EX.l3(), type: ordered_list_of(User), required: true
         end
       end
 
@@ -110,8 +131,11 @@ defmodule Grax.SchemaTest do
       assert RequiredAsCardinalities.__property__(:p2).cardinality == nil
       assert RequiredAsCardinalities.__property__(:p3).cardinality == {:min, 1}
       assert RequiredAsCardinalities.__property__(:p4).cardinality == nil
+      assert RequiredAsCardinalities.__property__(:p5).cardinality == {:min, 1}
+      assert RequiredAsCardinalities.__property__(:p6).cardinality == nil
       assert RequiredAsCardinalities.__property__(:l1).cardinality == 1
       assert RequiredAsCardinalities.__property__(:l2).cardinality == {:min, 1}
+      assert RequiredAsCardinalities.__property__(:l3).cardinality == {:min, 1}
     end
 
     test "required flag with cardinalities causes an error" do

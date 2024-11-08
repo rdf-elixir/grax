@@ -154,6 +154,8 @@ defmodule Example do
     [comment(EX.Comment1, depth: depth), comment(EX.Comment2, depth: depth)]
   end
 
+  def comment(id, opts \\ [depth: 0])
+
   def comment(EX.Comment1, depth: 0) do
     %Example.Comment{
       __id__: IRI.new(EX.Comment1),
@@ -205,6 +207,7 @@ defmodule Example do
       property bar: EX.bar()
       link foo: EX.foo(), type: Example.WithIdSchema
       link more: EX.more(), type: list_of(__MODULE__)
+      link ordered_more: EX.more(), type: ordered_list_of(__MODULE__)
     end
   end
 
@@ -286,6 +289,19 @@ defmodule Example do
     schema do
       property foo: EX.foo()
       property bar: EX.bar(), type: list()
+    end
+  end
+
+  defmodule RdfListType do
+    use Grax.Schema
+
+    schema do
+      property foo: EX.foo(), type: ordered_list()
+      property strings: EX.strings(), type: ordered_list_of(:string)
+      property integers: EX.integers(), type: ordered_list_of(:integer, card: 0..2)
+      property numerics: EX.numerics(), type: ordered_list_of(:numeric)
+      link selfs: EX.selfs(), type: ordered_list_of(__MODULE__)
+      link users: EX.users(), type: ordered_list_of(User), on_missing_description: :use_rdf_node
     end
   end
 
