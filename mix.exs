@@ -94,7 +94,10 @@ defmodule Grax.MixProject do
 
   defp dialyzer do
     [
-      plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
+      ignore_warnings: ".dialyzer_ignore.exs",
+      # Error out when an ignore rule is no longer useful so we can remove it
+      list_unused_filters: true
     ]
   end
 
