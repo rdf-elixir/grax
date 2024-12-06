@@ -1,7 +1,7 @@
 defmodule Grax.Id.Counter.TextFile do
   use Grax.Id.Counter.Adapter
 
-  @io_read_mode if Version.match?(System.version(), "~> 1.13"), do: :eof, else: :all
+  @io_read_mode :eof
 
   def start_link(name) do
     GenServer.start_link(__MODULE__, name, name: via_process_name(name))
