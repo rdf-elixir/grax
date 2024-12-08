@@ -110,6 +110,10 @@ defmodule Grax.RDF.Mapper do
     end
   end
 
+  defp map_values(value, RDF.JSON, _, _) when is_list(value) do
+    {:ok, RDF.JSON.new(value), nil}
+  end
+
   defp map_values(values, type, _, _) when is_list(values) do
     {:error, TypeError.exception(value: values, type: type)}
   end
@@ -124,5 +128,7 @@ defmodule Grax.RDF.Mapper do
   defp map_values(%BlankNode{} = bnode, nil, _, _), do: {:ok, bnode, nil}
   defp map_values(value, nil, _, _), do: {:ok, Literal.new(value), nil}
   defp map_values(value, XSD.Numeric, _, _), do: {:ok, Literal.new(value), nil}
+  defp map_values(:null, RDF.JSON, _, _), do: {:ok, RDF.JSON.new(nil), nil}
+  defp map_values(value, RDF.JSON, _, _), do: {:ok, RDF.JSON.new(value, as_value: true), nil}
   defp map_values(value, type, _, _), do: {:ok, type.new(value), nil}
 end

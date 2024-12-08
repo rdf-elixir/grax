@@ -14,6 +14,7 @@ Elixir versions < 1.14 and OTP version < 24 are no longer supported.
 - Support for RDF lists via the new `ordered_list_of/2` type constructor that  
   can be used on the `:type` of `property` and `link` definitions in a `schema` 
   similarly to the `list_of/2` type constructor
+- Support for properties with `rdf:JSON` values with the new `:json` type
 
 
 [Compare v0.5.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.5.0...HEAD)

@@ -8,6 +8,7 @@ defmodule Grax.Datatype do
                           &{&1.name() |> Macro.underscore() |> String.to_atom(), &1}
                         )
                         |> Map.put(:numeric, XSD.Numeric)
+                        |> Map.put(:json, RDF.JSON)
                         |> Map.put(:any, nil)
 
   def builtins, do: @builtin_type_mapping

@@ -305,6 +305,24 @@ defmodule Example do
     end
   end
 
+  defmodule JsonType do
+    use Grax.Schema
+
+    schema do
+      property foo: EX.foo(), type: :json
+      property bar: EX.bar(), type: list_of(:json)
+    end
+  end
+
+  defmodule JsonTypeRequired do
+    use Grax.Schema
+
+    schema do
+      property foo: EX.foo(), type: :json, required: true
+      property bar: EX.bar(), type: list_of(:json), required: true
+    end
+  end
+
   defmodule Datatypes do
     use Grax.Schema
 

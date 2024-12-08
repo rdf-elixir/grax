@@ -72,7 +72,8 @@ defmodule Grax.MixProject do
 
   defp deps do
     [
-      rdf_ex_dep(:rdf, "~> 2.0"),
+      {:rdf, github: "rdf-elixir/rdf-ex"},
+      # rdf_ex_dep(:rdf, "~> 2.1"),
       {:uniq, "~> 0.6"},
       {:yuri_template, "~> 1.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

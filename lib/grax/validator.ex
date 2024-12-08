@@ -92,7 +92,8 @@ defmodule Grax.Validator do
     add_error(validation, property, TypeError.exception(value: value, type: type))
   end
 
-  defp check_cardinality(validation, property, value, type, _) when is_list(value) do
+  defp check_cardinality(validation, property, value, type, _)
+       when is_list(value) and type != RDF.JSON do
     add_error(validation, property, TypeError.exception(value: value, type: type))
   end
 
@@ -138,6 +139,7 @@ defmodule Grax.Validator do
   defp in_value_space?(_, XSD.Decimal), do: false
   defp in_value_space?(%Decimal{}, XSD.Numeric), do: true
   defp in_value_space?(value, XSD.Numeric), do: is_number(value)
+  defp in_value_space?(:null, RDF.JSON), do: true
 
   defp in_value_space?(value, type) do
     # credo:disable-for-this-file Credo.Check.Refactor.CondStatements

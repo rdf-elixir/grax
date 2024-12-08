@@ -99,9 +99,9 @@ defmodule Grax.RDF.Loader do
     map_values(objects, property_schema.type, graph)
   end
 
-  defp map_values([value], {:rdf_list, _type}, graph) do
+  defp map_values([value], {:rdf_list, _} = type, graph) do
     if list = RDF.List.new(value, graph) do
-      list |> RDF.List.values() |> map_while_ok(&map_value(&1))
+      list |> RDF.List.values() |> map_while_ok(&map_value(&1, type))
     else
       {:error, InvalidValueError.exception(value: value, message: "ill-formed RDF list")}
     end
@@ -115,11 +115,16 @@ defmodule Grax.RDF.Loader do
      )}
   end
 
-  defp map_values(values, {:list_set, _type}, _), do: map_while_ok(values, &map_value(&1))
-  defp map_values([value], _type, _), do: map_value(value)
-  defp map_values(values, _type, _), do: map_while_ok(values, &map_value(&1))
+  defp map_values(values, {:list_set, _} = type, _),
+    do: map_while_ok(values, &map_value(&1, type))
 
-  defp map_value(%Literal{} = literal) do
+  defp map_values([value], type, _), do: map_value(value, type)
+  defp map_values(values, type, _), do: map_while_ok(values, &map_value(&1, type))
+
+  @null RDF.JSON.new(nil)
+  defp map_value(@null, type) when not is_tuple(type), do: {:ok, :null}
+
+  defp map_value(%Literal{} = literal, _) do
     if Literal.valid?(literal) do
       {:ok, Literal.value(literal)}
     else
@@ -127,6 +132,6 @@ defmodule Grax.RDF.Loader do
     end
   end
 
-  defp map_value(%IRI{} = iri), do: {:ok, iri}
-  defp map_value(%BlankNode{} = bnode), do: {:ok, bnode}
+  defp map_value(%IRI{} = iri, _), do: {:ok, iri}
+  defp map_value(%BlankNode{} = bnode, _), do: {:ok, bnode}
 end
