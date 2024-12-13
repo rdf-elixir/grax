@@ -635,6 +635,7 @@ defmodule Example do
 
       link posts: EX.post(), type: list_of(Example.Post)
       link comments: -EX.author(), type: list_of(%{EX.Comment => Example.Comment})
+      link friends: EX.friend(), type: list_of(__MODULE__)
     end
 
     def on_load(user, graph, opts) do
