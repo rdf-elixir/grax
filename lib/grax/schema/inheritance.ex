@@ -11,7 +11,9 @@ defmodule Grax.Schema.Inheritance do
   def inherit_properties(child_schema, parent_schema, properties) do
     parent_schema
     |> inherited_properties(Map.keys(properties))
-    |> Map.new(fn {name, property_schema} -> {name, %{property_schema | schema: child_schema}} end)
+    |> Map.new(fn {name, property_schema} ->
+      {name, %{property_schema | schema: child_schema}}
+    end)
     |> Map.merge(properties)
   end
 

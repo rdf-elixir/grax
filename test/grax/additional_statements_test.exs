@@ -167,7 +167,9 @@ defmodule Grax.AdditionalStatementsTest do
                %Example.User{
                  Example.user(EX.User0)
                  | __additional_statements__:
-                     AdditionalStatements.new(%{RDF.type() => [RDF.iri(EX.User), RDF.iri(EX.Foo)]})
+                     AdditionalStatements.new(%{
+                       RDF.type() => [RDF.iri(EX.User), RDF.iri(EX.Foo)]
+                     })
                }
     end
   end
