@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
-## Unreleased
+## v0.6.0 - 2025-04-09
 
 Elixir versions < 1.14 and OTP version < 24 are no longer supported.
 
@@ -17,7 +17,7 @@ Elixir versions < 1.14 and OTP version < 24 are no longer supported.
 - Support for properties with `rdf:JSON` values with the new `:json` type
 
 
-[Compare v0.5.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.5.0...HEAD)
+[Compare v0.5.0...v0.6.0](https://github.com/rdf-elixir/grax/compare/v0.5.0...v0.6.0)
 
 
 
