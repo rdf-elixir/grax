@@ -72,13 +72,12 @@ defmodule Grax.MixProject do
 
   defp deps do
     [
-      {:rdf, github: "rdf-elixir/rdf-ex"},
-      # rdf_ex_dep(:rdf, "~> 2.1"),
+      rdf_ex_dep(:rdf, "~> 2.1"),
       {:uniq, "~> 0.6"},
       {:yuri_template, "~> 1.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
-      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.37", only: :dev, runtime: false},
       {:excoveralls, "~> 0.18", only: :test},
       # This dependency is needed for ExCoveralls when OTP < 25
       {:castore, "~> 1.0", only: :test},
