@@ -574,7 +574,7 @@ defmodule GraxTest do
                {:ok, %Example.User{Example.user(EX.User0) | name: "Foo"}}
     end
 
-    test "with virtual properties" do
+    test "with custom fields" do
       assert Example.User.build!(EX.User0)
              |> Grax.put(:password, "secret") ==
                {:ok,
@@ -820,12 +820,21 @@ defmodule GraxTest do
                }
     end
 
-    test "with virtual properties" do
+    test "with custom fields" do
       assert Example.User.build!(EX.User0)
              |> Grax.put!(:password, "secret") ==
                %Example.User{
                  __id__: IRI.new(EX.User0),
                  password: "secret"
+               }
+    end
+
+    test "no normalization to scalar values on custom fields" do
+      assert Example.User.build!(EX.User0)
+             |> Grax.put!(:password, ["secret"]) ==
+               %Example.User{
+                 __id__: IRI.new(EX.User0),
+                 password: ["secret"]
                }
     end
 

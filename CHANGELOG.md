@@ -5,6 +5,17 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+### Fixed
+
+- Fix unwanted normalization of list values in `custom_fields`
+
+
+[Compare v0.6.0...HEAD](https://github.com/rdf-elixir/grax/compare/v0.6.0...HEAD)
+
+
+
 ## v0.6.0 - 2025-04-09
 
 Elixir versions < 1.14 and OTP version < 24 are no longer supported.

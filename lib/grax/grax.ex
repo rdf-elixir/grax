@@ -346,9 +346,13 @@ defmodule Grax do
 
   defp normalize_value(value, property_schema) do
     normalized_value =
-      value
-      |> uniq_value()
-      |> normalize_list_value(Schema.Property.value_set?(property_schema))
+      if property_schema do
+        value
+        |> uniq_value()
+        |> normalize_list_value(Schema.Property.value_set?(property_schema))
+      else
+        value
+      end
 
     if property_schema do
       normalize_type(
