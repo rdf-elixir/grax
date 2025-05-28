@@ -242,6 +242,21 @@ defmodule GraxTest do
                  password: "secret"
                })
     end
+
+    test "overridden build/2" do
+      assert Example.OverrideBuild.build!(EX.Foo) == %Example.OverrideBuild{
+               __id__: IRI.new(EX.Foo),
+               foo: "overridden foo",
+               bar: "bar"
+             }
+
+      assert Example.OverrideBuild.build!(EX.Foo, bar: "overridden bar") ==
+               %Example.OverrideBuild{
+                 __id__: IRI.new(EX.Foo),
+                 foo: "overridden foo",
+                 bar: "overridden bar"
+               }
+    end
   end
 
   describe "build!/2" do

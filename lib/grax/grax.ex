@@ -180,7 +180,7 @@ defmodule Grax do
   end
 
   defp do_load(mod, id, graph, false, opts) do
-    with {:ok, initial} <- build(mod, id),
+    with {:ok, initial} <- mod.build(id),
          {:ok, loaded} <- Loader.call(mod, initial, graph, opts) do
       mod.on_load(loaded, graph, opts)
     end

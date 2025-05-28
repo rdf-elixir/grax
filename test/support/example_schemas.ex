@@ -513,6 +513,30 @@ defmodule Example do
     end
   end
 
+  defmodule OverrideBuild do
+    use Grax.Schema
+
+    schema do
+      property foo: EX.foo(), default: "foo"
+      property bar: EX.bar(), default: "bar"
+
+      link preloaded: EX.preloaded(), type: Example.OverrideBuild
+    end
+
+    def build(id, opts \\ []) do
+      with {:ok, schema} <- super(id, opts) do
+        Grax.put(schema, foo: "overridden foo")
+      end
+    end
+
+    def build!(id, opts \\ []) do
+      case build(id, opts) do
+        {:ok, schema} -> schema
+        {:error, error} -> raise error
+      end
+    end
+  end
+
   defmodule CustomMapping do
     use Grax.Schema
 

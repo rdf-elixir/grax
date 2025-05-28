@@ -56,22 +56,6 @@ defmodule Grax.Schema do
       def __id_schema__(nil), do: if(id_spec = __id_spec__(), do: __id_schema__(id_spec))
       def __id_schema__(id_spec), do: id_spec.id_schema(__MODULE__)
 
-      @impl Grax.Callbacks
-      def on_load(schema, _graph, _opts), do: {:ok, schema}
-
-      @impl Grax.Callbacks
-      def on_to_rdf(_schema, graph, _opts), do: {:ok, graph}
-
-      defimpl Grax.Schema.Registerable do
-        def register(schema), do: schema
-      end
-
-      defoverridable on_load: 3, on_to_rdf: 3
-    end
-  end
-
-  defmacro __before_compile__(_env) do
-    quote do
       def build_id(attributes), do: Grax.build_id(__MODULE__, attributes)
 
       def build(id), do: Grax.build(__MODULE__, id)
@@ -101,6 +85,32 @@ defmodule Grax.Schema do
       @spec from!(Grax.Schema.t()) :: __MODULE__.t()
       def from!(value), do: Grax.Schema.Mapping.from!(value, __MODULE__)
 
+      @impl Grax.Callbacks
+      def on_load(schema, _graph, _opts), do: {:ok, schema}
+
+      @impl Grax.Callbacks
+      def on_to_rdf(_schema, graph, _opts), do: {:ok, graph}
+
+      defimpl Grax.Schema.Registerable do
+        def register(schema), do: schema
+      end
+
+      defoverridable build_id: 1,
+                     build: 1,
+                     build: 2,
+                     build!: 1,
+                     build!: 2,
+                     load: 3,
+                     load!: 3,
+                     from: 1,
+                     from!: 1,
+                     on_load: 3,
+                     on_to_rdf: 3
+    end
+  end
+
+  defmacro __before_compile__(_env) do
+    quote do
       Module.delete_attribute(__MODULE__, :rdf_property_acc)
       Module.delete_attribute(__MODULE__, :custom_field_acc)
     end

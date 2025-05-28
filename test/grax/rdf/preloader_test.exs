@@ -428,6 +428,22 @@ defmodule Grax.RDF.PreloaderTest do
                {:ok, Example.user(EX.User0, depth: 3)}
     end
 
+    test "overridden build/2 is used" do
+      assert RDF.graph(EX.A |> EX.preloaded(EX.B))
+             |> Example.OverrideBuild.load(EX.A) ==
+               {:ok,
+                %Example.OverrideBuild{
+                  __id__: RDF.iri(EX.A),
+                  foo: "overridden foo",
+                  bar: "bar",
+                  preloaded: %Example.OverrideBuild{
+                    __id__: RDF.iri(EX.B),
+                    foo: "overridden foo",
+                    bar: "bar"
+                  }
+                }}
+    end
+
     test "with preload opt no circle check is performed" do
       assert RDF.graph([
                EX.A |> EX.name("a") |> EX.link1(EX.B),

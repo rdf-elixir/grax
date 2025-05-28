@@ -7,6 +7,11 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ## Unreleased
 
+### Changed
+
+- The `build`, `load` and `from` functions on Grax schema modules are all 
+  overridable now.
+
 ### Fixed
 
 - Fix unwanted normalization of list values in `custom_fields`
