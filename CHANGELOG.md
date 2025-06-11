@@ -14,6 +14,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Fixed
 
+- Defining a default value on a `:float` property was causing an error
 - Fix unwanted normalization of list values in `custom_fields`
 
 

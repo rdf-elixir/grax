@@ -378,6 +378,7 @@ defmodule Example do
       property foo: EX.foo(), default: "foo"
       property bar: EX.bar(), type: :string, default: "bar"
       property baz: EX.baz(), type: :integer, default: 42
+      property float: EX.float(), type: :float, default: 3.14
       link user: EX.user(), type: Example.User
       link posts: EX.post(), type: list_of(Example.Post)
     end

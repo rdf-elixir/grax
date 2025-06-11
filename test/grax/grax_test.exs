@@ -499,6 +499,14 @@ defmodule GraxTest do
                   __id__: IRI.new(EX.User0),
                   email: ["foo@example.com"]
                 }}
+
+      assert Example.DefaultValues.build!(EX.S)
+             |> Grax.put(:float, 1.23) ==
+               {:ok,
+                %Example.DefaultValues{
+                  __id__: IRI.new(EX.S),
+                  float: 1.23
+                }}
     end
 
     test "when the property does not exist" do

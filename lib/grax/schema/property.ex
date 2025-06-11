@@ -116,6 +116,7 @@ defmodule Grax.Schema.DataProperty do
     do: raise(ArgumentError, "the :default option is not supported on list types")
 
   defp init_default(nil, default), do: default
+  defp init_default(RDF.XSD.Float, default) when is_float(default), do: default
 
   defp init_default(type, default) do
     if Literal.new(default) |> Literal.is_a?(type) do
