@@ -689,6 +689,29 @@ defmodule Example do
     end
   end
 
+  defmodule UserWithValidation do
+    use Grax.Schema
+
+    schema EX.ValidatedUser do
+      property name: EX.name(), type: :string
+      property email: EX.email(), type: :string
+      property age: EX.age(), type: :integer
+    end
+
+    def on_validate(user, opts) do
+      import ExUnit.Assertions
+
+      assert %__MODULE__{} = user
+      assert Keyword.get(opts, :test) == 42
+
+      if user.age && user.age < 0 do
+        {:error, "age must be positive"}
+      else
+        :ok
+      end
+    end
+  end
+
   #############################################################################
 
   defmodule ParentSchema do

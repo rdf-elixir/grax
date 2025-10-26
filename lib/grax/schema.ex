@@ -91,6 +91,9 @@ defmodule Grax.Schema do
       @impl Grax.Callbacks
       def on_to_rdf(_schema, graph, _opts), do: {:ok, graph}
 
+      @impl Grax.Callbacks
+      def on_validate(_schema, _opts), do: :ok
+
       defimpl Grax.Schema.Registerable do
         def register(schema), do: schema
       end
@@ -105,7 +108,8 @@ defmodule Grax.Schema do
                      from: 1,
                      from!: 1,
                      on_load: 3,
-                     on_to_rdf: 3
+                     on_to_rdf: 3,
+                     on_validate: 2
     end
   end
 

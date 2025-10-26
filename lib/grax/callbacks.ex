@@ -7,4 +7,6 @@ defmodule Grax.Callbacks do
 
   @callback on_to_rdf(Schema.t(), Graph.t(), opts :: keyword()) ::
               {:ok, Graph.t()} | {:error, any}
+
+  @callback on_validate(Schema.t(), opts :: keyword()) :: :ok | {:error, any}
 end

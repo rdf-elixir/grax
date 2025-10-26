@@ -48,6 +48,30 @@ defmodule Grax.CallbacksTest do
               )}
   end
 
+  test "on_validate/2 with successful validation" do
+    user =
+      Example.UserWithValidation.build!(EX.User42,
+        name: "John Doe",
+        email: "john@example.com",
+        age: 25
+      )
+
+    assert Grax.validate(user, test: 42) == {:ok, user}
+  end
+
+  test "on_validate/2 with validation error" do
+    user =
+      Example.UserWithValidation.build!(EX.User42,
+        name: "John Doe",
+        email: "john@example.com",
+        age: -5
+      )
+
+    assert {:error, error} = Grax.validate(user, test: 42)
+    assert error.context == user.__id__
+    assert {:on_validate, "age must be positive"} in error.errors
+  end
+
   def user0_with_callback() do
     %{
       struct(

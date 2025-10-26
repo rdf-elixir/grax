@@ -7,6 +7,10 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ## Unreleased
 
+### Added
+
+- `on_validate/2` callback on `Grax.Schema`s
+
 ### Changed
 
 - The `build`, `load` and `from` functions on Grax schema modules are all 

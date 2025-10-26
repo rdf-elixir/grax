@@ -15,8 +15,19 @@ defmodule Grax.Validator do
     |> check_properties(mapping, opts)
     |> check_links(mapping, opts)
     |> case do
-      %{errors: []} -> {:ok, mapping}
+      %{errors: []} -> check_custom_validation(mapping, opts)
       validation -> {:error, validation}
+    end
+  end
+
+  defp check_custom_validation(%schema{} = mapping, opts) do
+    case schema.on_validate(mapping, opts) do
+      :ok ->
+        {:ok, mapping}
+
+      {:error, error} ->
+        validation = ValidationError.exception(context: Map.get(mapping, :__id__))
+        {:error, add_error(validation, :on_validate, error)}
     end
   end
 
