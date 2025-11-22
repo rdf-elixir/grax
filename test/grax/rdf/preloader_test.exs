@@ -417,6 +417,140 @@ defmodule Grax.RDF.PreloaderTest do
                )
     end
 
+    test "false depth preloading" do
+      graph =
+        RDF.graph([
+          EX.A |> EX.never(EX.User0) |> EX.normal(EX.User0),
+          example_graph()
+        ])
+
+      # Link with depth: false is not preloaded
+      assert Example.FalseDepthPreloading.load(graph, EX.A) ==
+               Example.FalseDepthPreloading.build(EX.A,
+                 never: RDF.iri(EX.User0),
+                 normal: Example.user(EX.User0)
+               )
+
+      # Link with depth: false is not overridden by runtime depth option
+      assert Example.FalseDepthPreloading.load(graph, EX.A, depth: 2) ==
+               Example.FalseDepthPreloading.build(EX.A,
+                 never: RDF.iri(EX.User0),
+                 normal: Example.user(EX.User0, depth: 1)
+               )
+    end
+
+    test "false depth preloading with Grax.preload/3 depth option" do
+      graph =
+        RDF.graph([
+          EX.A |> EX.never(EX.User0) |> EX.normal(EX.User0),
+          example_graph()
+        ])
+
+      user = Example.FalseDepthPreloading.load!(graph, EX.A)
+
+      # depth: false is not overridden by Grax.preload with depth option
+      assert Grax.preload(user, graph, depth: 3) ==
+               {:ok,
+                Example.FalseDepthPreloading.build!(EX.A,
+                  never: RDF.iri(EX.User0),
+                  normal: Example.user(EX.User0, depth: 2)
+                )}
+    end
+
+    test "false depth preloading can be overridden by explicit property preload" do
+      graph =
+        RDF.graph([
+          EX.A |> EX.never(EX.User0),
+          example_graph()
+        ])
+
+      user = Example.FalseDepthPreloading.load!(graph, EX.A)
+
+      # Explicit property preload should work despite depth: false
+      assert Grax.preload(user, graph, :never) ==
+               {:ok,
+                Example.FalseDepthPreloading.build!(EX.A,
+                  never: Example.user(EX.User0),
+                  normal: nil
+                )}
+    end
+
+    test "explicit preload of multiple properties" do
+      graph =
+        RDF.graph([
+          EX.A |> EX.never(EX.User0) |> EX.normal(EX.User1),
+          example_graph()
+        ])
+
+      user = Example.FalseDepthPreloading.load!(graph, EX.A, depth: 0)
+
+      # Preload both properties explicitly
+      assert Grax.preload(user, graph, properties: [:never, :normal]) ==
+               {:ok,
+                Example.FalseDepthPreloading.build!(EX.A,
+                  never: Example.user(EX.User0),
+                  normal: Example.user(EX.User1)
+                )}
+    end
+
+    test "explicit property preload with invalid property" do
+      graph = RDF.graph([EX.A |> EX.never(EX.User0)])
+      user = Example.FalseDepthPreloading.load!(graph, EX.A)
+
+      assert_raise ArgumentError, ~r/invalid property for preloading: :nonexistent/, fn ->
+        Grax.preload(user, graph, :nonexistent)
+      end
+
+      assert_raise ArgumentError, ~r/invalid property for preloading: :nonexistent/, fn ->
+        Grax.preload(user, graph, properties: [:never, :nonexistent])
+      end
+    end
+
+    test "explicit property preload with empty list" do
+      graph = RDF.graph([EX.A |> EX.never(EX.User0) |> EX.normal(EX.User1)])
+      user = Example.FalseDepthPreloading.load!(graph, EX.A, depth: 0)
+
+      # Empty list should not preload anything
+      assert Grax.preload(user, graph, properties: []) == {:ok, user}
+    end
+
+    test "explicit property preload combined with depth option" do
+      graph =
+        RDF.graph([
+          EX.A |> EX.never(EX.User0) |> EX.normal(EX.User0),
+          example_graph()
+        ])
+
+      user = Example.FalseDepthPreloading.load!(graph, EX.A, depth: 0)
+
+      assert Grax.preload(user, graph, properties: [:never], depth: 2) ==
+               {:ok,
+                Example.FalseDepthPreloading.build!(EX.A,
+                  never: Example.user(EX.User0, depth: 1),
+                  normal: RDF.iri(EX.User0)
+                )}
+    end
+
+    test "false depth preloading with Grax.put" do
+      graph =
+        RDF.graph([
+          EX.A |> EX.never(EX.User0),
+          example_graph()
+        ])
+
+      user = Example.FalseDepthPreloading.load!(graph, EX.A)
+
+      # Can manually set the value with Grax.put
+      loaded_user = Example.user(EX.User0)
+
+      assert Grax.put(user, :never, loaded_user) ==
+               {:ok,
+                Example.FalseDepthPreloading.build!(EX.A,
+                  never: loaded_user,
+                  normal: nil
+                )}
+    end
+
     test "manual preload control" do
       assert Example.User.load(example_graph(), EX.User0, depth: 1) ==
                {:ok, Example.user(EX.User0, depth: 1)}

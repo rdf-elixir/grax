@@ -192,7 +192,12 @@ defmodule Grax do
     end
   end
 
-  def preload(%schema{} = mapping, graph, opts \\ []) do
+  def preload(mapping, graph, opts \\ [])
+
+  def preload(mapping, graph, property) when is_atom(property),
+    do: preload(mapping, graph, properties: [property])
+
+  def preload(%schema{} = mapping, graph, opts) do
     Preloader.call(schema, mapping, graph, setup_depth_preload_opts(opts))
   end
 
@@ -250,6 +255,7 @@ defmodule Grax do
   @doc false
   def normalize_preload_spec(preload_value)
   def normalize_preload_spec(integer) when is_integer(integer), do: {:depth, integer}
+  def normalize_preload_spec(false), do: {:depth, false}
 
   def normalize_preload_spec({:+, _line, [integer]}) when is_integer(integer),
     do: {:add_depth, integer}

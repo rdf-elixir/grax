@@ -435,6 +435,15 @@ defmodule Example do
     end
   end
 
+  defmodule FalseDepthPreloading do
+    use Grax.Schema
+
+    schema do
+      link never: EX.never(), type: Example.User, depth: false
+      link normal: EX.normal(), type: Example.User
+    end
+  end
+
   defmodule OnMissingDescription do
     use Grax.Schema
 

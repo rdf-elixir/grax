@@ -2,7 +2,7 @@ defmodule Grax.RDF.Preloader do
   @moduledoc false
 
   alias Grax.RDF.Loader
-  alias Grax.Schema.LinkProperty
+  alias Grax.Schema.{LinkProperty, DataProperty}
   alias Grax.InvalidValueError
   alias RDF.Description
 
@@ -27,7 +27,9 @@ defmodule Grax.RDF.Preloader do
     depth = length(graph_load_path)
     graph_load_path = [mapping.__id__ | graph_load_path]
     opts = Keyword.put(opts, :__graph_load_path__, graph_load_path)
-    link_schemas = schema.__properties__(:link)
+    # Remove :properties from opts to prevent it from being applied to nested preloads
+    {properties, opts} = Keyword.pop(opts, :properties)
+    link_schemas = determine_link_schemas(properties, schema)
 
     Enum.reduce_while(link_schemas, {:ok, mapping}, fn {link, link_schema}, {:ok, mapping} ->
       {preload?, next_preload_opt, max_preload_depth} =
@@ -80,6 +82,34 @@ defmodule Grax.RDF.Preloader do
     end)
   end
 
+  defp determine_link_schemas(nil, schema), do: schema.__properties__(:link)
+
+  defp determine_link_schemas(property, schema) when is_atom(property) do
+    determine_link_schemas([property], schema)
+  end
+
+  defp determine_link_schemas(properties, schema) when is_list(properties) do
+    Enum.map(properties, fn property ->
+      case schema.__property__(property) do
+        nil ->
+          raise ArgumentError, "invalid property for preloading: #{inspect(property)}"
+
+        %DataProperty{} ->
+          raise ArgumentError, "#{inspect(property)} is a data property, not a link property"
+
+        %LinkProperty{} = link_schema ->
+          link_schema =
+            if link_schema.preload == {:depth, false} do
+              %{link_schema | preload: nil}
+            else
+              link_schema
+            end
+
+          {property, link_schema}
+      end
+    end)
+  end
+
   def next_preload_opt(nil, nil, schema, link, depth, max_depth) do
     next_preload_opt(
       nil,
@@ -89,6 +119,11 @@ defmodule Grax.RDF.Preloader do
       depth,
       max_depth
     )
+  end
+
+  # depth: false always prevents preloading, regardless of current depth
+  def next_preload_opt(nil, {:depth, false}, _mapping_mod, _link, _depth, _max_depth) do
+    {false, nil, false}
   end
 
   def next_preload_opt(nil, {:depth, max_depth}, _mapping_mod, _link, 0, _max_depth) do
@@ -106,6 +141,12 @@ defmodule Grax.RDF.Preloader do
 
   def next_preload_opt(nil, depth, _mapping_mod, _link, _depth, _max_depth),
     do: raise(ArgumentError, "invalid depth: #{inspect(depth)}")
+
+  # Runtime preload opt is given, but link schema has depth: false
+  # In this case, false takes precedence and blocks preloading
+  def next_preload_opt(_runtime_opt, {:depth, false}, _schema, _link, _depth, _max_depth) do
+    {false, nil, false}
+  end
 
   def next_preload_opt(
         {:depth, max_depth} = depth_tuple,
