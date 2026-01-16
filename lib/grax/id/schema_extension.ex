@@ -52,8 +52,8 @@ defmodule Grax.Id.Schema.Extension do
     end)
   end
 
-  def install(id_schema, extensions) do
-    %Id.Schema{id_schema | extensions: List.wrap(id_schema.extensions) ++ List.wrap(extensions)}
+  def install(%Id.Schema{} = id_schema, extensions) do
+    %{id_schema | extensions: List.wrap(id_schema.extensions) ++ List.wrap(extensions)}
   end
 
   def extension_opt(extension, opts) do

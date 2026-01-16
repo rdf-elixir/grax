@@ -98,7 +98,7 @@ defmodule Grax.AdditionalStatementsTest do
         })
 
       assert user ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -113,7 +113,7 @@ defmodule Grax.AdditionalStatementsTest do
                EX.p1() => ~L"O1",
                EX.p3() => RDF.iri(EX.O3)
              }) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -134,7 +134,7 @@ defmodule Grax.AdditionalStatementsTest do
         })
 
       assert user ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -149,7 +149,7 @@ defmodule Grax.AdditionalStatementsTest do
                EX.P1 => "O1",
                EX.P3 => 1
              }) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -164,7 +164,7 @@ defmodule Grax.AdditionalStatementsTest do
     test "rdf:type with Grax schema class is untouched" do
       assert Example.user(EX.User0)
              |> Grax.add_additional_statements(%{RDF.type() => RDF.iri(EX.Foo)}) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -184,7 +184,7 @@ defmodule Grax.AdditionalStatementsTest do
         })
 
       assert user ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -199,7 +199,7 @@ defmodule Grax.AdditionalStatementsTest do
                EX.p1() => ~L"O1",
                EX.p3() => RDF.iri(EX.O3)
              }) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -220,7 +220,7 @@ defmodule Grax.AdditionalStatementsTest do
         })
 
       assert user ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -235,7 +235,7 @@ defmodule Grax.AdditionalStatementsTest do
                EX.P1 => "O1",
                EX.P3 => 1
              }) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -270,7 +270,7 @@ defmodule Grax.AdditionalStatementsTest do
     test "rdf:type with Grax schema class can be overwritten" do
       assert Example.user(EX.User0)
              |> Grax.put_additional_statements(%{RDF.type() => RDF.iri(EX.Foo)}) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__: AdditionalStatements.new(%{RDF.type() => EX.Foo})
                }
@@ -289,7 +289,7 @@ defmodule Grax.AdditionalStatementsTest do
       assert Grax.delete_additional_statements(user, %{
                EX.p2() => RDF.iri(EX.O2)
              }) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -302,7 +302,7 @@ defmodule Grax.AdditionalStatementsTest do
       assert Grax.delete_additional_statements(user, %{
                EX.p2() => [RDF.iri(EX.O2), RDF.iri(EX.O3)]
              }) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -326,7 +326,7 @@ defmodule Grax.AdditionalStatementsTest do
     test "rdf:type with Grax schema class can be deleted" do
       assert Example.user(EX.User0)
              |> Grax.delete_additional_statements(%{RDF.type() => RDF.iri(EX.User)}) ==
-               %Example.User{Example.user(EX.User0) | __additional_statements__: %{}}
+               %{Example.user(EX.User0) | __additional_statements__: %{}}
     end
   end
 
@@ -340,7 +340,7 @@ defmodule Grax.AdditionalStatementsTest do
         })
 
       assert Grax.delete_additional_predicates(user, EX.p2()) ==
-               %Example.User{
+               %{
                  Example.user(EX.User0)
                  | __additional_statements__:
                      AdditionalStatements.new(%{
@@ -359,7 +359,7 @@ defmodule Grax.AdditionalStatementsTest do
     test "rdf:type with Grax schema class can be deleted" do
       assert Example.user(EX.User0)
              |> Grax.delete_additional_predicates(RDF.type()) ==
-               %Example.User{Example.user(EX.User0) | __additional_statements__: %{}}
+               %{Example.user(EX.User0) | __additional_statements__: %{}}
     end
   end
 

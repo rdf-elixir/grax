@@ -60,7 +60,7 @@ defmodule GraxTest do
 
     test "with another Grax.Schema mapping of the same type" do
       assert Example.User.build(EX.Other, Example.user(EX.User0)) ==
-               {:ok, %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}}
+               {:ok, %{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}}
     end
 
     test "with invalid property values" do
@@ -308,7 +308,7 @@ defmodule GraxTest do
 
     test "with another Grax.Schema mapping of the same type" do
       assert Example.User.build!(EX.Other, Example.user(EX.User0)) ==
-               %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
+               %{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
     end
 
     test "with invalid property values" do
@@ -325,7 +325,7 @@ defmodule GraxTest do
                }
 
       assert Example.User.build!(EX.Other, Example.user(EX.User0) |> Map.put(:age, "secret")) ==
-               %Example.User{
+               %{
                  (Example.user(EX.User0)
                   |> Map.put(:age, "secret"))
                  | __id__: RDF.iri(EX.Other)
@@ -420,22 +420,22 @@ defmodule GraxTest do
       assert Grax.valid?(user)
 
       assert user ==
-               %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
+               %{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
     end
 
     test "with a namespace term" do
       assert Example.user(EX.User0) |> Grax.reset_id(EX.Other) ==
-               %Example.User{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
+               %{Example.user(EX.User0) | __id__: RDF.iri(EX.Other)}
     end
 
     test "with a blank node" do
       assert Example.user(EX.User0) |> Grax.reset_id(~B"foo") ==
-               %Example.User{Example.user(EX.User0) | __id__: ~B"foo"}
+               %{Example.user(EX.User0) | __id__: ~B"foo"}
     end
 
     test "with a string" do
       assert Example.user(EX.User0) |> Grax.reset_id("http://example.com/foo") ==
-               %Example.User{Example.user(EX.User0) | __id__: ~I<http://example.com/foo>}
+               %{Example.user(EX.User0) | __id__: ~I<http://example.com/foo>}
     end
   end
 
@@ -580,21 +580,21 @@ defmodule GraxTest do
     test "previous values are overwritten" do
       assert Example.user(EX.User0)
              |> Grax.put(:name, "Foo") ==
-               {:ok, %Example.User{Example.user(EX.User0) | name: "Foo"}}
+               {:ok, %{Example.user(EX.User0) | name: "Foo"}}
 
       assert Example.user(EX.User0)
              |> Grax.put(:email, ["foo@example.com"]) ==
-               {:ok, %Example.User{Example.user(EX.User0) | email: ["foo@example.com"]}}
+               {:ok, %{Example.user(EX.User0) | email: ["foo@example.com"]}}
     end
 
     test "duplicate values are removed" do
       assert Example.user(EX.User0)
              |> Grax.put(:email, ["foo@example.com", "foo@example.com"]) ==
-               {:ok, %Example.User{Example.user(EX.User0) | email: ["foo@example.com"]}}
+               {:ok, %{Example.user(EX.User0) | email: ["foo@example.com"]}}
 
       assert Example.user(EX.User0)
              |> Grax.put(:name, ["Foo", "Foo"]) ==
-               {:ok, %Example.User{Example.user(EX.User0) | name: "Foo"}}
+               {:ok, %{Example.user(EX.User0) | name: "Foo"}}
     end
 
     test "with custom fields" do
@@ -778,15 +778,15 @@ defmodule GraxTest do
     test "with nil value" do
       assert Example.user(EX.User0)
              |> Grax.put(:name, nil) ==
-               {:ok, %Example.User{Example.user(EX.User0) | name: nil}}
+               {:ok, %{Example.user(EX.User0) | name: nil}}
 
       assert Example.user(EX.User0)
              |> Grax.put(:email, nil) ==
-               {:ok, %Example.User{Example.user(EX.User0) | email: []}}
+               {:ok, %{Example.user(EX.User0) | email: []}}
 
       assert Example.user(EX.User0)
              |> Grax.put(:posts, nil) ==
-               {:ok, %Example.User{Example.user(EX.User0) | posts: []}}
+               {:ok, %{Example.user(EX.User0) | posts: []}}
 
       assert Example.SelfLinked.build!(EX.Foo)
              |> Grax.put(:next, nil) ==
@@ -805,10 +805,7 @@ defmodule GraxTest do
 
       assert Example.user(EX.User0)
              |> Grax.put!(:email, ["foo@example.com"]) ==
-               %Example.User{
-                 Example.user(EX.User0)
-                 | email: ["foo@example.com"]
-               }
+               %{Example.user(EX.User0) | email: ["foo@example.com"]}
     end
 
     test "when the property does not exist" do

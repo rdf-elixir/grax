@@ -13,7 +13,7 @@ defmodule Grax.RDF.LoaderTest do
     assert example_description(:user)
            |> Description.delete_predicates(EX.post())
            |> Example.User.load(EX.User0) ==
-             {:ok, %Example.User{Example.user(EX.User0, depth: 1) | posts: []}}
+             {:ok, %{Example.user(EX.User0, depth: 1) | posts: []}}
   end
 
   test "with a description of blank node" do

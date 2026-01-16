@@ -125,7 +125,7 @@ defmodule Example do
   end
 
   def user(EX.User0, depth: depth) do
-    %Example.User{user(EX.User0, depth: 0) | posts: [post(depth: depth - 1)], comments: []}
+    %{user(EX.User0, depth: 0) | posts: [post(depth: depth - 1)], comments: []}
   end
 
   def post(opts \\ [depth: 1])
@@ -143,7 +143,7 @@ defmodule Example do
   end
 
   def post(depth: depth) do
-    %Example.Post{
+    %{
       post(depth: 0)
       | comments: comments(depth: depth - 1),
         author: user(EX.User0, depth: depth - 1)
@@ -177,7 +177,7 @@ defmodule Example do
   end
 
   def comment(EX.Comment1, depth: depth) do
-    %Example.Comment{
+    %{
       comment(EX.Comment1, depth: 0)
       | author: user(EX.User1, depth: depth - 1),
         about: post(depth: depth - 1)
@@ -185,7 +185,7 @@ defmodule Example do
   end
 
   def comment(EX.Comment2, depth: depth) do
-    %Example.Comment{
+    %{
       comment(EX.Comment2, depth: 0)
       | author: user(EX.User2, depth: depth - 1),
         about: post(depth: depth - 1)

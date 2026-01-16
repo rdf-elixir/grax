@@ -129,9 +129,9 @@ defmodule Grax.Id.UUID do
   defp init_format(invalid, _),
     do: raise(ArgumentError, "invalid :uuid_format: #{inspect(invalid)}")
 
-  defp init_name_params(%{version: version} = uuid_schema, id_schema, opts)
+  defp init_name_params(%__MODULE__{version: version} = uuid_schema, id_schema, opts)
        when version in [3, 5] do
-    %__MODULE__{
+    %{
       uuid_schema
       | namespace: Id.Schema.option(opts, :uuid_namespace, id_schema),
         name_var: Id.Schema.option(opts, :uuid_name_var, id_schema)

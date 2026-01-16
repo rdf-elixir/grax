@@ -17,13 +17,13 @@ defmodule Grax.Schema.Registry.State do
     Enum.reduce(modules, state, &register(&2, &1))
   end
 
-  def register(state, module) do
+  def register(%__MODULE__{} = state, module) do
     cond do
       not Schema.schema?(module) ->
         state
 
       class_iri = module.__class__() ->
-        %__MODULE__{
+        %{
           state
           | schemas_by_iri: add_schema_iri(state.schemas_by_iri, module, class_iri)
         }

@@ -33,14 +33,7 @@ defmodule Grax.MixProject do
       ],
 
       # ExCoveralls
-      test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
-        check: :test,
-        coveralls: :test,
-        "coveralls.detail": :test,
-        "coveralls.post": :test,
-        "coveralls.html": :test
-      ]
+      test_coverage: [tool: ExCoveralls]
     ]
   end
 
@@ -98,6 +91,18 @@ defmodule Grax.MixProject do
       ignore_warnings: ".dialyzer_ignore.exs",
       # Error out when an ignore rule is no longer useful so we can remove it
       list_unused_filters: true
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
+        check: :test,
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ]
     ]
   end
 
