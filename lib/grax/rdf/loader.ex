@@ -121,6 +121,9 @@ defmodule Grax.RDF.Loader do
   defp map_values([value], type, _), do: map_value(value, type)
   defp map_values(values, type, _), do: map_while_ok(values, &map_value(&1, type))
 
+  defp map_value(%Literal{} = literal, :rdf_term), do: {:ok, literal}
+  defp map_value(%Literal{} = literal, {_, :rdf_term}), do: {:ok, literal}
+
   @null RDF.JSON.new(nil)
   defp map_value(@null, type) when not is_tuple(type), do: {:ok, :null}
 

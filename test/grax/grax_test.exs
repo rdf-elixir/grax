@@ -509,6 +509,38 @@ defmodule GraxTest do
                 }}
     end
 
+    test "when the value is an RDF term on a rdf_term property" do
+      assert Example.WithRdfTerm.build!(EX.S)
+             |> Grax.put(:foo, ~L"foo") ==
+               {:ok, %Example.WithRdfTerm{__id__: IRI.new(EX.S), foo: ~L"foo"}}
+
+      assert Example.WithRdfTerm.build!(EX.S)
+             |> Grax.put(:foo, XSD.integer(42)) ==
+               {:ok, %Example.WithRdfTerm{__id__: IRI.new(EX.S), foo: XSD.integer(42)}}
+
+      assert Example.WithRdfTerm.build!(EX.S)
+             |> Grax.put(:foo, RDF.iri(EX.o())) ==
+               {:ok, %Example.WithRdfTerm{__id__: IRI.new(EX.S), foo: RDF.iri(EX.o())}}
+
+      assert Example.WithRdfTerm.build!(EX.S)
+             |> Grax.put(:foo, RDF.bnode(:b)) ==
+               {:ok, %Example.WithRdfTerm{__id__: IRI.new(EX.S), foo: RDF.bnode(:b)}}
+
+      assert Example.WithRdfTerm.build!(EX.S)
+             |> Grax.put(:bar, [~L"foo", XSD.integer(42)]) ==
+               {:ok, %Example.WithRdfTerm{__id__: IRI.new(EX.S), bar: [~L"foo", XSD.integer(42)]}}
+    end
+
+    test "when a native value is used on a rdf_term property" do
+      assert Example.WithRdfTerm.build!(EX.S)
+             |> Grax.put(:foo, "foo") ==
+               {:error, TypeError.exception(value: "foo", type: :rdf_term)}
+
+      assert Example.WithRdfTerm.build!(EX.S)
+             |> Grax.put(:foo, 42) ==
+               {:error, TypeError.exception(value: 42, type: :rdf_term)}
+    end
+
     test "when the property does not exist" do
       assert Example.User.build!(EX.User0)
              |> Grax.put(:foo, "foo") ==

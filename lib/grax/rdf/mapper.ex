@@ -130,5 +130,8 @@ defmodule Grax.RDF.Mapper do
   defp map_values(value, XSD.Numeric, _, _), do: {:ok, Literal.new(value), nil}
   defp map_values(:null, RDF.JSON, _, _), do: {:ok, RDF.JSON.new(nil), nil}
   defp map_values(value, RDF.JSON, _, _), do: {:ok, RDF.JSON.new(value, as_value: true), nil}
+  defp map_values(%Literal{} = literal, :rdf_term, _, _), do: {:ok, literal, nil}
+  defp map_values(%BlankNode{} = bnode, :rdf_term, _, _), do: {:ok, bnode, nil}
+  defp map_values(value, :rdf_term, _, _), do: {:ok, Literal.new(value), nil}
   defp map_values(value, type, _, _), do: {:ok, type.new(value), nil}
 end

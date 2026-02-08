@@ -97,6 +97,45 @@ defmodule Grax.RDF.MapperTest do
            )
   end
 
+  test "mapping of rdf_term scalar properties" do
+    assert Example.WithRdfTerm.build!(EX.S, foo: ~L"foo")
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(~L"foo")
+              |> RDF.graph()}
+
+    assert Example.WithRdfTerm.build!(EX.S, foo: XSD.integer(42))
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(XSD.integer(42))
+              |> RDF.graph()}
+
+    assert Example.WithRdfTerm.build!(EX.S, foo: RDF.iri(EX.o()))
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(EX.o())
+              |> RDF.graph()}
+
+    assert Example.WithRdfTerm.build!(EX.S, foo: RDF.bnode(:b))
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(RDF.bnode(:b))
+              |> RDF.graph()}
+  end
+
+  test "mapping of rdf_term list properties" do
+    assert Example.WithRdfTerm.build!(EX.S, bar: [~L"bar", XSD.integer(42)])
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.bar(~L"bar", XSD.integer(42))
+              |> RDF.graph()}
+  end
+
   test "mapping of untyped scalar properties" do
     assert Example.Untyped.build!(EX.S, foo: "foo")
            |> to_rdf() ==

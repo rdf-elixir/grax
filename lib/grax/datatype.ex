@@ -9,6 +9,7 @@ defmodule Grax.Datatype do
                         )
                         |> Map.put(:numeric, XSD.Numeric)
                         |> Map.put(:json, RDF.JSON)
+                        |> Map.put(:rdf_term, :rdf_term)
                         |> Map.put(:any, nil)
 
   def builtins, do: @builtin_type_mapping

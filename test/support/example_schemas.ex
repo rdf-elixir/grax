@@ -292,6 +292,15 @@ defmodule Example do
     end
   end
 
+  defmodule WithRdfTerm do
+    use Grax.Schema
+
+    schema do
+      property foo: EX.foo(), type: :rdf_term
+      property bar: EX.bar(), type: list_of(:rdf_term)
+    end
+  end
+
   defmodule RdfListType do
     use Grax.Schema
 

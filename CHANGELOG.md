@@ -9,6 +9,9 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Added
 
+- New `:rdf_term` property type that preserves `RDF.Literal` values as-is during
+  loading (without converting them to native Elixir values like the default `:any`
+  type does)
 - `on_validate/2` callback on `Grax.Schema`s
 - `depth: false` option on `link` properties to prevent preloading
 - `:properties` option on `Grax.preload/3` to selectively preload specific link

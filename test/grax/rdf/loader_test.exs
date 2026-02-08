@@ -148,6 +148,27 @@ defmodule Grax.RDF.LoaderTest do
                Example.Untyped.build(EX.S, bar: [42, "bar"])
     end
 
+    test "rdf_term scalar properties" do
+      assert EX.S |> EX.foo(~L"foo") |> Example.WithRdfTerm.load(EX.S) ==
+               Example.WithRdfTerm.build(EX.S, foo: ~L"foo")
+
+      assert EX.S |> EX.foo(XSD.integer(42)) |> Example.WithRdfTerm.load(EX.S) ==
+               Example.WithRdfTerm.build(EX.S, foo: XSD.integer(42))
+
+      assert EX.S |> EX.foo(EX.o()) |> Example.WithRdfTerm.load(EX.S) ==
+               Example.WithRdfTerm.build(EX.S, foo: RDF.iri(EX.o()))
+    end
+
+    test "rdf_term list properties" do
+      {:ok, loaded} =
+        EX.S
+        |> EX.bar(~L"bar", XSD.integer(42), EX.o())
+        |> Example.WithRdfTerm.load(EX.S)
+
+      assert Enum.sort(loaded.bar) ==
+               Enum.sort([~L"bar", XSD.integer(42), RDF.iri(EX.o())])
+    end
+
     test "typed list properties" do
       assert EX.S
              |> EX.integers(XSD.integer(1))
