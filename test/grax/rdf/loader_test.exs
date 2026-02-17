@@ -140,6 +140,24 @@ defmodule Grax.RDF.LoaderTest do
                Example.Untyped.build(EX.S, foo: 42)
     end
 
+    test "untyped scalar properties with IRI and blank node values" do
+      assert EX.S |> EX.foo(EX.Foo) |> Example.Untyped.load(EX.S) ==
+               Example.Untyped.build(EX.S, foo: RDF.iri(EX.Foo))
+
+      assert EX.S |> EX.foo(~B"foo") |> Example.Untyped.load(EX.S) ==
+               Example.Untyped.build(EX.S, foo: ~B"foo")
+    end
+
+    test "untyped scalar properties with multiple values" do
+      assert EX.S |> EX.foo("foo", 42) |> Example.Untyped.load(EX.S) ==
+               {:ok, %Example.Untyped{__id__: RDF.iri(EX.S), foo: [42, "foo"]}}
+
+      assert {:ok, %Example.Untyped{foo: foo}} =
+               EX.S |> EX.foo("foo", EX.Foo) |> Example.Untyped.load(EX.S)
+
+      assert Enum.sort(foo) == Enum.sort(["foo", RDF.iri(EX.Foo)])
+    end
+
     test "untyped list properties" do
       assert EX.S |> EX.bar("bar") |> Example.Untyped.load(EX.S) ==
                Example.Untyped.build(EX.S, bar: ["bar"])

@@ -114,6 +114,10 @@ defmodule Grax.RDF.Mapper do
     {:ok, RDF.JSON.new(value), nil}
   end
 
+  defp map_values(values, nil, property_schema, opts) when is_list(values) do
+    map_values(values, {:list_set, nil}, property_schema, opts)
+  end
+
   defp map_values(values, type, _, _) when is_list(values) do
     {:error, TypeError.exception(value: values, type: type)}
   end

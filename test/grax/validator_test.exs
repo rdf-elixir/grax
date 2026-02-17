@@ -66,6 +66,12 @@ defmodule Grax.ValidatorTest do
         foo: nil,
         foo: "foo",
         foo: 42,
+        foo: [],
+        foo: ["foo"],
+        foo: ["foo", 42],
+        foo: RDF.iri(EX.Foo),
+        foo: ~B"foo",
+        foo: ["foo", RDF.iri(EX.Foo), ~B"bar"],
         bar: [],
         bar: ["bar"],
         bar: ["bar", 42, Decimal.from_float(0.5), 3.14]
@@ -177,19 +183,6 @@ defmodule Grax.ValidatorTest do
         &[
           value: &1,
           type: Example.User.__property__(&2).type
-        ]
-      )
-
-      [
-        foo: [],
-        foo: ["foo"]
-      ]
-      |> assert_validation_error(
-        %Example.Untyped{__id__: IRI.new(EX.S)},
-        TypeError,
-        &[
-          value: &1,
-          type: Example.Untyped.__property__(&2).type
         ]
       )
     end

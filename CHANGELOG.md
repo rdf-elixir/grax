@@ -19,6 +19,7 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ### Changed
 
+- Properties with `type: :any` now accept list values during validation and mapping
 - The `build`, `load` and `from` functions on Grax schema modules are all 
   overridable now.
 

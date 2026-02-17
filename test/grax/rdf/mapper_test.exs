@@ -150,6 +150,36 @@ defmodule Grax.RDF.MapperTest do
               EX.S
               |> EX.foo(XSD.integer(42))
               |> RDF.graph()}
+
+    assert Example.Untyped.build!(EX.S, foo: RDF.iri(EX.Foo))
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(RDF.iri(EX.Foo))
+              |> RDF.graph()}
+
+    assert Example.Untyped.build!(EX.S, foo: ~B"foo")
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(~B"foo")
+              |> RDF.graph()}
+  end
+
+  test "mapping of untyped scalar properties with list values" do
+    assert %Example.Untyped{__id__: RDF.iri(EX.S), foo: ["foo", 42]}
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(XSD.string("foo"), XSD.integer(42))
+              |> RDF.graph()}
+
+    assert %Example.Untyped{__id__: RDF.iri(EX.S), foo: ["foo", RDF.iri(EX.Foo), ~B"bar"]}
+           |> to_rdf() ==
+             {:ok,
+              EX.S
+              |> EX.foo(XSD.string("foo"), RDF.iri(EX.Foo), ~B"bar")
+              |> RDF.graph()}
   end
 
   test "mapping of untyped list properties" do

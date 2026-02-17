@@ -103,6 +103,8 @@ defmodule Grax.Validator do
     add_error(validation, property, TypeError.exception(value: value, type: type))
   end
 
+  defp check_cardinality(validation, _property, value, nil, _) when is_list(value), do: validation
+
   defp check_cardinality(validation, property, value, type, _)
        when is_list(value) and type != RDF.JSON do
     add_error(validation, property, TypeError.exception(value: value, type: type))
