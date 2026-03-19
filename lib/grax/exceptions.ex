@@ -52,7 +52,7 @@ end
 
 defmodule Grax.Schema.CardinalityError do
   @moduledoc """
-  Raised when a the number of property values doesn't match the specified cardinality during decoding from RDF.
+  Raised when the number of property values doesn't match the specified cardinality during decoding from RDF.
   """
   defexception [:message, :cardinality, :value]
 
