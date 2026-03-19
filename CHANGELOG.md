@@ -7,6 +7,8 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 
 ## Unreleased
 
+Elixir versions < 1.15 are no longer supported.
+
 ### Added
 
 - New `:rdf_term` property type that preserves `RDF.Literal` values as-is during
