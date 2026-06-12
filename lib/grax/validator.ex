@@ -137,7 +137,6 @@ defmodule Grax.Validator do
     end
   end
 
-  defp in_value_space?(value, nil), do: value |> Literal.new() |> Literal.valid?()
   defp in_value_space?(%IRI{}, :rdf_term), do: true
   defp in_value_space?(%BlankNode{}, :rdf_term), do: true
   defp in_value_space?(%Literal{}, :rdf_term), do: true

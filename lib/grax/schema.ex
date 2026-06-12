@@ -53,7 +53,13 @@ defmodule Grax.Schema do
       end
 
       def __id_schema__(id_spec \\ nil)
-      def __id_schema__(nil), do: if(id_spec = __id_spec__(), do: __id_schema__(id_spec))
+
+      if unquote(id_spec) do
+        def __id_schema__(nil), do: __id_schema__(__id_spec__())
+      else
+        def __id_schema__(nil), do: if(id_spec = __id_spec__(), do: __id_schema__(id_spec))
+      end
+
       def __id_schema__(id_spec), do: id_spec.id_schema(__MODULE__)
 
       def build_id(attributes), do: Grax.build_id(__MODULE__, attributes)

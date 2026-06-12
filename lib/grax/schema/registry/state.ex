@@ -3,8 +3,6 @@ defmodule Grax.Schema.Registry.State do
 
   alias Grax.Schema
 
-  require Logger
-
   defstruct schemas_by_iri: %{}, schemas_without_iri: []
 
   def build(additional \\ []) do
@@ -32,8 +30,6 @@ defmodule Grax.Schema.Registry.State do
         %__MODULE__{state | schemas_without_iri: [module | state.schemas_without_iri]}
     end
   end
-
-  defp add_schema_iri(schemas_by_iri, _, nil), do: schemas_by_iri
 
   defp add_schema_iri(schemas_by_iri, schema, iri) do
     Map.update(schemas_by_iri, RDF.iri(iri), schema, &[schema | List.wrap(&1)])
