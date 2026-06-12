@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](http://semver.org/) and
 [Keep a CHANGELOG](http://keepachangelog.com).
 
 
+## Unreleased
+
+Elixir versions < 1.16 are no longer supported.
+
+
+[Compare v0.6.1..HEAD](https://github.com/rdf-elixir/grax/compare/v0.6.1...HEAD)
+
+
+
 ## v0.6.1 - 2026-03-19
 
 Elixir versions < 1.15 are no longer supported.
